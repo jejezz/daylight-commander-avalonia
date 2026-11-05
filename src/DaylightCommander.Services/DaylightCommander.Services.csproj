@@ -1,0 +1,14 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!-- 응용 계층 (Kotlin 판의 application 패키지): 유스케이스·작업 큐·설정 컨트롤러. Domain에만 의존한다.
+       이름을 Application으로 하지 않은 것은 Avalonia의 Application 클래스와 이름이 겹치지 않게 하려는 것. -->
+  <PropertyGroup>
+    <!-- LibraryImport(P/Invoke 소스 생성기)가 만드는 코드에 필요 -->
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+  </PropertyGroup>
+  <ItemGroup>
+    <InternalsVisibleTo Include="DaylightCommander.Services.Tests" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\DaylightCommander.Domain\DaylightCommander.Domain.csproj" />
+  </ItemGroup>
+</Project>

@@ -1,0 +1,13 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/DaylightCommander.App/DaylightCommander.App.csproj" />
+    <Project Path="src/DaylightCommander.Data/DaylightCommander.Data.csproj" />
+    <Project Path="src/DaylightCommander.Domain/DaylightCommander.Domain.csproj" />
+    <Project Path="src/DaylightCommander.Services/DaylightCommander.Services.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/DaylightCommander.Data.Tests/DaylightCommander.Data.Tests.csproj" />
+    <Project Path="tests/DaylightCommander.Domain.Tests/DaylightCommander.Domain.Tests.csproj" />
+    <Project Path="tests/DaylightCommander.Services.Tests/DaylightCommander.Services.Tests.csproj" />
+  </Folder>
+</Solution>

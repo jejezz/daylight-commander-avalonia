@@ -1,0 +1,15 @@
+<dlg:DialogBase xmlns="https://github.com/avaloniaui"
+                xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                xmlns:dlg="using:DaylightCommander.App.Dialogs"
+                x:Class="DaylightCommander.App.Dialogs.DeleteDialog"
+                MinWidth="440" MaxWidth="640">
+    <StackPanel Margin="24" Spacing="8">
+        <TextBlock x:Name="TitleText" FontSize="{DynamicResource FsTitle}" FontWeight="Bold" Margin="0,0,0,4"/>
+        <TextBlock x:Name="MessageText" TextWrapping="Wrap"/>
+        <StackPanel x:Name="Names" Spacing="2"/>
+        <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Spacing="8" Margin="0,12,0,0">
+            <Button x:Name="CancelButton"/>
+            <Button x:Name="OkButton" Classes="accent"/>
+        </StackPanel>
+    </StackPanel>
+</dlg:DialogBase>

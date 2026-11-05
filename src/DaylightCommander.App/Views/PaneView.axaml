@@ -1,0 +1,139 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:DaylightCommander.App.ViewModels"
+             xmlns:app="using:DaylightCommander.App"
+             x:Class="DaylightCommander.App.Views.PaneView"
+             x:DataType="vm:PaneViewModel">
+    <Grid RowDefinitions="Auto,Auto,*,Auto">
+        <!-- 툴바: 뒤로 · 앞으로 · 상위 · 새로고침 | 경로 | 숨김 파일 -->
+        <Grid Grid.Row="0" ColumnDefinitions="Auto,Auto,Auto,Auto,Auto,Auto,Auto,*,Auto" Margin="6,4" ColumnSpacing="2">
+            <Button Grid.Column="0" Classes="tool" Command="{Binding BackCommand}" IsEnabled="{Binding CanGoBack}"
+                    ToolTip.Tip="{DynamicResource Str.PaneBackTooltip}">
+                <PathIcon Data="{StaticResource IconBack}"/>
+            </Button>
+            <Button Grid.Column="1" Classes="tool" Command="{Binding ForwardCommand}" IsEnabled="{Binding CanGoForward}"
+                    ToolTip.Tip="{DynamicResource Str.PaneForwardTooltip}">
+                <PathIcon Data="{StaticResource IconForward}"/>
+            </Button>
+            <Button Grid.Column="2" Classes="tool" Command="{Binding UpCommand}" IsEnabled="{Binding CanGoUp}"
+                    ToolTip.Tip="{DynamicResource Str.PaneUpTooltip}">
+                <PathIcon Data="{StaticResource IconUp}"/>
+            </Button>
+            <Button Grid.Column="3" Classes="tool" Command="{Binding RefreshCommand}"
+                    ToolTip.Tip="{DynamicResource Str.PaneRefreshTooltip}">
+                <PathIcon Data="{StaticResource IconRefresh}"/>
+            </Button>
+
+            <!-- 즐겨찾기(하트)와 최근 방문(시계) 메뉴. 메뉴 내용은 열 때 코드가 채운다 -->
+            <Button Grid.Column="4" x:Name="BookmarkButton" Classes="tool"
+                    ToolTip.Tip="{DynamicResource Str.BookmarkTooltip}">
+                <Grid>
+                    <PathIcon Data="{StaticResource IconHeart}" IsVisible="{Binding IsBookmarked}"
+                              Foreground="{DynamicResource AppDanger}"/>
+                    <PathIcon Data="{StaticResource IconHeartOutline}" IsVisible="{Binding !IsBookmarked}"/>
+                </Grid>
+            </Button>
+            <Button Grid.Column="5" x:Name="RecentButton" Classes="tool"
+                    ToolTip.Tip="{DynamicResource Str.RecentTooltip}">
+                <PathIcon Data="{StaticResource IconHistory}"/>
+            </Button>
+
+            <!-- 드라이브 전환: 누르면 이 컴퓨터의 드라이브(볼륨) 목록이 뜬다 -->
+            <Button Grid.Column="6" x:Name="DriveButton" Classes="tool"
+                    ToolTip.Tip="{DynamicResource Str.DriveTooltip}">
+                <PathIcon Data="{StaticResource IconDrive}"/>
+            </Button>
+
+            <!-- 경로 표시줄: 직접 고쳐 쓰고 Enter로 이동, Esc로 되돌린다 -->
+            <TextBox Grid.Column="7" x:Name="PathBox" Text="{Binding PathText}" Margin="6,0" FontSize="{DynamicResource FsMid}"
+                     MinHeight="0" Padding="8,6" VerticalContentAlignment="Center"
+                     Background="Transparent" BorderBrush="{DynamicResource AppStroke}" CornerRadius="6"/>
+
+            <ToggleButton Grid.Column="8" Classes="tool" IsChecked="{Binding ShowHidden, Mode=OneWay}"
+                          Command="{Binding ToggleHiddenCommand}"
+                          ToolTip.Tip="{DynamicResource Str.PaneShowHiddenTooltip}">
+                <Grid>
+                    <PathIcon Data="{StaticResource IconVisible}" IsVisible="{Binding ShowHidden}"/>
+                    <PathIcon Data="{StaticResource IconVisibleOff}" IsVisible="{Binding !ShowHidden}"/>
+                </Grid>
+            </ToggleButton>
+        </Grid>
+
+        <!-- 즐겨찾기·최근 방문 메뉴 (Popup: 내용은 버튼을 누를 때 코드가 채운다) -->
+        <Popup x:Name="BookmarkPopup" PlacementTarget="{Binding #BookmarkButton}" Placement="BottomEdgeAlignedLeft"
+               IsLightDismissEnabled="True">
+            <Border Classes="menu"><ScrollViewer MaxHeight="360" VerticalScrollBarVisibility="Auto">
+                <StackPanel x:Name="BookmarkItems"/></ScrollViewer></Border>
+        </Popup>
+        <Popup x:Name="DrivePopup" PlacementTarget="{Binding #DriveButton}" Placement="BottomEdgeAlignedLeft"
+               IsLightDismissEnabled="True">
+            <Border Classes="menu"><ScrollViewer MaxHeight="360" VerticalScrollBarVisibility="Auto">
+                <StackPanel x:Name="DriveItems"/></ScrollViewer></Border>
+        </Popup>
+        <Popup x:Name="RecentPopup" PlacementTarget="{Binding #RecentButton}" Placement="BottomEdgeAlignedLeft"
+               IsLightDismissEnabled="True">
+            <Border Classes="menu"><ScrollViewer MaxHeight="360" VerticalScrollBarVisibility="Auto">
+                <StackPanel x:Name="RecentItems"/></ScrollViewer></Border>
+        </Popup>
+
+        <!-- 컬럼 헤더: 이름 | 크기(80) | 수정일(130), 간격 12. 눌러서 정렬 -->
+        <Grid Grid.Row="1" ColumnDefinitions="*,80,130" Margin="12,0" ColumnSpacing="12">
+            <Button Grid.Column="0" Classes="header" Command="{Binding SortCommand}" CommandParameter="Name">
+                <TextBlock Text="{Binding NameHeader}"/>
+            </Button>
+            <Button Grid.Column="1" Classes="header" Command="{Binding SortCommand}" CommandParameter="Size"
+                    HorizontalContentAlignment="Right">
+                <TextBlock Text="{Binding SizeHeader}" TextAlignment="Right"/>
+            </Button>
+            <Button Grid.Column="2" Classes="header" Command="{Binding SortCommand}" CommandParameter="Modified">
+                <TextBlock Text="{Binding ModifiedHeader}"/>
+            </Button>
+        </Grid>
+
+        <Grid Grid.Row="2">
+            <!-- 선택(커서)은 컨트롤러가 정한다: 클릭은 코드 비하인드가 컨트롤러로 보내고, 목록은 따라 그리기만 한다 -->
+            <ListBox x:Name="Entries" ItemsSource="{Binding Items}" SelectedItem="{Binding Cursor, Mode=OneWay}"
+                     Background="Transparent" BorderThickness="0" Padding="0" Classes="entries">
+                <ListBox.ItemTemplate>
+                    <DataTemplate x:DataType="vm:EntryItem">
+                        <Grid ColumnDefinitions="*,80,130" ColumnSpacing="12" Opacity="{Binding RowOpacity}"
+                              Classes.picked="{Binding IsSelected}">
+                            <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="8">
+                                <PathIcon Width="20" Height="20" VerticalAlignment="Center"
+                                          Data="{StaticResource IconFile}"
+                                          Foreground="{DynamicResource AppTextMid}"
+                                          IsVisible="{Binding IsFile}"/>
+                                <PathIcon Width="20" Height="20" VerticalAlignment="Center"
+                                          Data="{StaticResource IconFolder}"
+                                          Foreground="{DynamicResource AppFolder}"
+                                          IsVisible="{Binding IsDirectory}"/>
+                                <TextBlock Text="{Binding Name}" VerticalAlignment="Center"
+                                           TextTrimming="CharacterEllipsis"/>
+                            </StackPanel>
+                            <TextBlock Grid.Column="1" Text="{Binding SizeText}" FontSize="{DynamicResource FsSmall}"
+                                       TextAlignment="Right" VerticalAlignment="Center"/>
+                            <TextBlock Grid.Column="2" Text="{Binding ModifiedText}" FontSize="{DynamicResource FsSmall}"
+                                       VerticalAlignment="Center"/>
+                        </Grid>
+                    </DataTemplate>
+                </ListBox.ItemTemplate>
+            </ListBox>
+            <TextBlock Text="{Binding Message}" HorizontalAlignment="Center" VerticalAlignment="Center"
+                       IsHitTestVisible="False"
+                       IsVisible="{Binding Message, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"
+                       Foreground="{DynamicResource AppTextMid}"/>
+        </Grid>
+
+        <!-- 상태 표시줄: 오류가 있으면 오류 문구(눌러서 닫기), 없으면 항목 수 -->
+        <Border Grid.Row="3" x:Name="StatusBar" Classes.error="{Binding HasError}"
+                BorderBrush="{DynamicResource AppStroke}" BorderThickness="0,1,0,0" Padding="12,6">
+            <Grid ColumnDefinitions="*,Auto">
+                <TextBlock Grid.Column="0" Text="{Binding StatusText}" FontSize="{DynamicResource FsSmall}"
+                           Foreground="{DynamicResource AppTextMid}" TextTrimming="CharacterEllipsis"/>
+                <TextBlock Grid.Column="1" Text="{Binding FilterText}" FontSize="{DynamicResource FsSmall}" Margin="12,0,0,0"
+                           Foreground="{DynamicResource AppPrimary}"
+                           IsVisible="{Binding FilterText, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"/>
+            </Grid>
+        </Border>
+    </Grid>
+</UserControl>

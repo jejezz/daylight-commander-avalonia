@@ -1,0 +1,42 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:DaylightCommander.App.ViewModels"
+             xmlns:app="using:DaylightCommander.App"
+             x:Class="DaylightCommander.App.Views.OperationsPanel"
+             x:DataType="vm:OperationsViewModel"
+             IsVisible="{Binding HasJobs}">
+    <!-- 진행 중이거나 막 끝난 파일 작업 목록. 작업이 많으면 안에서 스크롤된다. -->
+    <Border Classes="opspanel">
+        <ScrollViewer VerticalScrollBarVisibility="Auto">
+            <StackPanel>
+                <ItemsControl ItemsSource="{Binding Jobs}">
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate x:DataType="vm:JobItem">
+                            <StackPanel Margin="0,4" Spacing="2">
+                                <Grid ColumnDefinitions="*,Auto,Auto" ColumnSpacing="8">
+                                    <TextBlock Grid.Column="0" Text="{Binding Title}" TextTrimming="CharacterEllipsis"
+                                               VerticalAlignment="Center"/>
+                                    <TextBlock Grid.Column="1" Text="{Binding StatusText}" FontSize="{DynamicResource FsSmall}" VerticalAlignment="Center"
+                                               Classes.failed="{Binding IsFailed}"/>
+                                    <Button Grid.Column="2" Classes="tool" Width="24" Height="24"
+                                            Command="{Binding CancelCommand}" IsVisible="{Binding CanCancel}"
+                                            ToolTip.Tip="{DynamicResource Str.JobsCancel}">
+                                        <PathIcon Data="{StaticResource IconClose}" Width="14" Height="14"/>
+                                    </Button>
+                                </Grid>
+                                <ProgressBar IsVisible="{Binding IsRunning}" IsIndeterminate="{Binding IsIndeterminate}"
+                                             Value="{Binding Percent}" Minimum="0" Maximum="100" Height="4"/>
+                                <TextBlock Text="{Binding Current}" FontSize="{DynamicResource FsSmall}" TextTrimming="CharacterEllipsis"
+                                           IsVisible="{Binding HasCurrent}" Foreground="{DynamicResource AppTextMid}"/>
+                                <TextBlock Text="{Binding FailureText}" FontSize="{DynamicResource FsSmall}" TextWrapping="Wrap" MaxLines="2"
+                                           IsVisible="{Binding HasFailure}" Foreground="{DynamicResource AppDanger}"/>
+                            </StackPanel>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+                <Button Content="{DynamicResource Str.JobsClearFinished}" HorizontalAlignment="Right"
+                        Classes="header" Command="{Binding DismissFinishedCommand}" IsVisible="{Binding HasFinished}"/>
+            </StackPanel>
+        </ScrollViewer>
+    </Border>
+</UserControl>

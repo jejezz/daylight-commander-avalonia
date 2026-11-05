@@ -1,0 +1,37 @@
+<Project>
+  <!-- 버전·정체성의 유일한 원본. 코드는 AppIdentity/AppVersion으로 읽는다 (어셈블리 메타데이터, AOT 안전).
+       Kotlin 판의 gradle.properties(app.*)에 해당. AppId는 릴리스 후 바꾸지 않는다.
+       MAJOR는 1 이상 (macOS 패키징이 0.y.z를 거부). -->
+  <PropertyGroup>
+    <AppVersion>1.0.0-rc.1</AppVersion>
+    <AppBuild>1</AppBuild>
+    <AppId>art.zoomon.daylightcommander.avalonia</AppId>
+    <AppDisplayName>Daylight Commander</AppDisplayName>
+    <AppFileName>DaylightCommander</AppFileName>
+    <AppCopyrightHolder>Jongyun Ahn</AppCopyrightHolder>
+    <AppFirstReleaseYear>2026</AppFirstReleaseYear>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <LangVersion>latest</LangVersion>
+    <Version>$(AppVersion)</Version>
+    <Product>$(AppDisplayName)</Product>
+    <Company>$(AppCopyrightHolder)</Company>
+    <!-- git 저장소 안에서 NativeAOT 링크가 .sourcelink 파일을 못 찾아 실패하는 것을 막는다 (원격이 없는 저장소 등). -->
+    <EnableSourceLink>false</EnableSourceLink>
+    <Copyright>Copyright © $(AppFirstReleaseYear) $(AppCopyrightHolder)</Copyright>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <AssemblyMetadata Include="AppId" Value="$(AppId)" />
+    <AssemblyMetadata Include="AppDisplayName" Value="$(AppDisplayName)" />
+    <AssemblyMetadata Include="AppFileName" Value="$(AppFileName)" />
+    <AssemblyMetadata Include="AppCopyrightHolder" Value="$(AppCopyrightHolder)" />
+    <AssemblyMetadata Include="AppFirstReleaseYear" Value="$(AppFirstReleaseYear)" />
+    <AssemblyMetadata Include="AppVersion" Value="$(AppVersion)" />
+    <AssemblyMetadata Include="AppBuild" Value="$(AppBuild)" />
+  </ItemGroup>
+</Project>

@@ -1,0 +1,19 @@
+<dlg:DialogBase xmlns="https://github.com/avaloniaui"
+                xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                xmlns:dlg="using:DaylightCommander.App.Dialogs"
+                x:Class="DaylightCommander.App.Dialogs.ConflictDialog"
+                MinWidth="480" MaxWidth="680">
+    <StackPanel Margin="24" Spacing="8">
+        <TextBlock x:Name="TitleText" FontSize="{DynamicResource FsTitle}" FontWeight="Bold" Margin="0,0,0,4"/>
+        <TextBlock x:Name="FileName" FontWeight="Bold" TextTrimming="CharacterEllipsis"/>
+        <TextBlock x:Name="ExistingText" FontSize="{DynamicResource FsSmall}" TextWrapping="Wrap"/>
+        <TextBlock x:Name="NewText" FontSize="{DynamicResource FsSmall}" TextWrapping="Wrap"/>
+        <CheckBox x:Name="ApplyToAll" Margin="0,4,0,0"/>
+        <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Spacing="8" Margin="0,8,0,0">
+            <Button x:Name="OverwriteButton"/>
+            <Button x:Name="KeepBothButton"/>
+            <Button x:Name="SkipButton"/>
+            <Button x:Name="CancelButton"/>
+        </StackPanel>
+    </StackPanel>
+</dlg:DialogBase>
