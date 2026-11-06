@@ -12,23 +12,36 @@ namespace DaylightCommander.Services.Tests;
 /// </summary>
 public sealed class FactIfSftpServerAttribute : FactAttribute
 {
-    static readonly Lazy<string?> Python = new(FindPython);
-
-    internal static string? PythonPath => Python.Value;
+    internal static string? PythonPath => TestPython.With("asyncssh");
 
     public FactIfSftpServerAttribute()
     {
-        if (Python.Value is null) Skip = "asyncssh가 있는 파이썬이 없어 건너뜀 (DC_TEST_PYTHON으로 지정할 수 있다)";
+        if (PythonPath is null) Skip = "asyncssh가 있는 파이썬이 없어 건너뜀 (DC_TEST_PYTHON으로 지정할 수 있다)";
+    }
+}
+
+/// <summary>통합 테스트가 쓰는 파이썬 찾기: 지정한 모듈을 불러올 수 있는 첫 파이썬 (없으면 null).</summary>
+internal static class TestPython
+{
+    static readonly Dictionary<string, string?> Cache = [];
+
+    public static string? With(string module)
+    {
+        lock (Cache)
+        {
+            if (Cache.TryGetValue(module, out var cached)) return cached;
+            return Cache[module] = Find(module);
+        }
     }
 
-    static string? FindPython()
+    static string? Find(string module)
     {
         foreach (var candidate in new[] { Environment.GetEnvironmentVariable("DC_TEST_PYTHON"), "python", "python3" })
         {
             if (string.IsNullOrWhiteSpace(candidate)) continue;
             try
             {
-                var info = new ProcessStartInfo(candidate, "-c \"import asyncssh\"") { UseShellExecute = false, RedirectStandardError = true, RedirectStandardOutput = true, CreateNoWindow = true };
+                var info = new ProcessStartInfo(candidate, $"-c \"import {module}\"") { UseShellExecute = false, RedirectStandardError = true, RedirectStandardOutput = true, CreateNoWindow = true };
                 using var p = Process.Start(info);
                 if (p is null) continue;
                 if (!p.WaitForExit(15000)) { p.Kill(); continue; }

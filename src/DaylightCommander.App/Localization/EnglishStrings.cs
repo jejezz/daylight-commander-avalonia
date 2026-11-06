@@ -259,7 +259,10 @@ public sealed class EnglishStrings : IAppStrings
     public string NetworkTooltip => "Connect to Network Drive";
     public string NetworkConnectSftp => "Connect to SFTP Server…";
     public string NetworkRemoveProfile => "Remove Saved Server";
-    public string ConnectTitle => "Connect to SFTP Server";
+    public string ConnectTitle => "Connect to Server";
+    public string NetworkConnectFtp => "Connect to FTP Server…";
+    public string ConnectProtocol => "Protocol";
+    public string ConnectAnonymous => "Connect anonymously";
     public string ConnectHost => "Server";
     public string ConnectHostHint => "e.g. example.com";
     public string ConnectPort => "Port";

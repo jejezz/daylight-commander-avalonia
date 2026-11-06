@@ -259,7 +259,10 @@ public sealed class KoreanStrings : IAppStrings
     public string NetworkTooltip => "네트워크 드라이브 연결";
     public string NetworkConnectSftp => "SFTP 서버에 연결…";
     public string NetworkRemoveProfile => "저장한 서버 지우기";
-    public string ConnectTitle => "SFTP 서버에 연결";
+    public string ConnectTitle => "서버에 연결";
+    public string NetworkConnectFtp => "FTP 서버에 연결…";
+    public string ConnectProtocol => "프로토콜";
+    public string ConnectAnonymous => "익명으로 연결";
     public string ConnectHost => "서버 주소";
     public string ConnectHostHint => "예: example.com";
     public string ConnectPort => "포트";

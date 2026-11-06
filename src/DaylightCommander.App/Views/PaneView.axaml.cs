@@ -339,7 +339,8 @@ public partial class PaneView : UserControl
         NetworkItems.Children.Clear();
         if (Vm is not { Actions: { } act, Settings: { } settings }) return;
         var s = Strings.Current;
-        NetworkItems.Children.Add(MenuRow(s.NetworkConnectSftp, () => act.Connect(null), NetworkPopup));
+        NetworkItems.Children.Add(MenuRow(s.NetworkConnectSftp, () => act.Connect(null, "sftp"), NetworkPopup));
+        NetworkItems.Children.Add(MenuRow(s.NetworkConnectFtp, () => act.Connect(null, "ftp"), NetworkPopup));
 
         var profiles = settings.Value.NetworkProfiles;
         if (profiles.Count > 0) NetworkItems.Children.Add(MenuSeparator());
@@ -347,7 +348,7 @@ public partial class PaneView : UserControl
         {
             var label = Locations.FormatAuthority(profile.Scheme, profile.User, profile.Host, profile.Port);
             // 한 줄: [서버 ............ ✕]. 서버를 누르면 연결 대화상자(미리 채워짐), ✕를 누르면 저장 목록에서 뺀다.
-            var go = MenuRow(PathText(label), () => act.Connect(profile), NetworkPopup);
+            var go = MenuRow(PathText(label), () => act.Connect(profile, profile.Scheme), NetworkPopup);
             var remove = new Button { Classes = { "tool" }, Width = 28, Height = 28, VerticalAlignment = VerticalAlignment.Center };
             remove.Content = new Icons.DuoIcon { Icon = "close", Width = 14, Height = 14 };
             ToolTip.SetTip(remove, s.NetworkRemoveProfile);

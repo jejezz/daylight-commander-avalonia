@@ -9,14 +9,14 @@ public sealed record RemoteLocation(string Scheme, string? User, string Host, in
 }
 
 /// <summary>
-/// 위치(경로) 문자열의 규칙. 로컬은 그냥 운영체제 경로이고, 원격은 <c>sftp://user@host[:port]/경로</c> 형태의 문자열이다 — 도메인과
+/// 위치(경로) 문자열의 규칙. 로컬은 그냥 운영체제 경로이고, 원격은 <c>sftp://</c>·<c>ftp://</c> <c>user@host[:port]/경로</c> 형태의 문자열이다 — 도메인과
 /// 서비스가 두 종류를 같은 문자열로 다루고, 위·이름·합치기만 이 도우미를 거친다. 서버 안의 경로는 항상 슬래시 구분이다.
 /// 원격 경로는 퍼센트 인코딩하지 않는다 (공백·한글이 그대로 들어 있다).
 /// </summary>
 public static class Locations
 {
     /// <summary>지원하는 원격 스킴과 기본 포트.</summary>
-    static readonly (string Scheme, int DefaultPort)[] Schemes = [("sftp", 22)];
+    static readonly (string Scheme, int DefaultPort)[] Schemes = [("sftp", 22), ("ftp", 21)];
 
     public static bool IsRemote(string path) => SchemeOf(path) is not null;
 

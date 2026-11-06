@@ -163,7 +163,7 @@ public sealed partial class HomeViewModel : ObservableObject, IDisposable
             Reveal: path => State.RevealInFileManager(path, side),
             ToggleBookmark: OnPath(_settings.ToggleBookmark),
             Drop: (paths, destination, mode) => State.Drop(paths, destination, mode, side),
-            Connect: profile => { State.Activate(side); State.RequestConnect(profile); },
+            Connect: (profile, scheme) => { State.Activate(side); State.RequestConnect(profile, scheme); },
             Disconnect: server => _ = State.DisconnectAsync(server),
             RemoveProfile: profile => _settings.Update(s => s.WithoutNetworkProfile(profile)),
             Connected: () => State.Remote.Connected);

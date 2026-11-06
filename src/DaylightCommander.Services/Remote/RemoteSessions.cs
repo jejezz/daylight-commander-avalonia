@@ -1,6 +1,8 @@
 using System.Net.Sockets;
 using DaylightCommander.Domain;
 using Renci.SshNet;
+using FluentFTP;
+using FluentFTP.Exceptions;
 using Renci.SshNet.Common;
 
 namespace DaylightCommander.Services;
@@ -41,7 +43,7 @@ public sealed class RemoteSessions : IDisposable
     /// <param name="connector">테스트용으로 바꿀 수 있다. 기본은 SFTP.</param>
     public RemoteSessions(IHostKeyStore? hostKeys = null, Connector? connector = null)
     {
-        _connector = connector ?? ((request, ct) => ConnectSftpAsync(request, hostKeys, ct));
+        _connector = connector ?? ((request, ct) => request.Scheme == "ftp" ? ConnectFtpAsync(request, ct) : ConnectSftpAsync(request, hostKeys, ct));
     }
 
     /// <summary>연결·해제가 있었다.</summary>
@@ -73,7 +75,12 @@ public sealed class RemoteSessions : IDisposable
         (old as IDisposable)?.Dispose();
         Changed?.Invoke();
 
-        var home = fs is SftpFileSystem sftp ? sftp.WorkingDirectory : "/";
+        var home = fs switch
+        {
+            SftpFileSystem sftp => sftp.WorkingDirectory,
+            FtpFileSystem ftp => await ftp.GetWorkingDirectoryAsync(ct),
+            _ => "/",
+        };
         return Locations.Format(new RemoteLocation(request.Scheme, request.User, request.Host, request.Port, Locations.NormalizeServerPath(home)));
     }
 
@@ -82,7 +89,7 @@ public sealed class RemoteSessions : IDisposable
         var loc = Locations.TryParse(path) ?? throw new FileOperationException(new FileError.Other(path));
         lock (_gate)
         {
-            if (_sessions.TryGetValue(loc.Authority, out var fs) && (fs is not SftpFileSystem { IsConnected: false })) return fs;
+            if (_sessions.TryGetValue(loc.Authority, out var fs) && fs is not (SftpFileSystem { IsConnected: false } or FtpFileSystem { IsConnected: false })) return fs;
         }
         throw new FileOperationException(new FileError.RemoteNotConnected(loc.Authority));
     }
@@ -109,6 +116,37 @@ public sealed class RemoteSessions : IDisposable
             _sessions.Clear();
         }
         foreach (var fs in all) (fs as IDisposable)?.Dispose();
+    }
+
+    // --- FTP ---
+
+    static async Task<IFileSystem> ConnectFtpAsync(RemoteConnectRequest request, CancellationToken ct)
+    {
+        var client = new AsyncFtpClient(request.Host, request.User, request.Password, request.Port);
+        client.Config.ConnectTimeout = 15000;
+        client.Config.DataConnectionConnectTimeout = 15000;
+        client.Config.DataConnectionType = FtpDataConnectionType.AutoPassive;
+        client.Config.EncryptionMode = FtpEncryptionMode.None;
+        client.Config.DownloadDataType = FtpDataType.Binary;
+        client.Config.UploadDataType = FtpDataType.Binary;
+        if (Environment.GetEnvironmentVariable("DC_FTP_LOG") == "1") client.Config.LogToConsole = true; // 문제 조사용
+        try
+        {
+            await client.Connect(ct);
+            return new FtpFileSystem(client, request.Authority);
+        }
+        catch (Exception e)
+        {
+            client.Dispose();
+            throw e switch
+            {
+                OperationCanceledException => e,
+                FtpAuthenticationException => new FileOperationException(new FileError.RemoteAuthFailed()),
+                FtpCommandException { CompletionCode: "530" } => new FileOperationException(new FileError.RemoteAuthFailed()),
+                FtpException or SocketException or TimeoutException or IOException => new FileOperationException(new FileError.RemoteConnectFailed(e.Message)),
+                _ => e,
+            };
+        }
     }
 
     // --- SFTP ---

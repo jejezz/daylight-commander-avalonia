@@ -265,6 +265,9 @@ public interface IAppStrings
     string NetworkConnectSftp { get; }
     string NetworkRemoveProfile { get; }
     string ConnectTitle { get; }
+    string NetworkConnectFtp { get; }
+    string ConnectProtocol { get; }
+    string ConnectAnonymous { get; }
     string ConnectHost { get; }
     string ConnectHostHint { get; }
     string ConnectPort { get; }

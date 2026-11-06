@@ -24,7 +24,7 @@ public abstract record HomeDialog
     public sealed record Delete(IReadOnlyList<string> Paths, bool ToTrash) : HomeDialog;
 
     /// <summary>서버에 연결하는 대화상자. <paramref name="Profile"/>은 미리 채울 값(저장해 둔 서버), <paramref name="Busy"/>는 연결하는 중.</summary>
-    public sealed record Connect(PaneSide Side, NetworkProfile? Profile = null, FileError? Error = null, bool Busy = false) : HomeDialog;
+    public sealed record Connect(PaneSide Side, NetworkProfile? Profile = null, FileError? Error = null, bool Busy = false, string Scheme = "sftp") : HomeDialog;
 
     /// <summary>패턴으로 선택 (F-바): 패턴 입력 대화상자.</summary>
     public sealed record PatternSelect : HomeDialog;
@@ -283,7 +283,8 @@ public sealed class HomeState : IDisposable
     // --- 원격 서버 연결 ---
 
     /// <summary>서버 연결 대화상자를 연다. 연결에 성공하면 지금 활성 패널이 그 서버의 홈 폴더로 간다.</summary>
-    public void RequestConnect(NetworkProfile? profile = null) => SetDialog(new HomeDialog.Connect(Active, profile));
+    public void RequestConnect(NetworkProfile? profile = null, string scheme = "sftp") =>
+        SetDialog(new HomeDialog.Connect(Active, profile, Scheme: profile?.Scheme ?? scheme));
 
     /// <summary>
     /// 연결을 시도한다. 성공하면 대화상자를 닫고 (<paramref name="save"/>면 서버를 저장해 두고) 패널을 홈 폴더로 옮긴다. 실패하면
@@ -297,10 +298,10 @@ public sealed class HomeState : IDisposable
         var profile = new NetworkProfile { Scheme = scheme, Host = host, Port = port, User = user };
         if (host.Length == 0 || user.Length == 0)
         {
-            SetDialog(d with { Profile = profile, Error = new FileError.RemoteConnectFailed(null) });
+            SetDialog(d with { Profile = profile, Scheme = scheme, Error = new FileError.RemoteConnectFailed(null) });
             return;
         }
-        SetDialog(d with { Profile = profile, Error = null, Busy = true });
+        SetDialog(d with { Profile = profile, Scheme = scheme, Error = null, Busy = true });
         try
         {
             var home = await Remote.ConnectAsync(new RemoteConnectRequest(scheme, host, port, user, password));
@@ -311,7 +312,7 @@ public sealed class HomeState : IDisposable
         }
         catch (FileOperationException e)
         {
-            if (_dialog is HomeDialog.Connect) SetDialog(d with { Profile = profile, Error = e.Error, Busy = false });
+            if (_dialog is HomeDialog.Connect) SetDialog(d with { Profile = profile, Scheme = scheme, Error = e.Error, Busy = false });
         }
     }
 

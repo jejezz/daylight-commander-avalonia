@@ -7,6 +7,7 @@ public sealed class LocationsTests
     [Theory]
     [InlineData("sftp://me@host/a/b", true)]
     [InlineData("SFTP://me@host", true)]
+    [InlineData("ftp://host/pub", true)]
     [InlineData(@"C:\Users\me", false)]
     [InlineData("/home/me", false)]
     [InlineData("sftpx://host", false)]
@@ -32,6 +33,17 @@ public sealed class LocationsTests
         Assert.Equal("/", loc.Path);
         Assert.Equal("sftp://me@host", loc.Authority); // 기본 포트는 적지 않는다
         Assert.Equal("sftp://me@host/", Locations.Format(loc));
+    }
+
+    [Fact]
+    public void FTP는_기본_포트가_21이고_익명도_계정_없이_쓸_수_있다()
+    {
+        var loc = Locations.TryParse("ftp://host/pub/x")!;
+        Assert.Equal(("ftp", null, "host", 21, "/pub/x"), (loc.Scheme, loc.User, loc.Host, loc.Port, loc.Path));
+        Assert.Equal("ftp://host", loc.Authority);
+        Assert.Equal("ftp://me@host:2121", Locations.FormatAuthority("ftp", "me", "host", 2121));
+        Assert.False(Locations.SameServer("ftp://me@host/a", "sftp://me@host/a")); // 같은 호스트라도 프로토콜이 다르면 다른 서버
+        Assert.Equal("ftp://host/pub", Locations.Parent("ftp://host/pub/x"));
     }
 
     [Fact]

@@ -23,8 +23,8 @@ public sealed record PaneActions(
     Action<string> ToggleBookmark,
     /// <summary>끌어다 놓기: (경로들, 놓은 폴더, 복사/이동 지정).</summary>
     Action<IReadOnlyList<string>, string, DropMode> Drop,
-    /// <summary>서버 연결 대화상자를 연다 (저장해 둔 서버를 고르면 미리 채워서).</summary>
-    Action<NetworkProfile?> Connect,
+    /// <summary>서버 연결 대화상자를 연다 (저장해 둔 서버를 고르면 미리 채워서; 두 번째 인자는 새로 연결할 때의 프로토콜).</summary>
+    Action<NetworkProfile?, string> Connect,
     /// <summary>서버 연결을 끊는다 (인자는 서버 열쇠 <c>sftp://user@host</c>).</summary>
     Action<string> Disconnect,
     Action<NetworkProfile> RemoveProfile,
