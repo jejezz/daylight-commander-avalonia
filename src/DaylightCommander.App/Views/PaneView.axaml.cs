@@ -68,6 +68,7 @@ public partial class PaneView : UserControl
     EntryItem? _pressItem;
     bool _clickDeferred; // 여러 개 선택한 행을 눌렀다: 끌기인지 클릭인지 알 때까지 선택을 건드리지 않는다
     bool _dragging;
+    bool _menuPending;
 
     void OnEntryPressed(object? sender, PointerPressedEventArgs e)
     {
@@ -79,6 +80,7 @@ public partial class PaneView : UserControl
         {
             // 여러 개를 고른 상태에서 그 안의 행을 우클릭하면 선택을 유지하고, 아니면 그 행만 고른다.
             if (!item.IsSelected) vm.Click(item, ctrl: false, shift: false);
+            _menuPending = true; // 선택이 바뀌면 줄이 다시 그려지므로, 놓을 때의 이벤트 대상 대신 이 표시로 메뉴를 연다
             Entries.Focus();
             e.Handled = true;
             return;
@@ -139,8 +141,8 @@ public partial class PaneView : UserControl
 
         if (e.InitialPressMouseButton == MouseButton.Right)
         {
-            var row = (e.Source as Avalonia.Visual)?.FindAncestorOfType<ListBoxItem>(includeSelf: true);
-            if (row?.DataContext is EntryItem) ShowContextMenu();
+            if (_menuPending) ShowContextMenu();
+            _menuPending = false;
             e.Handled = true;
         }
     }

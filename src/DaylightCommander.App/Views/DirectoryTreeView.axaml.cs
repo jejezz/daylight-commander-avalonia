@@ -31,6 +31,7 @@ public partial class DirectoryTreeView : UserControl
     PointerPressedEventArgs? _pressArgs;
     Point _pressPoint;
     TreeRow? _pressRow;
+    TreeRow? _menuRow;
     bool _dragging;
     Border? _dropRow;
 
@@ -73,7 +74,15 @@ public partial class DirectoryTreeView : UserControl
         if (Vm is not { } vm) return;
         var props = e.GetCurrentPoint(this).Properties;
         var source = e.Source as Avalonia.Visual;
-        if (!props.IsLeftButtonPressed) return; // 오른쪽 단추는 놓을 때 메뉴를 연다
+        if (props.IsRightButtonPressed)
+        {
+            // 우클릭한 폴더가 곧 선택된 폴더다: 이미 그 폴더가 아니면 먼저 그리로 이동해 강조가 따라오게 한다. 메뉴는 놓을 때 연다.
+            // 이동하면 줄이 다시 그려져 놓을 때의 이벤트 대상이 바뀌므로, 누른 줄을 기억해 두었다가 그 줄의 메뉴를 연다.
+            _menuRow = RowAt(source);
+            if (_menuRow is { Selected: false } target) vm.Select(target);
+            return;
+        }
+        if (!props.IsLeftButtonPressed) return;
 
         if (source?.FindAncestorOfType<Button>(includeSelf: true) is { Tag: TreeRow toggled })
         {
@@ -126,8 +135,9 @@ public partial class DirectoryTreeView : UserControl
             _pressRow = null;
             if (row is not null && !_dragging && RowAt(e.Source as Avalonia.Visual)?.Path == row.Path) vm.Select(row);
         }
-        else if (e.InitialPressMouseButton == MouseButton.Right && RowAt(e.Source as Avalonia.Visual) is { } menuRow)
+        else if (e.InitialPressMouseButton == MouseButton.Right && _menuRow is { } menuRow)
         {
+            _menuRow = null;
             ShowContextMenu(vm, menuRow);
             e.Handled = true;
         }

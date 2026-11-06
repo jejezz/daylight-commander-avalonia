@@ -78,7 +78,7 @@
         </Popup>
 
         <!-- 행 우클릭 메뉴 (내용은 우클릭할 때 코드가 채운다) -->
-        <Popup x:Name="ContextPopup" PlacementTarget="{Binding #Entries}" Placement="Pointer" IsLightDismissEnabled="True">
+        <Popup x:Name="ContextPopup" PlacementTarget="{Binding #Entries}" Placement="Pointer" IsLightDismissEnabled="True" OverlayDismissEventPassThrough="True">
             <Border Classes="menu"><StackPanel x:Name="ContextItems" MinWidth="220"/></Border>
         </Popup>
 
