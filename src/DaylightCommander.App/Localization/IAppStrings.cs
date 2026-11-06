@@ -256,6 +256,7 @@ public interface IAppStrings
     string SwapPanesTooltip { get; }
     string SyncPathRightTooltip { get; }
     string SyncPathLeftTooltip { get; }
+    string TerminalTooltip { get; }
     string SinglePaneTooltip { get; }
     string DualPaneTooltip { get; }
     string DockedPaneTooltip(string path);

@@ -42,6 +42,7 @@ public sealed class HomeState : IDisposable
     readonly ExternalEditorLauncher _editor;
     readonly IFileOpener _opener;
     readonly IFileRevealer _revealer;
+    readonly ITerminalLauncher _terminal;
     readonly Func<Func<Task>, Task> _onUi;
     HomeDialog? _dialog;
 
@@ -51,10 +52,11 @@ public sealed class HomeState : IDisposable
     /// </param>
     public HomeState(string leftPath, string rightPath, PaneController.ListDirectory list,
         FileOperations? ops = null, Func<Func<Task>, Task>? runOnUi = null,
-        SettingsController? settings = null, ExternalEditorLauncher? editor = null, IFileOpener? opener = null, IFileRevealer? revealer = null)
+        SettingsController? settings = null, ExternalEditorLauncher? editor = null, IFileOpener? opener = null, IFileRevealer? revealer = null, ITerminalLauncher? terminal = null)
     {
         _opener = opener ?? new OpenWithDefaultApp();
         _revealer = revealer ?? new FileReveal();
+        _terminal = terminal ?? new TerminalLauncher();
         _ops = ops ?? new FileOperations();
         _settings = settings;
         _editor = editor ?? new ExternalEditorLauncher();
@@ -199,6 +201,20 @@ public sealed class HomeState : IDisposable
         catch (Exception e) when (e is IOException or UnauthorizedAccessException)
         {
             Controller(side).ReportError(FileErrors.From(e, path));
+        }
+    }
+
+    /// <summary>터미널 열기: <paramref name="side"/> 패널의 현재 폴더에서. 실패하면 그 패널의 상태줄에 오류를 띄운다.</summary>
+    public void OpenTerminal(PaneSide side)
+    {
+        var path = Controller(side).State.CurrentPath;
+        try
+        {
+            _terminal.Open(path);
+        }
+        catch (FileOperationException e)
+        {
+            Controller(side).ReportError(e.Error);
         }
     }
 

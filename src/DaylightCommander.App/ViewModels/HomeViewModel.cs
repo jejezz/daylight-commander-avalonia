@@ -65,6 +65,7 @@ public sealed partial class HomeViewModel : ObservableObject, IDisposable
     public int RightColumn => State.Swapped ? 0 : 2;
 
     [RelayCommand] void SwapPanes() => State.ToggleSwap();
+    [RelayCommand] void OpenTerminal() => State.OpenTerminal(State.Active);
     [RelayCommand] void TogglePaneMode() => State.ToggleSinglePane();
 
     public bool SinglePane => State.SinglePane;

@@ -16,6 +16,12 @@
                            FontWeight="ExtraBold" FontSize="{DynamicResource FsTitle}"/>
                 <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
                     <Button x:Name="NewWindow" Classes="header" Content="{DynamicResource Str.AppBarNewWindow}"/>
+                    <ToggleButton x:Name="TreeButton" Classes="tool" ToolTip.Tip="{DynamicResource Str.TreeTooltip}">
+                        <icons:DuoIcon Icon="tree"/>
+                    </ToggleButton>
+                    <Button Classes="tool" Command="{Binding OpenTerminalCommand}" ToolTip.Tip="{DynamicResource Str.TerminalTooltip}">
+                        <icons:DuoIcon Icon="terminal"/>
+                    </Button>
                     <ToggleButton Classes="tool" IsChecked="{Binding CompareMode, Mode=TwoWay}" ToolTip.Tip="{DynamicResource Str.CompareOnTooltip}">
                         <icons:DuoIcon Icon="compare"/>
                     </ToggleButton>
@@ -25,14 +31,11 @@
                     <Button Classes="tool" Command="{Binding TogglePaneModeCommand}" ToolTip.Tip="{Binding PaneModeTooltip}">
                         <icons:DuoIcon Icon="{Binding PaneModeIcon}"/>
                     </Button>
-                    <ToggleButton x:Name="TreeButton" Classes="tool" ToolTip.Tip="{DynamicResource Str.TreeTooltip}">
-                        <icons:DuoIcon Icon="tree"/>
-                    </ToggleButton>
-                    <Button x:Name="AboutButton" Classes="tool" ToolTip.Tip="{DynamicResource Str.AboutTooltip}">
-                        <icons:DuoIcon Icon="info"/>
-                    </Button>
                     <Button x:Name="SettingsButton" Classes="tool" ToolTip.Tip="{DynamicResource Str.SettingsTooltip}">
                         <icons:DuoIcon Icon="settings"/>
+                    </Button>
+                    <Button x:Name="AboutButton" Classes="tool" ToolTip.Tip="{DynamicResource Str.AboutTooltip}">
+                        <icons:DuoIcon Icon="info"/>
                     </Button>
                 </StackPanel>
             </Grid>

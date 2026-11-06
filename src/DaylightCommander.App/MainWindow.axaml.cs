@@ -195,6 +195,7 @@ public partial class MainWindow : Window
                 case Key.OemComma: SettingsWindow.Open(this); break; // 설정 (ui-ux.md §7)
                 case Key.T: TreeButton.IsChecked = TreeButton.IsChecked != true; break; // 디렉터리 트리
                 case Key.U: _home.State.ToggleSwap(); break; // 좌우 패널 교환
+                case Key.OemTilde: _home.State.OpenTerminal(_home.State.Active); break; // 터미널 열기 (Ctrl+`)
                 case Key.OemPipe: case Key.OemBackslash: _home.State.ToggleSinglePane(); break; // 1패널/2패널 전환 (Ctrl+\)
                 case Key.Right when shift: _ = _home.State.SyncPathRightAsync(); break; // 왼쪽 패널 경로를 오른쪽으로
                 case Key.Left when shift: _ = _home.State.SyncPathLeftAsync(); break;

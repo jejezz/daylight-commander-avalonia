@@ -251,6 +251,7 @@ public sealed class KoreanStrings : IAppStrings
     public string SyncBidirectional => "양방향 동기화";
     public string SwapPanesTooltip => "좌우 패널 교환 (Ctrl+U)";
     public string SyncPathRightTooltip => "왼쪽 패널 경로를 오른쪽으로 (Ctrl+Shift+→)";
+    public string TerminalTooltip => "터미널 열기 (활성 패널 경로, Ctrl+`)";
     public string SyncPathLeftTooltip => "오른쪽 패널 경로를 왼쪽으로 (Ctrl+Shift+←)";
     public string SinglePaneTooltip => "1패널 모드 (Ctrl+\\)";
     public string DualPaneTooltip => "2패널 모드 (Ctrl+\\)";
@@ -279,6 +280,7 @@ public sealed class KoreanStrings : IAppStrings
         FileError.TargetFolderMissing => "대상 폴더가 없어요. 경로를 확인해 주세요",
         FileError.EditorNotFound e => $"편집기를 찾을 수 없어요: {e.Path}. 설정에서 다시 골라 주세요",
         FileError.EditorTooLarge e => $"5MB를 넘는 파일은 편집할 수 없어요. F3 보기로 열어 주세요: {e.Name}",
+        FileError.TerminalNotFound => "터미널 프로그램을 찾지 못했어요",
         FileError.EditorLaunchFailed e => "편집기를 실행하지 못했어요" + (e.Detail is null ? "" : $" ({e.Detail})"),
         FileError.Other e => e.Detail ?? "알 수 없는 오류예요",
         _ => "알 수 없는 오류예요",

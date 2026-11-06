@@ -251,6 +251,7 @@ public sealed class EnglishStrings : IAppStrings
     public string SyncBidirectional => "Two-way Sync";
     public string SwapPanesTooltip => "Swap Left and Right Panes (Ctrl+U)";
     public string SyncPathRightTooltip => "Send left pane path to the right (Ctrl+Shift+→)";
+    public string TerminalTooltip => "Open Terminal (active pane folder, Ctrl+`)";
     public string SyncPathLeftTooltip => "Send right pane path to the left (Ctrl+Shift+←)";
     public string SinglePaneTooltip => "Single Pane Mode (Ctrl+\\)";
     public string DualPaneTooltip => "Dual Pane Mode (Ctrl+\\)";
@@ -279,6 +280,7 @@ public sealed class EnglishStrings : IAppStrings
         FileError.TargetFolderMissing => "The target folder doesn't exist. Check the path",
         FileError.EditorNotFound e => $"Editor not found: {e.Path}. Choose it again in Settings",
         FileError.EditorTooLarge e => $"Files over 5 MB can't be edited. Open it with F3 View: {e.Name}",
+        FileError.TerminalNotFound => "Couldn't find a terminal program",
         FileError.EditorLaunchFailed e => "Couldn't start the editor" + (e.Detail is null ? "" : $" ({e.Detail})"),
         FileError.Other e => e.Detail ?? "Unknown error",
         _ => "Unknown error",

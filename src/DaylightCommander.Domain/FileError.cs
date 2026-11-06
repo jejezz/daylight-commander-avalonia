@@ -47,6 +47,9 @@ public abstract record FileError
     /// <summary>편집기를 실행하지 못했다. <paramref name="Detail"/>은 OS가 준 원문(있으면).</summary>
     public sealed record EditorLaunchFailed(string? Detail) : FileError;
 
+    /// <summary>쓸 수 있는 터미널 프로그램을 찾지 못했다.</summary>
+    public sealed record TerminalNotFound : FileError;
+
     /// <summary>위에 해당하지 않는 오류. <paramref name="Detail"/>은 OS나 라이브러리가 준 원문이라 번역되지 않는다.</summary>
     public sealed record Other(string? Detail) : FileError;
 }

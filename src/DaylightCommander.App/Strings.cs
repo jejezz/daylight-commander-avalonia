@@ -42,6 +42,7 @@ static class Strings
         Set("CompareOffTooltip", s.CompareOffTooltip);
         Set("SyncBidirectional", s.SyncBidirectional);
         Set("SwapPanesTooltip", s.SwapPanesTooltip);
+        Set("TerminalTooltip", s.TerminalTooltip);
         Set("SyncPathRightTooltip", s.SyncPathRightTooltip);
         Set("SyncPathLeftTooltip", s.SyncPathLeftTooltip);
 

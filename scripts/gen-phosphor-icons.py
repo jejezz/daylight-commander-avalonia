@@ -64,6 +64,7 @@ ICONS = {
     "preview": ("article", "duotone"),
     "compare": ("git-diff", "duotone"),
     "swap": ("swap", "duotone"),
+    "terminal": ("terminal-window", "duotone"),
     "open-external": ("arrow-square-out", "duotone"),
     "single-panel": ("square", "duotone"),
     "dual-panel": ("columns", "duotone"),
