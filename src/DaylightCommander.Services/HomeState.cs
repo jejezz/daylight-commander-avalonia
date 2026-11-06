@@ -6,6 +6,9 @@ public enum PaneSide { Left, Right }
 
 public enum NameMode { Rename, NewFolder, NewFile, Compress }
 
+/// <summary>동기화 충돌 대화상자의 선택.</summary>
+public enum SyncChoice { Cancel, Skip, UseLeft, UseRight }
+
 /// <summary>디렉터리 트리 안에서 복사·잘라내기한 폴더.</summary>
 public sealed record TreeClipboard(string Path, bool Cut);
 
@@ -18,6 +21,9 @@ public abstract record HomeDialog
     public sealed record Transfer(FileOperationKind Kind, IReadOnlyList<string> Sources, string Target, FileError? Error = null) : HomeDialog;
 
     public sealed record Delete(IReadOnlyList<string> Paths, bool ToTrash) : HomeDialog;
+
+    /// <summary>양방향 동기화 중 양쪽에 있지만 내용이 다른 파일: 어느 쪽을 쓸지 묻는다.</summary>
+    public sealed record SyncConflict(FileEntry Left, FileEntry Right) : HomeDialog;
 
     /// <summary>이름변경(원본 경로 있음) / 새 폴더 / 새 파일.</summary>
     public sealed record NameInput(NameMode Mode, string Parent, string? OriginalPath = null, string InitialText = "", FileError? Error = null) : HomeDialog;
@@ -103,7 +109,11 @@ public sealed class HomeState : IDisposable
         ModalChanged?.Invoke();
     }
 
-    public void CloseDialog() => SetDialog(null);
+    public void CloseDialog()
+    {
+        if (_dialog is HomeDialog.SyncConflict) _syncPairs.Clear();
+        SetDialog(null);
+    }
 
     // --- 대화상자 열기 ---
 
@@ -190,6 +200,97 @@ public sealed class HomeState : IDisposable
         {
             Controller(side).ReportError(FileErrors.From(e, path));
         }
+    }
+
+    // --- 폴더 비교·동기화 ---
+
+    FolderComparison? _comparison;
+    IReadOnlyList<FileEntry>? _comparedLeft, _comparedRight;
+    Queue<(FileEntry Left, FileEntry Right)> _syncPairs = [];
+    string _syncLeftDir = "", _syncRightDir = "";
+
+    /// <summary>폴더 비교 모드. 켜면 두 패널의 현재 폴더를 이름으로 비교해 색으로 보여 준다.</summary>
+    public bool CompareMode { get; private set; }
+
+    public event Action? CompareChanged;
+
+    public void SetCompare(bool on)
+    {
+        if (CompareMode == on) return;
+        CompareMode = on;
+        CompareChanged?.Invoke();
+    }
+
+    /// <summary>비교 모드가 꺼져 있으면 null. 두 패널의 목록이 바뀌지 않았으면 이전 결과를 다시 쓴다.</summary>
+    public FolderComparison? Comparison
+    {
+        get
+        {
+            if (!CompareMode) return null;
+            var left = Left.State.Entries;
+            var right = Right.State.Entries;
+            if (_comparison is null || !ReferenceEquals(left, _comparedLeft) || !ReferenceEquals(right, _comparedRight))
+            {
+                _comparison = FolderComparison.Compare(left, right);
+                _comparedLeft = left;
+                _comparedRight = right;
+            }
+            return _comparison;
+        }
+    }
+
+    /// <summary>"차이 N개 복사": <paramref name="from"/> 패널의 다른 항목(한쪽에만 있거나 내용이 다른 것)을 반대쪽 현재 폴더로 복사한다.</summary>
+    public void SyncFolders(PaneSide from)
+    {
+        if (Comparison is not { } comparison) return;
+        var diff = from == PaneSide.Left ? comparison.Left : comparison.Right;
+        var paths = Controller(from).State.Entries.Where(e => diff.ContainsKey(e.Path)).Select(e => e.Path).ToList();
+        if (paths.Count == 0) return;
+        Queue.EnqueueCopy(paths, Controller(from == PaneSide.Left ? PaneSide.Right : PaneSide.Left).State.CurrentPath);
+    }
+
+    /// <summary>
+    /// 양방향 동기화 (원본): 한쪽에만 있는 항목은 반대쪽으로 자동 복사하고, 양쪽에 있지만 내용이 다른 파일은 하나씩
+    /// <see cref="HomeDialog.SyncConflict"/>로 어느 쪽을 쓸지 묻는다 ("최신 우선" 같은 자동 병합은 하지 않는다).
+    /// </summary>
+    public void SyncBidirectional()
+    {
+        var left = Left.State.Entries;
+        var right = Right.State.Entries;
+        var comparison = FolderComparison.Compare(left, right);
+        _syncLeftDir = Left.State.CurrentPath;
+        _syncRightDir = Right.State.CurrentPath;
+
+        var leftOnly = left.Where(e => comparison.Left.TryGetValue(e.Path, out var st) && st == FileDiffStatus.OnlyHere).Select(e => e.Path).ToList();
+        var rightOnly = right.Where(e => comparison.Right.TryGetValue(e.Path, out var st) && st == FileDiffStatus.OnlyHere).Select(e => e.Path).ToList();
+        if (leftOnly.Count > 0) Queue.EnqueueCopy(leftOnly, _syncRightDir);
+        if (rightOnly.Count > 0) Queue.EnqueueCopy(rightOnly, _syncLeftDir);
+
+        _syncPairs = new Queue<(FileEntry, FileEntry)>(FolderComparison.DiffPairs(left, right));
+        ShowNextSyncConflict();
+    }
+
+    void ShowNextSyncConflict()
+    {
+        if (_syncPairs.Count == 0) { SetDialog(null); return; }
+        var (l, r) = _syncPairs.Peek();
+        SetDialog(new HomeDialog.SyncConflict(l, r));
+    }
+
+    /// <summary>동기화 충돌 대화상자의 선택을 처리하고 다음 파일로 넘어간다. 취소하면 남은 파일도 그만둔다.</summary>
+    public void ResolveSyncConflict(SyncChoice choice)
+    {
+        if (_dialog is not HomeDialog.SyncConflict || _syncPairs.Count == 0) return;
+        if (choice == SyncChoice.Cancel)
+        {
+            _syncPairs.Clear();
+            SetDialog(null);
+            return;
+        }
+        var (left, right) = _syncPairs.Dequeue();
+        if (choice == SyncChoice.UseLeft) Queue.EnqueueCopy([left.Path], _syncRightDir, overwrite: true);
+        else if (choice == SyncChoice.UseRight) Queue.EnqueueCopy([right.Path], _syncLeftDir, overwrite: true);
+        ShowNextSyncConflict();
     }
 
     // --- 디렉터리 트리 (폴더 경로를 대상으로 하는 동작) ---

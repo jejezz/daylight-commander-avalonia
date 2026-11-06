@@ -7,7 +7,7 @@
         x:Class="DaylightCommander.App.MainWindow"
         Title="Daylight Commander"
         Width="1200" Height="720" MinWidth="960" MinHeight="600">
-    <Grid RowDefinitions="44,*,Auto">
+    <Grid RowDefinitions="44,*,Auto,Auto">
         <!-- 앱 바 44 (ui-ux.md §3) -->
         <Border Grid.Row="0" Background="{DynamicResource AppSurface}"
                 BorderBrush="{DynamicResource AppStroke}" BorderThickness="0,0,0,1" Padding="14,0">
@@ -16,6 +16,9 @@
                            FontWeight="ExtraBold" FontSize="{DynamicResource FsTitle}"/>
                 <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
                     <Button x:Name="NewWindow" Classes="header" Content="{DynamicResource Str.AppBarNewWindow}"/>
+                    <ToggleButton Classes="tool" IsChecked="{Binding CompareMode, Mode=TwoWay}" ToolTip.Tip="{DynamicResource Str.CompareOnTooltip}">
+                        <icons:DuoIcon Icon="compare"/>
+                    </ToggleButton>
                     <ToggleButton x:Name="TreeButton" Classes="tool" ToolTip.Tip="{DynamicResource Str.TreeTooltip}">
                         <icons:DuoIcon Icon="tree"/>
                     </ToggleButton>
@@ -46,8 +49,33 @@
             </Grid>
         </Grid>
 
+        <!-- 폴더 비교 중이면 보이는 동기화 막대: 차이 복사(→, ←)와 양방향 동기화 -->
+        <Grid Grid.Row="2" ColumnDefinitions="*,*,*" ColumnSpacing="8" Margin="8,0,8,8" IsVisible="{Binding CompareMode}">
+            <Button Grid.Column="0" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center"
+                    Command="{Binding SyncToRightCommand}" IsEnabled="{Binding CanSyncRight}">
+                <StackPanel Orientation="Horizontal" Spacing="8">
+                    <icons:DuoIcon Icon="sync" Width="16" Height="16" ColorKey="AppPrimary"/>
+                    <TextBlock Text="{Binding SyncRightText}" TextTrimming="CharacterEllipsis"/>
+                </StackPanel>
+            </Button>
+            <Button Grid.Column="1" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center"
+                    Command="{Binding SyncToLeftCommand}" IsEnabled="{Binding CanSyncLeft}">
+                <StackPanel Orientation="Horizontal" Spacing="8">
+                    <icons:DuoIcon Icon="sync" Width="16" Height="16" ColorKey="AppPrimary"/>
+                    <TextBlock Text="{Binding SyncLeftText}" TextTrimming="CharacterEllipsis"/>
+                </StackPanel>
+            </Button>
+            <Button Grid.Column="2" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center"
+                    Command="{Binding SyncBothCommand}" IsEnabled="{Binding CanSyncBoth}">
+                <StackPanel Orientation="Horizontal" Spacing="8">
+                    <icons:DuoIcon Icon="sync" Width="16" Height="16" ColorKey="AppPrimary"/>
+                    <TextBlock Text="{DynamicResource Str.SyncBidirectional}" TextTrimming="CharacterEllipsis"/>
+                </StackPanel>
+            </Button>
+        </Grid>
+
         <!-- 하단 기능 키 바. 파일 작업이 있으면 같은 자리를 작업 목록이 덮는다 (바 높이를 넘지 않는다) -->
-        <Grid Grid.Row="2" Margin="8,0,8,8">
+        <Grid Grid.Row="3" Margin="8,0,8,8">
             <views:FunctionKeyBar x:Name="Bar"/>
             <views:OperationsPanel x:Name="Operations" DataContext="{Binding Operations}"
                                    VerticalAlignment="Stretch"/>

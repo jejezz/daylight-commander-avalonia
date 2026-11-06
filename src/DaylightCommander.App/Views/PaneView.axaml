@@ -102,6 +102,7 @@
                      Background="Transparent" BorderThickness="0" Padding="0" Classes="entries">
                 <ListBox.ItemTemplate>
                     <DataTemplate x:DataType="vm:EntryItem">
+                        <Border Classes="diffrow" Classes.onlyhere="{Binding IsOnlyHere}" Classes.differs="{Binding IsDiffers}">
                         <Grid ColumnDefinitions="*,80,130" ColumnSpacing="12" Opacity="{Binding RowOpacity}"
                               Classes.picked="{Binding IsSelected}">
                             <!-- 이름 칸: 아이콘(고정) + 이름(남는 폭). StackPanel로 두면 이름이 폭 제한을 못 받아 긴 이름이 크기 칸을 덮는다 -->
@@ -117,6 +118,7 @@
                             <TextBlock Grid.Column="2" Text="{Binding ModifiedText}" FontSize="{DynamicResource FsSmall}"
                                        VerticalAlignment="Center"/>
                         </Grid>
+                        </Border>
                     </DataTemplate>
                 </ListBox.ItemTemplate>
             </ListBox>

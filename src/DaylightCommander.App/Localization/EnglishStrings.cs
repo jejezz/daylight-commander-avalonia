@@ -246,6 +246,16 @@ public sealed class EnglishStrings : IAppStrings
     public string TreeMenuCopy => "Copy";
     public string TreeMenuPaste => "Paste Here";
     public string TreeMenuDelete => "Delete";
+    public string CompareOnTooltip => "Compare Folders (both panes)";
+    public string CompareOffTooltip => "Turn Off Folder Compare";
+    public string SyncBidirectional => "Two-way Sync";
+    public string SyncUseLeft => "Use Left File";
+    public string SyncUseRight => "Use Right File";
+    public string SyncDiffToRight(int count) => $"Copy {count} differences →";
+    public string SyncDiffToLeft(int count) => $"← Copy {count} differences";
+    public string SyncConflictTitle(string name) => $"{name} — which one to keep?";
+    public string SyncConflictLeft(string size, string modified) => $"Left: {size} · {modified}";
+    public string SyncConflictRight(string size, string modified) => $"Right: {size} · {modified}";
     public string ContextReveal => "Show in File Manager";
 
     public string FileErrorText(FileError error) => error switch

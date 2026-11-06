@@ -25,4 +25,12 @@ public sealed partial class EntryItem(FileEntry entry) : ObservableObject
 
     /// <summary>선택된 항목 (커서와는 별개). 행 글자가 주색이 되고 배경이 옅게 깔린다.</summary>
     [ObservableProperty] public partial bool IsSelected { get; set; }
+
+    /// <summary>폴더 비교 모드에서의 비교 결과 (같거나 비교 중이 아니면 null). 행 배경색이 된다.</summary>
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(IsOnlyHere), nameof(IsDiffers))]
+    public partial Services.FileDiffStatus? DiffStatus { get; set; }
+
+    public bool IsOnlyHere => DiffStatus == Services.FileDiffStatus.OnlyHere;
+    public bool IsDiffers => DiffStatus == Services.FileDiffStatus.Differs;
 }

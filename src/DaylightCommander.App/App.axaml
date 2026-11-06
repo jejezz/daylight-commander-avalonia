@@ -40,6 +40,14 @@
             <Setter Property="Background" Value="{DynamicResource AppCursor}" />
         </Style>
 
+        <!-- 폴더 비교: 행 배경 -->
+        <Style Selector="Border.diffrow.onlyhere">
+            <Setter Property="Background" Value="{DynamicResource AppDiffOnly}" />
+        </Style>
+        <Style Selector="Border.diffrow.differs">
+            <Setter Property="Background" Value="{DynamicResource AppDiffDiffers}" />
+        </Style>
+
         <!-- 에디터 메뉴 막대와 그 팝업 -->
         <Style Selector="MenuItem">
             <Setter Property="FontFamily" Value="{DynamicResource AppFont}" />
@@ -84,11 +92,11 @@
         </Style>
 
         <!-- 행 내용: 가로 12 세로 4 여백 (ListBoxItem 안쪽이 아니라 내용에 두어야 선택 배경이 행 전체를 덮는다) -->
-        <Style Selector="ListBox.entries ListBoxItem > Grid">
+        <Style Selector="ListBox.entries ListBoxItem > Border > Grid">
             <Setter Property="Margin" Value="12,4" />
         </Style>
         <!-- 선택된 행(커서와 별개): 글자가 주색 -->
-        <Style Selector="ListBox.entries ListBoxItem > Grid.picked TextBlock">
+        <Style Selector="ListBox.entries ListBoxItem > Border > Grid.picked TextBlock">
             <Setter Property="Foreground" Value="{DynamicResource AppPrimary}" />
         </Style>
 

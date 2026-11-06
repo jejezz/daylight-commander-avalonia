@@ -250,6 +250,16 @@ public interface IAppStrings
     string TreeMenuCopy { get; }
     string TreeMenuPaste { get; }
     string TreeMenuDelete { get; }
+    string CompareOnTooltip { get; }
+    string CompareOffTooltip { get; }
+    string SyncBidirectional { get; }
+    string SyncUseLeft { get; }
+    string SyncUseRight { get; }
+    string SyncDiffToRight(int count);
+    string SyncDiffToLeft(int count);
+    string SyncConflictTitle(string name);
+    string SyncConflictLeft(string size, string modified);
+    string SyncConflictRight(string size, string modified);
     string ContextReveal { get; }
 
     // 오류

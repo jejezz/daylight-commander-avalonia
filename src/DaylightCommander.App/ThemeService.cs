@@ -88,6 +88,9 @@ static class ThemeService
         Brush(app, "MenuFlyoutItemForeground", c.TextHi);
         Brush(app, "MenuFlyoutItemForegroundPointerOver", c.TextHi);
         Brush(app, "MenuFlyoutItemKeyboardAcceleratorTextForeground", c.TextMid);
+        // 폴더 비교 행 색: 한쪽에만 있음 = 강조색 10~16%, 내용이 다름 = 경고색(주황) 14~16%.
+        Brush(app, "AppDiffOnly", (c.Accent & 0x00FFFFFFu) | (dark ? 0x29000000u : 0x1Au << 24));
+        Brush(app, "AppDiffDiffers", 0x00FFB020u | (dark ? 0x29000000u : 0x24u << 24));
         Brush(app, "AppFolder", dark ? 0xFFF2BC4Eu : 0xFFE3A12Bu);
         Brush(app, "AppIconFolder", dark ? 0xFFF2BC4Eu : 0xFFE3A12Bu);
         Brush(app, "AppIconArchive", dark ? 0xFFF0A940u : 0xFFD98A1Fu);

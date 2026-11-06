@@ -22,6 +22,12 @@ public sealed class MessageDialog : DialogBase
         return dialog._result.Task;
     }
 
+    /// <summary>고른 버튼의 번호를 이벤트로 알리는 형태 (홈 상태가 대화상자를 관리할 때). 창을 그냥 닫으면 <see cref="DialogBase.Dismissed"/>.</summary>
+    public static MessageDialog Create(string title, string message, string[] buttons, int defaultIndex, int cancelIndex) =>
+        new(title, message, buttons, defaultIndex, cancelIndex);
+
+    public event Action<int>? Chosen;
+
     MessageDialog(string title, string message, string[] buttons, int defaultIndex, int cancelIndex)
     {
         Title = title;
@@ -42,6 +48,7 @@ public sealed class MessageDialog : DialogBase
             button.Click += (_, _) =>
             {
                 _result.TrySetResult(index);
+                Chosen?.Invoke(index);
                 CloseFromState();
             };
             row.Children.Add(button);

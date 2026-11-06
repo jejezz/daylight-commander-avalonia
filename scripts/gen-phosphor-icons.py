@@ -62,6 +62,8 @@ ICONS = {
     "wrap": ("arrow-u-down-left", "duotone"),
     "goto-line": ("list-numbers", "duotone"),
     "preview": ("article", "duotone"),
+    "compare": ("git-diff", "duotone"),
+    "sync": ("arrows-left-right", "duotone"),
     "save": ("floppy-disk", "duotone"),
     "save-as": ("floppy-disk-back", "duotone"),
 }

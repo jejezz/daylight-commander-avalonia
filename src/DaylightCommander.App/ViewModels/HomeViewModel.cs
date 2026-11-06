@@ -29,6 +29,8 @@ public sealed partial class HomeViewModel : ObservableObject, IDisposable
         };
         Left.Actions = ActionsFor(PaneSide.Left);
         Right.Actions = ActionsFor(PaneSide.Right);
+        Left.DiffLookup = DiffOf(PaneSide.Left);
+        Right.DiffLookup = DiffOf(PaneSide.Right);
         Tree = new DirectoryTreeViewModel(State, path => _settings.ToggleBookmark(path));
         Operations = new OperationsViewModel(State.Queue);
         Left.IsActive = true;
@@ -38,8 +40,9 @@ public sealed partial class HomeViewModel : ObservableObject, IDisposable
             Right.IsActive = side == PaneSide.Right;
             RefreshHasTarget();
         };
-        State.Left.StateChanged += _ => RefreshHasTarget();
-        State.Right.StateChanged += _ => RefreshHasTarget();
+        State.Left.StateChanged += _ => { RefreshHasTarget(); RefreshCompare(); };
+        State.Right.StateChanged += _ => { RefreshHasTarget(); RefreshCompare(); };
+        State.CompareChanged += () => { OnPropertyChanged(nameof(CompareMode)); RefreshCompare(); };
         // 편집기 설정이 바뀌면 F4 버튼의 사용 가능 여부도 바뀐다.
         settings.Changed += OnSettingsChanged;
     }
@@ -47,6 +50,43 @@ public sealed partial class HomeViewModel : ObservableObject, IDisposable
     readonly SettingsController _settings;
 
     public DirectoryTreeViewModel Tree { get; }
+
+    // --- 폴더 비교 ---
+
+    Func<string, Services.FileDiffStatus?> DiffOf(PaneSide side) => path =>
+        State.Comparison is { } c && (side == PaneSide.Left ? c.Left : c.Right).TryGetValue(path, out var status) ? status : null;
+
+    /// <summary>폴더 비교 모드 (앱 바의 토글 단추). 켜면 아래에 동기화 막대가 나타난다.</summary>
+    public bool CompareMode
+    {
+        get => State.CompareMode;
+        set => State.SetCompare(value);
+    }
+
+    [ObservableProperty] public partial string SyncRightText { get; set; } = "";
+    [ObservableProperty] public partial string SyncLeftText { get; set; } = "";
+    [ObservableProperty] public partial bool CanSyncRight { get; set; }
+    [ObservableProperty] public partial bool CanSyncLeft { get; set; }
+    [ObservableProperty] public partial bool CanSyncBoth { get; set; }
+
+    /// <summary>두 패널의 행 색과 동기화 막대의 개수·사용 가능 여부를 현재 비교 결과에 맞춘다.</summary>
+    void RefreshCompare()
+    {
+        Left.RefreshDiff();
+        Right.RefreshDiff();
+        var c = State.Comparison;
+        var left = c?.Left.Count ?? 0;
+        var right = c?.Right.Count ?? 0;
+        SyncRightText = Strings.Current.SyncDiffToRight(left);
+        SyncLeftText = Strings.Current.SyncDiffToLeft(right);
+        CanSyncRight = left > 0;
+        CanSyncLeft = right > 0;
+        CanSyncBoth = left > 0 || right > 0;
+    }
+
+    [RelayCommand] void SyncToRight() => State.SyncFolders(PaneSide.Left);
+    [RelayCommand] void SyncToLeft() => State.SyncFolders(PaneSide.Right);
+    [RelayCommand] void SyncBoth() => State.SyncBidirectional();
 
     /// <summary>패널 화면이 부르는 동작. 각 동작은 먼저 그 패널을 활성 패널로 만든 뒤 홈 상태에 맡긴다.</summary>
     PaneActions ActionsFor(PaneSide side)

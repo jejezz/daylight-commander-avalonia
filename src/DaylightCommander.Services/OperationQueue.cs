@@ -84,9 +84,12 @@ public sealed class OperationQueue : IDisposable
     public event Action? JobsChanged;
     public event Action? ConflictChanged;
 
-    public long EnqueueCopy(IReadOnlyList<string> sources, string targetDir) =>
+    static readonly ConflictResolver AlwaysOverwrite = (_, _, _) => Task.FromResult(new ConflictDecision(ConflictChoice.Overwrite, ApplyToAll: true));
+
+    /// <param name="overwrite">참이면 이름이 겹쳐도 묻지 않고 덮어쓴다 (동기화에서 한쪽을 골랐을 때).</param>
+    public long EnqueueCopy(IReadOnlyList<string> sources, string targetDir, bool overwrite = false) =>
         Enqueue(FileOperationKind.Copy, LabelOf(FileOperationKind.Copy, sources, target: targetDir),
-            (report, ct) => _ops.CopyAsync(sources, targetDir, _resolver, report, ct));
+            (report, ct) => _ops.CopyAsync(sources, targetDir, overwrite ? AlwaysOverwrite : _resolver, report, ct));
 
     public long EnqueueMove(IReadOnlyList<string> sources, string targetDir) =>
         Enqueue(FileOperationKind.Move, LabelOf(FileOperationKind.Move, sources, target: targetDir),

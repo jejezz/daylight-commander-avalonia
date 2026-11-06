@@ -38,6 +38,9 @@ static class Strings
         Set("AppBarNewWindow", s.AppBarNewWindow);
         Set("SettingsTooltip", s.SettingsTooltip);
         Set("TreeTooltip", s.TreeTooltip);
+        Set("CompareOnTooltip", s.CompareOnTooltip);
+        Set("CompareOffTooltip", s.CompareOffTooltip);
+        Set("SyncBidirectional", s.SyncBidirectional);
 
         Set("SettingsSectionAppearance", s.SettingsSectionAppearance);
         Set("SettingsMode", s.SettingsMode);

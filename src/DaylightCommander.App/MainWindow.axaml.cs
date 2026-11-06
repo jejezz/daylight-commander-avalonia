@@ -30,6 +30,7 @@ public partial class MainWindow : Window
         (HomeDialog.Transfer x, HomeDialog.Transfer y) => x.Kind == y.Kind && x.Sources.SequenceEqual(y.Sources),
         (HomeDialog.Delete x, HomeDialog.Delete y) => x.Paths.SequenceEqual(y.Paths),
         (HomeDialog.NameInput x, HomeDialog.NameInput y) => x.Mode == y.Mode && x.OriginalPath == y.OriginalPath,
+        (HomeDialog.SyncConflict x, HomeDialog.SyncConflict y) => x.Left.Path == y.Left.Path,
         _ => false,
     };
 
@@ -73,6 +74,9 @@ public partial class MainWindow : Window
         _ = window.ShowDialog(this);
     }
 
+    static string Modified(FileEntry e) =>
+        e.ModifiedAt?.ToLocalTime().ToString("yyyy-MM-dd HH:mm", System.Globalization.CultureInfo.InvariantCulture) ?? "--";
+
     DialogBase CreateDialog(HomeDialog dialog)
     {
         var state = _home.State;
@@ -106,6 +110,17 @@ public partial class MainWindow : Window
                 var end = n.Mode is NameMode.Rename or NameMode.Compress && dot > 0 ? dot : n.InitialText.Length;
                 var window = new TextPromptDialog(title, null, n.InitialText, 0, end, Strings.Current.CommonConfirm);
                 window.Confirmed += text => _ = state.ConfirmNameAsync(text);
+                return window;
+            }
+            case HomeDialog.SyncConflict c:
+            {
+                var s = Strings.Current;
+                var info = s.SyncConflictLeft(BytesFormat.Format(c.Left.SizeBytes), Modified(c.Left)) + "\n"
+                         + s.SyncConflictRight(BytesFormat.Format(c.Right.SizeBytes), Modified(c.Right));
+                // 단추 순서: 취소 · 건너뛰기 · 왼쪽 · 오른쪽 (원본). 창을 닫으면 취소.
+                var window = MessageDialog.Create(s.SyncConflictTitle(c.Left.Name), info,
+                    [s.CommonCancel, s.ConflictSkip, s.SyncUseLeft, s.SyncUseRight], defaultIndex: 2, cancelIndex: 0);
+                window.Chosen += index => state.ResolveSyncConflict((SyncChoice)index);
                 return window;
             }
             default:

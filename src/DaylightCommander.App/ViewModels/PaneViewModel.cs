@@ -96,7 +96,7 @@ public partial class PaneViewModel : ObservableObject, IDisposable
         if (rebuilt)
         {
             _shownEntries = s.VisibleEntries;
-            var items = s.VisibleEntries.Select(e => new EntryItem(e)).ToList();
+            var items = s.VisibleEntries.Select(e => new EntryItem(e) { DiffStatus = DiffLookup?.Invoke(e.Path) }).ToList();
             _byPath = items.ToDictionary(i => i.Path);
             _shownSelection = new HashSet<string>();
             Items = items;
@@ -176,6 +176,15 @@ public partial class PaneViewModel : ObservableObject, IDisposable
 
     /// <summary>우클릭 메뉴·끌어다 놓기가 부르는 동작 (HomeViewModel이 연결한다).</summary>
     public PaneActions? Actions { get; set; }
+
+    /// <summary>폴더 비교 결과를 경로로 찾는다 (HomeViewModel이 연결한다). 비교 중이 아니면 항상 null.</summary>
+    public Func<string, Services.FileDiffStatus?>? DiffLookup { get; set; }
+
+    /// <summary>보이는 항목들의 비교 상태를 다시 맞춘다 (반대쪽 패널이나 비교 모드가 바뀌었을 때).</summary>
+    public void RefreshDiff()
+    {
+        foreach (var item in Items) item.DiffStatus = DiffLookup?.Invoke(item.Path);
+    }
 
     /// <summary>파일을 기본 앱으로 열어 달라는 요청 (HomeViewModel이 연결한다).</summary>
     public Action<string>? OpenFileRequested { get; set; }

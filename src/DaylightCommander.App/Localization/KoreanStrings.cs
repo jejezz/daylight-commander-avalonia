@@ -246,6 +246,16 @@ public sealed class KoreanStrings : IAppStrings
     public string TreeMenuCopy => "복사";
     public string TreeMenuPaste => "여기에 붙여넣기";
     public string TreeMenuDelete => "삭제";
+    public string CompareOnTooltip => "폴더 비교 (좌우 패널)";
+    public string CompareOffTooltip => "폴더 비교 끄기";
+    public string SyncBidirectional => "양방향 동기화";
+    public string SyncUseLeft => "왼쪽 파일 사용";
+    public string SyncUseRight => "오른쪽 파일 사용";
+    public string SyncDiffToRight(int count) => $"차이 {count}개 → 복사";
+    public string SyncDiffToLeft(int count) => $"← 차이 {count}개 복사";
+    public string SyncConflictTitle(string name) => $"{name} — 어느 쪽을 사용할까요?";
+    public string SyncConflictLeft(string size, string modified) => $"왼쪽: {size} · {modified}";
+    public string SyncConflictRight(string size, string modified) => $"오른쪽: {size} · {modified}";
     public string ContextReveal => "파일 관리자에서 보기";
 
     public string FileErrorText(FileError error) => error switch
