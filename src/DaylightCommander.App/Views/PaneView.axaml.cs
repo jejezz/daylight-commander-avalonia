@@ -178,6 +178,8 @@ public partial class PaneView : UserControl
         Add(s.ContextDuplicate, act.Duplicate);
         Add(s.ContextMove, act.Move);
         Add(s.ContextDelete, act.Delete);
+        Add(s.FnCompress, act.Compress);
+        if (single is { IsFile: true } zip && ArchiveService.IsZip(zip.Name)) Add(s.FnExtract, act.Extract);
         ContextItems.Children.Add(MenuSeparator());
 
         Add(s.ContextProperties, act.Properties);

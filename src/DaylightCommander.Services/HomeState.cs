@@ -4,7 +4,7 @@ namespace DaylightCommander.Services;
 
 public enum PaneSide { Left, Right }
 
-public enum NameMode { Rename, NewFolder, NewFile }
+public enum NameMode { Rename, NewFolder, NewFile, Compress }
 
 /// <summary>홈 화면 위에 뜨는 대화상자. 이름 충돌 대화상자는 <see cref="OperationQueue.Conflict"/>가 따로 가진다.</summary>
 public abstract record HomeDialog
@@ -28,6 +28,7 @@ public abstract record HomeDialog
 public sealed class HomeState : IDisposable
 {
     readonly FileOperations _ops;
+    readonly ArchiveService _archive = new();
     readonly SettingsController? _settings;
     readonly ExternalEditorLauncher _editor;
     readonly IFileOpener _opener;
@@ -133,6 +134,35 @@ public sealed class HomeState : IDisposable
         {
             SetDialog(new HomeDialog.NameInput(mode, parent));
         }
+    }
+
+    /// <summary>압축: 선택(없으면 커서) 항목을 현재 폴더에 zip으로 묶는다. 이름을 먼저 묻는다.</summary>
+    public void RequestCompress()
+    {
+        var targets = ActiveController.TargetEntries();
+        if (targets.Count == 0) return;
+        var parent = ActiveController.State.CurrentPath;
+        SetDialog(new HomeDialog.NameInput(NameMode.Compress, parent, InitialText: ArchiveService.DefaultZipName(targets.Select(e => e.Path).ToList())));
+    }
+
+    /// <summary>압축 풀기: 커서의 zip을 현재 폴더 아래 "zip 이름" 폴더로 푼다.</summary>
+    public async Task ExtractAsync()
+    {
+        var controller = ActiveController;
+        if (controller.State.CursorEntry is not { IsDirectory: false } entry || !ArchiveService.IsZip(entry.Name)) return;
+        FileError? error = null;
+        try
+        {
+            var dest = Path.Combine(controller.State.CurrentPath, ArchiveService.ExtractFolderName(entry.Name));
+            await _archive.ExtractAsync(entry.Path, dest);
+        }
+        catch (Exception e) when (e is IOException or UnauthorizedAccessException or InvalidDataException)
+        {
+            error = e is InvalidDataException ? new FileError.Other(e.Message) : FileErrors.From(e, entry.Path);
+        }
+        await OtherController.RefreshAsync();
+        await controller.RefreshAsync();
+        if (error is not null) controller.ReportError(error); // 새로고침이 오류를 지우므로 그 뒤에 알린다
     }
 
     /// <summary>보기(F3) 요청. 화면(창)이 이 이벤트를 받아 뷰어 창을 연다. 인자는 파일 경로.</summary>
@@ -304,6 +334,7 @@ public sealed class HomeState : IDisposable
         {
             var created = d.Mode switch
             {
+                NameMode.Compress => await CompressAsync(d.Parent, text),
                 NameMode.Rename => await _ops.RenameAsync(d.OriginalPath!, text),
                 NameMode.NewFolder => await _ops.CreateDirectoryAsync(d.Parent, text),
                 _ => await _ops.CreateFileAsync(d.Parent, text),
@@ -317,6 +348,16 @@ public sealed class HomeState : IDisposable
             if (_dialog is HomeDialog.NameInput current)
                 SetDialog(current with { Error = FileErrors.From(e, d.Parent) });
         }
+    }
+
+    async Task<string> CompressAsync(string parent, string text)
+    {
+        var name = ArchiveService.IsZip(text) ? text : text + ".zip";
+        var zipPath = Path.Combine(parent, name);
+        var sources = ActiveController.TargetEntries().Select(e => e.Path).ToList();
+        await _archive.CompressAsync(sources, zipPath);
+        ActiveController.ClearSelection();
+        return zipPath;
     }
 
     public void Dispose() => Queue.Dispose();

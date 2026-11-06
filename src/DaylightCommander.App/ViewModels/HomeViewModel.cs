@@ -60,6 +60,8 @@ public sealed partial class HomeViewModel : ObservableObject, IDisposable
             Delete: On(() => State.RequestDelete()),
             Duplicate: On(State.DuplicateInPlace),
             Properties: On(State.RequestProperties),
+            Compress: On(State.RequestCompress),
+            Extract: On(() => _ = State.ExtractAsync()),
             Reveal: path => State.RevealInFileManager(path, side),
             ToggleBookmark: OnPath(_settings.ToggleBookmark),
             Drop: (paths, destination, mode) => State.Drop(paths, destination, mode, side));
@@ -84,11 +86,15 @@ public sealed partial class HomeViewModel : ObservableObject, IDisposable
     /// <summary>F4로 열 수 있는지: 커서가 파일일 때 (외부 편집기를 골랐으면 그것으로, 아니면 내장 에디터로).</summary>
     [ObservableProperty] public partial bool CanEdit { get; set; }
 
+    /// <summary>압축풀기: 커서가 zip 파일일 때.</summary>
+    [ObservableProperty] [NotifyCanExecuteChangedFor(nameof(ExtractCommand))] public partial bool CanExtract { get; set; }
+
     public void RefreshHasTarget()
     {
         HasTarget = State.ActiveController.TargetEntries().Count > 0;
         var cursorIsFile = State.ActiveController.State.CursorEntry is { IsDirectory: false };
         CanView = cursorIsFile;
+        CanExtract = State.ActiveController.State.CursorEntry is { IsDirectory: false } z && ArchiveService.IsZip(z.Name);
         CanEdit = cursorIsFile; // 외부 편집기를 골랐으면 그것으로, 아니면 내장 에디터로 연다
     }
 
@@ -99,6 +105,8 @@ public sealed partial class HomeViewModel : ObservableObject, IDisposable
     [RelayCommand] void Copy() => State.RequestTransfer(FileOperationKind.Copy);
     [RelayCommand] void Move() => State.RequestTransfer(FileOperationKind.Move);
     [RelayCommand] void NewFolder() => State.RequestName(NameMode.NewFolder);
+    [RelayCommand] void Compress() => State.RequestCompress();
+    [RelayCommand(CanExecute = nameof(CanExtract))] Task Extract() => State.ExtractAsync();
     [RelayCommand] void NewFile() => State.RequestName(NameMode.NewFile);
     [RelayCommand] void Delete() => State.RequestDelete();
     [RelayCommand] void Duplicate() => State.DuplicateInPlace();

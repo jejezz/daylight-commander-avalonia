@@ -16,6 +16,8 @@ public sealed record PaneActions(
     Action Delete,
     Action Duplicate,
     Action Properties,
+    Action Compress,
+    Action Extract,
     Action<string> Reveal,
     Action<string> ToggleBookmark,
     /// <summary>끌어다 놓기: (경로들, 놓은 폴더, 복사/이동 지정).</summary>

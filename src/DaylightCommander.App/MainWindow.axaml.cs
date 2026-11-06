@@ -98,11 +98,12 @@ public partial class MainWindow : Window
                 {
                     NameMode.Rename => Strings.Current.DialogRenameTitle,
                     NameMode.NewFolder => Strings.Current.DialogNewFolderTitle,
+                    NameMode.Compress => Strings.Current.FnCompress,
                     _ => Strings.Current.DialogNewFileTitle,
                 };
                 // 이름 변경은 확장자를 뺀 이름만 먼저 선택해 둔다.
                 var dot = n.InitialText.LastIndexOf('.');
-                var end = n.Mode == NameMode.Rename && dot > 0 ? dot : n.InitialText.Length;
+                var end = n.Mode is NameMode.Rename or NameMode.Compress && dot > 0 ? dot : n.InitialText.Length;
                 var window = new TextPromptDialog(title, null, n.InitialText, 0, end, Strings.Current.CommonConfirm);
                 window.Confirmed += text => _ = state.ConfirmNameAsync(text);
                 return window;

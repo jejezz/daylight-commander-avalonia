@@ -25,8 +25,10 @@
         <Grid ColumnDefinitions="*,*,*,*,*" ColumnSpacing="8">
             <Button Grid.Column="0" Classes="fkey" Content="{DynamicResource Str.FnNewFile}"
                     Command="{Binding NewFileCommand}"/>
-            <Button Grid.Column="1" Classes="fkey" Content="{DynamicResource Str.FnCompress}" IsEnabled="False"/>
-            <Button Grid.Column="2" Classes="fkey" Content="{DynamicResource Str.FnExtract}" IsEnabled="False"/>
+            <Button Grid.Column="1" Classes="fkey" Content="{DynamicResource Str.FnCompress}"
+                    Command="{Binding CompressCommand}" IsEnabled="{Binding HasTarget}"/>
+            <Button Grid.Column="2" Classes="fkey" Content="{DynamicResource Str.FnExtract}"
+                    Command="{Binding ExtractCommand}"/>
             <Button Grid.Column="3" Classes="fkey" Content="{DynamicResource Str.FnProperties}"
                     Command="{Binding PropertiesCommand}" IsEnabled="{Binding HasTarget}"/>
             <Button Grid.Column="4" Classes="fkey" Content="{DynamicResource Str.FnPatternSelect}" IsEnabled="False"/>
