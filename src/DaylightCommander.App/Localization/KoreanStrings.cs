@@ -242,6 +242,10 @@ public sealed class KoreanStrings : IAppStrings
     public string ContextDelete => "삭제 (F8)";
     public string ContextProperties => "속성 (Alt+Enter)";
     public string ContextBookmark => "즐겨찾기에 추가";
+    public string TreeMenuCut => "잘라내기";
+    public string TreeMenuCopy => "복사";
+    public string TreeMenuPaste => "여기에 붙여넣기";
+    public string TreeMenuDelete => "삭제";
     public string ContextReveal => "파일 관리자에서 보기";
 
     public string FileErrorText(FileError error) => error switch

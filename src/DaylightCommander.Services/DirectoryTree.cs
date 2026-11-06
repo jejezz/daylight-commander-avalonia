@@ -37,6 +37,22 @@ public static class DirectoryTree
         return result;
     }
 
+    /// <summary>
+    /// <paramref name="path"/> 자신이 있으면 자신, 없으면 존재하는 가장 가까운 상위 폴더 (삭제·이동으로 폴더가 사라졌을 때 패널이
+    /// 갈 곳). 끝까지 없으면 null.
+    /// </summary>
+    public static string? NearestExisting(string path)
+    {
+        var current = path;
+        while (!Directory.Exists(current))
+        {
+            var parent = Path.GetDirectoryName(current.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar));
+            if (string.IsNullOrEmpty(parent) || parent == current) return null;
+            current = parent;
+        }
+        return current;
+    }
+
     /// <summary>같은 폴더인가 (끝 구분자와 Windows·macOS의 대소문자 차이는 무시).</summary>
     public static bool SamePath(string a, string b)
     {

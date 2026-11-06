@@ -246,6 +246,10 @@ public interface IAppStrings
     string ContextDelete { get; }
     string ContextProperties { get; }
     string ContextBookmark { get; }
+    string TreeMenuCut { get; }
+    string TreeMenuCopy { get; }
+    string TreeMenuPaste { get; }
+    string TreeMenuDelete { get; }
     string ContextReveal { get; }
 
     // 오류

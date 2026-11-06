@@ -32,6 +32,9 @@ public sealed class TreeRow(string path, string label, int depth, bool expanded,
 public sealed partial class DirectoryTreeViewModel : ObservableObject
 {
     readonly HomeState _state;
+    readonly Action<string> _toggleBookmark;
+    bool _reloading;
+    IReadOnlyList<FileEntry>? _lastLeft, _lastRight;
     readonly HashSet<string> _expanded = new(PathComparer);
     readonly Dictionary<string, IReadOnlyList<string>> _children = new(PathComparer);
     readonly HashSet<string> _loading = new(PathComparer);
@@ -40,12 +43,21 @@ public sealed partial class DirectoryTreeViewModel : ObservableObject
 
     static StringComparer PathComparer => OperatingSystem.IsLinux() ? StringComparer.Ordinal : StringComparer.OrdinalIgnoreCase;
 
-    public DirectoryTreeViewModel(HomeState state)
+    public DirectoryTreeViewModel(HomeState state, Action<string> toggleBookmark)
     {
         _state = state;
+        _toggleBookmark = toggleBookmark;
         state.ActiveChanged += _ => FollowActive();
-        state.Left.StateChanged += st => { if (state.Active == PaneSide.Left) Follow(st.CurrentPath); };
-        state.Right.StateChanged += st => { if (state.Active == PaneSide.Right) Follow(st.CurrentPath); };
+        state.Left.StateChanged += st =>
+        {
+            if (state.Active == PaneSide.Left) Follow(st.CurrentPath);
+            if (!ReferenceEquals(st.Entries, _lastLeft)) { _lastLeft = st.Entries; _ = ReloadAsync(); }
+        };
+        state.Right.StateChanged += st =>
+        {
+            if (state.Active == PaneSide.Right) Follow(st.CurrentPath);
+            if (!ReferenceEquals(st.Entries, _lastRight)) { _lastRight = st.Entries; _ = ReloadAsync(); }
+        };
     }
 
     public ObservableCollection<TreeRow> Rows { get; } = [];
@@ -88,6 +100,70 @@ public sealed partial class DirectoryTreeViewModel : ObservableObject
         }
         Rebuild();
     }
+
+    bool IsDrive(string path) => _drives.Any(d => DirectoryTree.SamePath(d.Path, path));
+
+    /// <summary>
+    /// 펼쳐진(= 보이는) 폴더의 자식 목록을 다시 읽는다. 달라진 곳만 갱신하고, 사라진 폴더는 펼침에서도 뺀다.
+    /// 패널의 목록이 바뀔 때, 5초마다, 새로고침 버튼에서 부른다.
+    /// </summary>
+    public async Task ReloadAsync()
+    {
+        if (_reloading) return;
+        _reloading = true;
+        try
+        {
+            var changed = false;
+            foreach (var path in _children.Keys.ToList())
+            {
+                if (!_expanded.Contains(path) && !IsDrive(path)) continue;
+                var names = await Task.Run(() => DirectoryTree.ListSubfolders(path));
+                if (!_children.TryGetValue(path, out var old) || !old.SequenceEqual(names))
+                {
+                    _children[path] = names;
+                    changed = true;
+                }
+            }
+            var gone = await Task.Run(() => _expanded.Where(e => !Directory.Exists(e)).ToList());
+            if (gone.Count > 0)
+            {
+                foreach (var g in gone) { _expanded.Remove(g); _children.Remove(g); }
+                changed = true;
+            }
+            if (changed) Rebuild();
+        }
+        finally
+        {
+            _reloading = false;
+        }
+    }
+
+    /// <summary>새로고침 버튼: 드라이브 목록까지 다시 읽는다.</summary>
+    public async Task ReloadAllAsync()
+    {
+        _drives = await Task.Run(() => new ListDrives().Invoke());
+        Rebuild();
+        await ReloadAsync();
+    }
+
+    // --- 폴더에 하는 동작 (우클릭 메뉴·끌어다 놓기). 모두 활성 패널을 기준으로 한다. ---
+
+    public bool HasClipboard => _state.TreeClipboard is not null;
+
+    public void Open(TreeRow row) => Select(row);
+    public void NewFolder(TreeRow row) => _state.RequestNewFolderIn(row.Path);
+    public void Rename(TreeRow row) => _state.RequestRenamePath(row.Path);
+    public void Copy(TreeRow row) => _state.CopyToTreeClipboard(row.Path, cut: false);
+    public void Cut(TreeRow row) => _state.CopyToTreeClipboard(row.Path, cut: true);
+    public void Paste(TreeRow row) => _state.PasteTreeClipboard(row.Path);
+    public void Delete(TreeRow row) => _state.RequestDeletePaths([row.Path]);
+    public void Properties(TreeRow row) => _state.RequestPropertiesOf([row.Path]);
+    public void ToggleBookmark(TreeRow row) => _toggleBookmark(row.Path);
+    public void Reveal(TreeRow row) => _state.RevealInFileManager(row.Path, _state.Active);
+
+    /// <summary>끌어다 놓기: 트리에서는 기본이 이동, Ctrl이면 복사 (원본). 폴더를 자기 안에 놓는 오류는 활성 패널에 알린다.</summary>
+    public void Drop(IReadOnlyList<string> paths, TreeRow target, DropMode mode) =>
+        _state.Drop(paths, target.Path, mode, _state.Active);
 
     /// <summary>폴더를 눌렀다: 활성 패널이 그 폴더로 간다.</summary>
     public void Select(TreeRow row) => _ = _state.ActiveController.NavigateToAsync(row.Path);

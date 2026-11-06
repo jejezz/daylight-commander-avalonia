@@ -53,6 +53,11 @@
         <Style Selector="Border.treerow:pointerover">
             <Setter Property="Background" Value="{DynamicResource AppHover}" />
         </Style>
+        <Style Selector="Border.treerow.drop">
+            <Setter Property="Background" Value="{DynamicResource AppCursor}" />
+            <Setter Property="BorderBrush" Value="{DynamicResource AppPrimary}" />
+            <Setter Property="BorderThickness" Value="1" />
+        </Style>
         <Style Selector="Border.treerow.sel">
             <Setter Property="Background" Value="{DynamicResource AppCursor}" />
         </Style>
@@ -164,6 +169,8 @@
             <Setter Property="TextElement.FontSize" Value="{DynamicResource FsBody}" />
         </Style>
         <Style Selector="Button.menuitem">
+            <Setter Property="MinHeight" Value="36" />
+            <Setter Property="VerticalContentAlignment" Value="Center" />
             <Setter Property="FontFamily" Value="{DynamicResource AppFont}" />
             <Setter Property="FontSize" Value="{DynamicResource FsBody}" />
             <Setter Property="CornerRadius" Value="6" />

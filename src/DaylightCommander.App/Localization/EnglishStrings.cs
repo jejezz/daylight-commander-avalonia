@@ -242,6 +242,10 @@ public sealed class EnglishStrings : IAppStrings
     public string ContextDelete => "Delete (F8)";
     public string ContextProperties => "Properties (Alt+Enter)";
     public string ContextBookmark => "Add to Bookmarks";
+    public string TreeMenuCut => "Cut";
+    public string TreeMenuCopy => "Copy";
+    public string TreeMenuPaste => "Paste Here";
+    public string TreeMenuDelete => "Delete";
     public string ContextReveal => "Show in File Manager";
 
     public string FileErrorText(FileError error) => error switch

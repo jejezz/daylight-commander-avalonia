@@ -6,6 +6,9 @@ public enum PaneSide { Left, Right }
 
 public enum NameMode { Rename, NewFolder, NewFile, Compress }
 
+/// <summary>디렉터리 트리 안에서 복사·잘라내기한 폴더.</summary>
+public sealed record TreeClipboard(string Path, bool Cut);
+
 /// <summary>홈 화면 위에 뜨는 대화상자. 이름 충돌 대화상자는 <see cref="OperationQueue.Conflict"/>가 따로 가진다.</summary>
 public abstract record HomeDialog
 {
@@ -187,6 +190,40 @@ public sealed class HomeState : IDisposable
         {
             Controller(side).ReportError(FileErrors.From(e, path));
         }
+    }
+
+    // --- 디렉터리 트리 (폴더 경로를 대상으로 하는 동작) ---
+
+    /// <summary>트리에서 복사/잘라내기한 폴더. 붙여넣기 메뉴가 쓴다 (패널의 선택과는 별개).</summary>
+    public TreeClipboard? TreeClipboard { get; private set; }
+
+    public void CopyToTreeClipboard(string path, bool cut) => TreeClipboard = new TreeClipboard(path, cut);
+
+    /// <summary>트리 클립보드의 폴더를 <paramref name="targetDir"/> 안에 붙인다 (잘라내기는 이동, 복사는 복사). 잘라낸 것은 한 번만 붙는다.</summary>
+    public void PasteTreeClipboard(string targetDir)
+    {
+        if (TreeClipboard is not { } clip) return;
+        Drop([clip.Path], targetDir, clip.Cut ? DropMode.ForceMove : DropMode.ForceCopy);
+        if (clip.Cut) TreeClipboard = null;
+    }
+
+    /// <summary>트리의 "새 폴더": <paramref name="parent"/> 안에 만든다.</summary>
+    public void RequestNewFolderIn(string parent) => SetDialog(new HomeDialog.NameInput(NameMode.NewFolder, parent));
+
+    /// <summary>트리의 "이름 바꾸기": 패널의 커서가 아니라 <paramref name="path"/> 항목을 바꾼다.</summary>
+    public void RequestRenamePath(string path) =>
+        SetDialog(new HomeDialog.NameInput(NameMode.Rename, Path.GetDirectoryName(path) ?? "", path, Path.GetFileName(path)));
+
+    /// <summary>트리의 "삭제": 패널의 선택이 아니라 <paramref name="paths"/>를 지울지 묻는다.</summary>
+    public void RequestDeletePaths(IReadOnlyList<string> paths)
+    {
+        if (paths.Count > 0) SetDialog(new HomeDialog.Delete(paths, ToTrash: _ops.CanTrash));
+    }
+
+    /// <summary>트리의 "속성": 해당 경로의 속성 창을 열어 달라고 알린다.</summary>
+    public void RequestPropertiesOf(IReadOnlyList<string> paths)
+    {
+        if (paths.Count > 0) PropertiesRequested?.Invoke(paths);
     }
 
     // --- 끌어다 놓기·복제·파일 관리자에서 보기 ---

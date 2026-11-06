@@ -60,7 +60,13 @@ public sealed class PaneController
     public async Task RefreshAsync(string? focus = null, CancellationToken ct = default)
     {
         var entries = await ReadAsync(State.CurrentPath, ct);
-        if (entries is null) return;
+        if (entries is null)
+        {
+            // 읽을 수 없다. 보던 폴더가 지워지거나 옮겨진 것이면 남아 있는 가장 가까운 상위 폴더로 간다 (원본과 같다).
+            if (!Directory.Exists(State.CurrentPath) && DirectoryTree.NearestExisting(State.CurrentPath) is { } nearest && nearest != State.CurrentPath)
+                await NavigateToAsync(nearest, ct);
+            return;
+        }
         Update(s => s with
         {
             Entries = entries,

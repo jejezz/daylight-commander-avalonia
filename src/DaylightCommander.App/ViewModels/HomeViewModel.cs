@@ -29,7 +29,7 @@ public sealed partial class HomeViewModel : ObservableObject, IDisposable
         };
         Left.Actions = ActionsFor(PaneSide.Left);
         Right.Actions = ActionsFor(PaneSide.Right);
-        Tree = new DirectoryTreeViewModel(State);
+        Tree = new DirectoryTreeViewModel(State, path => _settings.ToggleBookmark(path));
         Operations = new OperationsViewModel(State.Queue);
         Left.IsActive = true;
         State.ActiveChanged += side =>

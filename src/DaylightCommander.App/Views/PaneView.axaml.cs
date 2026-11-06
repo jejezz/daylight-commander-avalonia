@@ -69,10 +69,6 @@ public partial class PaneView : UserControl
     bool _clickDeferred; // 여러 개 선택한 행을 눌렀다: 끌기인지 클릭인지 알 때까지 선택을 건드리지 않는다
     bool _dragging;
 
-    /// <summary>끌고 있는 경로들 (앱 안의 패널끼리 주고받는다). 앱 밖에서 오는 드롭은 파일 목록으로 읽는다.</summary>
-    static IReadOnlyList<string>? s_dragPaths;
-    static IReadOnlyList<DriveEntry>? s_drives;
-
     void OnEntryPressed(object? sender, PointerPressedEventArgs e)
     {
         var point = e.GetCurrentPoint(Entries);
@@ -116,8 +112,8 @@ public partial class PaneView : UserControl
         {
             var picked = vm.Items.Where(x => x.IsSelected).Select(x => x.Path).ToList();
             IReadOnlyList<string> paths = item.IsSelected && picked.Count > 0 ? picked : [item.Path];
-            s_dragPaths = paths;
-            s_drives = new ListDrives().Invoke();
+            DragSession.Paths = paths;
+            DragSession.Drives = new ListDrives().Invoke();
 
             var data = new DataTransfer();
             data.Add(DataTransferItem.Create(DataFormat.Text, string.Join("\n", paths)));
@@ -125,8 +121,8 @@ public partial class PaneView : UserControl
         }
         finally
         {
-            s_dragPaths = null;
-            s_drives = null;
+            DragSession.Paths = null;
+            DragSession.Drives = null;
             _dragging = false;
             ClearDropHighlight();
         }
@@ -209,7 +205,7 @@ public partial class PaneView : UserControl
 
     IReadOnlyList<string> SourcesOf(DragEventArgs e)
     {
-        if (s_dragPaths is { } own) return own;
+        if (DragSession.Paths is { } own) return own;
         var files = e.DataTransfer.TryGetFiles(); // 다른 프로그램(탐색기 등)에서 끌어온 파일
         return files?.Select(f => f.TryGetLocalPath()).OfType<string>().ToList() ?? [];
     }
@@ -220,10 +216,10 @@ public partial class PaneView : UserControl
         if (sources.Count == 0 || Vm is null) { e.DragEffects = DragDropEffects.None; ClearDropHighlight(); return; }
 
         var (destination, row) = TargetAt(e, sources);
-        var drives = s_drives ??= new ListDrives().Invoke();
+        var drives = DragSession.Drives ??= new ListDrives().Invoke();
         // 앱 밖에서 온 파일은 기본으로 복사한다 (Shift로 요청하면 이동).
         var mode = ModeOf(e.KeyModifiers);
-        if (s_dragPaths is null && mode == DropMode.Auto) mode = DropMode.ForceCopy;
+        if (DragSession.Paths is null && mode == DropMode.Auto) mode = DropMode.ForceCopy;
         var plan = DropPlanner.Plan(sources, destination, drives, mode);
         var accepted = plan.Action is DropAction.Copy or DropAction.Move;
         e.DragEffects = plan.Action switch
@@ -244,7 +240,7 @@ public partial class PaneView : UserControl
 
         var (destination, _) = TargetAt(e, sources);
         var mode = ModeOf(e.KeyModifiers);
-        if (s_dragPaths is null && mode == DropMode.Auto) mode = DropMode.ForceCopy;
+        if (DragSession.Paths is null && mode == DropMode.Auto) mode = DropMode.ForceCopy;
         act.Drop(sources, destination, mode);
         e.Handled = true;
     }
@@ -273,23 +269,10 @@ public partial class PaneView : UserControl
         VerticalAlignment = VerticalAlignment.Center,
     };
 
-    static Button MenuRow(object content, Action onClick, Popup popup, bool enabled = true)
-    {
-        var row = new Button { Classes = { "menuitem" }, Content = content, IsEnabled = enabled };
-        row.Click += (_, _) =>
-        {
-            popup.IsOpen = false;
-            onClick();
-        };
-        return row;
-    }
+    static Button MenuRow(object content, Action onClick, Popup popup, bool enabled = true) =>
+        PopupMenus.Row(content, onClick, popup, enabled);
 
-    static Border MenuSeparator()
-    {
-        var line = new Border { Height = 1, Margin = new Thickness(4, 4) };
-        line.Bind(Border.BackgroundProperty, Application.Current!.GetResourceObservable("AppStroke"));
-        return line;
-    }
+    static Border MenuSeparator() => PopupMenus.Separator();
 
     /// <summary>드라이브(볼륨) 목록. 지금 폴더가 있는 드라이브는 굵게 보인다. 눌러서 그 드라이브의 루트로 이동한다.</summary>
     void FillDrives()
