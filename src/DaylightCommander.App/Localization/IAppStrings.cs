@@ -253,6 +253,9 @@ public interface IAppStrings
     string CompareOnTooltip { get; }
     string CompareOffTooltip { get; }
     string SyncBidirectional { get; }
+    string SwapPanesTooltip { get; }
+    string SyncPathRightTooltip { get; }
+    string SyncPathLeftTooltip { get; }
     string SyncUseLeft { get; }
     string SyncUseRight { get; }
     string SyncDiffToRight(int count);

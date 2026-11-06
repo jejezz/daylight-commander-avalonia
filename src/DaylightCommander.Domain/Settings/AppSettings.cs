@@ -100,6 +100,10 @@ public sealed record AppSettings
 
     public const double DefaultTreeDockWidth = 220, MinTreeDockWidth = 160, MaxTreeDockWidth = 420;
 
+    /// <summary>좌우 패널의 화면 위치를 맞바꿨는가 (패널의 경로·선택은 그대로).</summary>
+    [JsonPropertyName("pane_swapped")]
+    public bool PanesSwapped { get; init; }
+
     [JsonPropertyName("window_placement")]
     public WindowPlacement? Window { get; init; }
 

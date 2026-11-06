@@ -194,6 +194,9 @@ public partial class MainWindow : Window
                 case Key.D: _home.State.DuplicateInPlace(); break; // 여기에 복제
                 case Key.OemComma: SettingsWindow.Open(this); break; // 설정 (ui-ux.md §7)
                 case Key.T: TreeButton.IsChecked = TreeButton.IsChecked != true; break; // 디렉터리 트리
+                case Key.U: _home.State.ToggleSwap(); break; // 좌우 패널 교환
+                case Key.Right when shift: _ = _home.State.SyncPathRightAsync(); break; // 왼쪽 패널 경로를 오른쪽으로
+                case Key.Left when shift: _ = _home.State.SyncPathLeftAsync(); break;
                 case Key.W: Close(); break;
                 default: handled = false; break;
             }
@@ -374,5 +377,11 @@ public partial class MainWindow : Window
         SettingsButton.Click += (_, _) => SettingsWindow.Open(this);
         AboutButton.Click += (_, _) => AboutDialog.Open(this);
         SetupTreeDock(primary, settings);
+        // 좌우 교환은 첫 창만 기억하고 복원한다.
+        if (primary)
+        {
+            _home.State.SetSwapped(settings.Value.PanesSwapped);
+            _home.State.LayoutChanged += () => settings.Update(x => x with { PanesSwapped = _home.State.Swapped });
+        }
     }
 }

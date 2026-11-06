@@ -41,6 +41,9 @@ static class Strings
         Set("CompareOnTooltip", s.CompareOnTooltip);
         Set("CompareOffTooltip", s.CompareOffTooltip);
         Set("SyncBidirectional", s.SyncBidirectional);
+        Set("SwapPanesTooltip", s.SwapPanesTooltip);
+        Set("SyncPathRightTooltip", s.SyncPathRightTooltip);
+        Set("SyncPathLeftTooltip", s.SyncPathLeftTooltip);
 
         Set("SettingsSectionAppearance", s.SettingsSectionAppearance);
         Set("SettingsMode", s.SettingsMode);

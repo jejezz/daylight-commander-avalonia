@@ -249,6 +249,9 @@ public sealed class EnglishStrings : IAppStrings
     public string CompareOnTooltip => "Compare Folders (both panes)";
     public string CompareOffTooltip => "Turn Off Folder Compare";
     public string SyncBidirectional => "Two-way Sync";
+    public string SwapPanesTooltip => "Swap Left and Right Panes (Ctrl+U)";
+    public string SyncPathRightTooltip => "Send left pane path to the right (Ctrl+Shift+→)";
+    public string SyncPathLeftTooltip => "Send right pane path to the left (Ctrl+Shift+←)";
     public string SyncUseLeft => "Use Left File";
     public string SyncUseRight => "Use Right File";
     public string SyncDiffToRight(int count) => $"Copy {count} differences →";

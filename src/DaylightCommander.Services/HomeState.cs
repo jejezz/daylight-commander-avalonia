@@ -202,6 +202,40 @@ public sealed class HomeState : IDisposable
         }
     }
 
+    // --- 패널 배치 (좌우 교환·경로 맞추기) ---
+
+    /// <summary>좌우 패널의 화면 위치를 맞바꿨는가. 패널 자체(경로·선택·기록)는 그대로고 놓이는 자리만 바뀐다.</summary>
+    public bool Swapped { get; private set; }
+
+    /// <summary>화면에서 왼쪽에 놓인 패널.</summary>
+    public PaneSide Leftmost => Swapped ? PaneSide.Right : PaneSide.Left;
+
+    public PaneSide Rightmost => Swapped ? PaneSide.Left : PaneSide.Right;
+
+    public event Action? LayoutChanged;
+
+    public void SetSwapped(bool swapped)
+    {
+        if (Swapped == swapped) return;
+        Swapped = swapped;
+        LayoutChanged?.Invoke();
+    }
+
+    public void ToggleSwap() => SetSwapped(!Swapped);
+
+    /// <summary><paramref name="from"/> 패널의 현재 경로로 반대쪽 패널을 옮긴다 (두 패널 사이의 → ← 단추, Ctrl+Shift+←/→).</summary>
+    public Task SyncPanePathAsync(PaneSide from)
+    {
+        var to = from == PaneSide.Left ? PaneSide.Right : PaneSide.Left;
+        return Controller(to).NavigateToAsync(Controller(from).State.CurrentPath);
+    }
+
+    /// <summary>화면의 왼쪽 패널 경로를 오른쪽으로.</summary>
+    public Task SyncPathRightAsync() => SyncPanePathAsync(Leftmost);
+
+    /// <summary>화면의 오른쪽 패널 경로를 왼쪽으로.</summary>
+    public Task SyncPathLeftAsync() => SyncPanePathAsync(Rightmost);
+
     // --- 폴더 비교·동기화 ---
 
     FolderComparison? _comparison;

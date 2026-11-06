@@ -19,6 +19,9 @@
                     <ToggleButton Classes="tool" IsChecked="{Binding CompareMode, Mode=TwoWay}" ToolTip.Tip="{DynamicResource Str.CompareOnTooltip}">
                         <icons:DuoIcon Icon="compare"/>
                     </ToggleButton>
+                    <Button Classes="tool" Command="{Binding SwapPanesCommand}" ToolTip.Tip="{DynamicResource Str.SwapPanesTooltip}">
+                        <icons:DuoIcon Icon="swap"/>
+                    </Button>
                     <ToggleButton x:Name="TreeButton" Classes="tool" ToolTip.Tip="{DynamicResource Str.TreeTooltip}">
                         <icons:DuoIcon Icon="tree"/>
                     </ToggleButton>
@@ -39,13 +42,24 @@
             </Border>
             <GridSplitter Grid.Column="1" x:Name="TreeSplitter" Width="8" Background="Transparent" IsVisible="False"
                           ResizeDirection="Columns" ResizeBehavior="PreviousAndNext" Cursor="SizeWestEast"/>
-            <Grid Grid.Column="2" ColumnDefinitions="*,*" ColumnSpacing="8">
-                <Border Grid.Column="0" Classes="card" Classes.active="{Binding Left.IsActive}">
+            <Grid Grid.Column="2" ColumnDefinitions="*,28,*">
+                <Border Grid.Column="{Binding LeftColumn}" Classes="card" Classes.active="{Binding Left.IsActive}">
                     <views:PaneView DataContext="{Binding Left}"/>
                 </Border>
-                <Border Grid.Column="1" Classes="card" Classes.active="{Binding Right.IsActive}">
+                <Border Grid.Column="{Binding RightColumn}" Classes="card" Classes.active="{Binding Right.IsActive}">
                     <views:PaneView DataContext="{Binding Right}"/>
                 </Border>
+                <!-- 두 패널 사이: 한쪽 패널의 경로를 다른 쪽으로 보낸다 (Ctrl+Shift+→ / ←) -->
+                <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="4">
+                    <Button Classes="tool" Width="24" Height="24" Command="{Binding SyncPathRightCommand}"
+                            ToolTip.Tip="{DynamicResource Str.SyncPathRightTooltip}">
+                        <icons:DuoIcon Icon="forward" Width="16" Height="16"/>
+                    </Button>
+                    <Button Classes="tool" Width="24" Height="24" Command="{Binding SyncPathLeftCommand}"
+                            ToolTip.Tip="{DynamicResource Str.SyncPathLeftTooltip}">
+                        <icons:DuoIcon Icon="back" Width="16" Height="16"/>
+                    </Button>
+                </StackPanel>
             </Grid>
         </Grid>
 

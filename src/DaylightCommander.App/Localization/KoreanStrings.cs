@@ -249,6 +249,9 @@ public sealed class KoreanStrings : IAppStrings
     public string CompareOnTooltip => "폴더 비교 (좌우 패널)";
     public string CompareOffTooltip => "폴더 비교 끄기";
     public string SyncBidirectional => "양방향 동기화";
+    public string SwapPanesTooltip => "좌우 패널 교환 (Ctrl+U)";
+    public string SyncPathRightTooltip => "왼쪽 패널 경로를 오른쪽으로 (Ctrl+Shift+→)";
+    public string SyncPathLeftTooltip => "오른쪽 패널 경로를 왼쪽으로 (Ctrl+Shift+←)";
     public string SyncUseLeft => "왼쪽 파일 사용";
     public string SyncUseRight => "오른쪽 파일 사용";
     public string SyncDiffToRight(int count) => $"차이 {count}개 → 복사";

@@ -43,6 +43,12 @@ public sealed partial class HomeViewModel : ObservableObject, IDisposable
         State.Left.StateChanged += _ => { RefreshHasTarget(); RefreshCompare(); };
         State.Right.StateChanged += _ => { RefreshHasTarget(); RefreshCompare(); };
         State.CompareChanged += () => { OnPropertyChanged(nameof(CompareMode)); RefreshCompare(); };
+        State.LayoutChanged += () =>
+        {
+            OnPropertyChanged(nameof(LeftColumn));
+            OnPropertyChanged(nameof(RightColumn));
+            RefreshCompare(); // 동기화 막대의 → ←는 화면 위치 기준이다
+        };
         // 편집기 설정이 바뀌면 F4 버튼의 사용 가능 여부도 바뀐다.
         settings.Changed += OnSettingsChanged;
     }
@@ -50,6 +56,16 @@ public sealed partial class HomeViewModel : ObservableObject, IDisposable
     readonly SettingsController _settings;
 
     public DirectoryTreeViewModel Tree { get; }
+
+    // --- 패널 배치 ---
+
+    /// <summary>본문 격자에서 각 패널이 놓이는 칸 (0 = 왼쪽, 2 = 오른쪽; 1은 두 패널 사이의 경로 맞추기 단추).</summary>
+    public int LeftColumn => State.Swapped ? 2 : 0;
+    public int RightColumn => State.Swapped ? 0 : 2;
+
+    [RelayCommand] void SwapPanes() => State.ToggleSwap();
+    [RelayCommand] Task SyncPathRight() => State.SyncPathRightAsync();
+    [RelayCommand] Task SyncPathLeft() => State.SyncPathLeftAsync();
 
     // --- 폴더 비교 ---
 
@@ -75,8 +91,10 @@ public sealed partial class HomeViewModel : ObservableObject, IDisposable
         Left.RefreshDiff();
         Right.RefreshDiff();
         var c = State.Comparison;
-        var left = c?.Left.Count ?? 0;
-        var right = c?.Right.Count ?? 0;
+        // 화면의 왼쪽 패널 기준: swap하면 Left/Right가 뒤바뀐다.
+        var leftmostIsLeft = State.Leftmost == PaneSide.Left;
+        var left = (leftmostIsLeft ? c?.Left.Count : c?.Right.Count) ?? 0;
+        var right = (leftmostIsLeft ? c?.Right.Count : c?.Left.Count) ?? 0;
         SyncRightText = Strings.Current.SyncDiffToRight(left);
         SyncLeftText = Strings.Current.SyncDiffToLeft(right);
         CanSyncRight = left > 0;
@@ -84,8 +102,8 @@ public sealed partial class HomeViewModel : ObservableObject, IDisposable
         CanSyncBoth = left > 0 || right > 0;
     }
 
-    [RelayCommand] void SyncToRight() => State.SyncFolders(PaneSide.Left);
-    [RelayCommand] void SyncToLeft() => State.SyncFolders(PaneSide.Right);
+    [RelayCommand] void SyncToRight() => State.SyncFolders(State.Leftmost);
+    [RelayCommand] void SyncToLeft() => State.SyncFolders(State.Rightmost);
     [RelayCommand] void SyncBoth() => State.SyncBidirectional();
 
     /// <summary>패널 화면이 부르는 동작. 각 동작은 먼저 그 패널을 활성 패널로 만든 뒤 홈 상태에 맡긴다.</summary>

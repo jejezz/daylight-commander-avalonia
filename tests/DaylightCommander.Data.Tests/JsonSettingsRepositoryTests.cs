@@ -40,6 +40,7 @@ public sealed class JsonSettingsRepositoryTests : IDisposable
         RecentPaths = ["C:\\b", "C:\\a"],
         LastLeftPath = "C:\\left",
         LastRightPath = "C:\\right",
+        PanesSwapped = true,
         TreeDockOpen = true,
         TreeDockWidth = 300,
         Window = new WindowPlacement { X = 10, Y = 20, Width = 1000, Height = 600, Scale = 1.5, Maximized = true },
@@ -62,6 +63,7 @@ public sealed class JsonSettingsRepositoryTests : IDisposable
         Assert.Equal(Full.LastLeftPath, back.LastLeftPath);
         Assert.Equal(Full.LastRightPath, back.LastRightPath);
         Assert.Equal(Full.Window, back.Window);
+        Assert.True(back.PanesSwapped);
         Assert.True(back.TreeDockOpen);
         Assert.Equal(300, back.TreeDockWidth);
     }
