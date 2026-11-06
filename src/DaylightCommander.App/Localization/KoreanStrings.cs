@@ -161,6 +161,8 @@ public sealed class KoreanStrings : IAppStrings
     public string EditorExternalChangedBody => "열어 둔 뒤에 디스크의 파일이 바뀌었어요. 덮어쓸까요?";
     public string EditorOverwrite => "덮어쓰기";
     public string EditorSaveFailed(string error) => $"저장하지 못했어요: {error}";
+    public string EditorUploadFailed(string error, string tempPath) => $"서버에 올리지 못했어요: {error}\n고친 내용은 이 임시 파일에 남아 있어요:\n{tempPath}";
+    public string EditorRemoteChangedBody => "열어 둔 뒤에 서버의 파일이 바뀌었어요. 덮어쓸까요?";
     public string EditorLoadFailed(string error) => $"파일을 열지 못했어요: {error}";
     public string EditorFind => "찾기";
     public string EditorFindHint => "찾을 내용";

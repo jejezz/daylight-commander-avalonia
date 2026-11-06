@@ -105,7 +105,7 @@ public sealed class FolderCompareTests : IAsyncLifetime
     static string? TryRead(string path)
     {
         try { return File.ReadAllText(path); }
-        catch (IOException) { return null; }
+        catch (Exception e) when (e is IOException or UnauthorizedAccessException) { return null; } // Windows는 지우는 중인 파일을 읽으면 접근 거부를 낸다
     }
 
     string L(string n) => Path.Combine(_left, n);

@@ -163,6 +163,8 @@ public interface IAppStrings
     string EditorExternalChangedBody { get; }
     string EditorOverwrite { get; }
     string EditorSaveFailed(string error);
+    string EditorUploadFailed(string error, string tempPath);
+    string EditorRemoteChangedBody { get; }
     string EditorLoadFailed(string error);
     string EditorFind { get; }
     string EditorFindHint { get; }

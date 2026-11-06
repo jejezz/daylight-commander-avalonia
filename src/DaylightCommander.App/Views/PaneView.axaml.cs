@@ -169,7 +169,7 @@ public partial class PaneView : UserControl
         {
             Add(s.ContextOpenWithDefault, () => act.OpenWithDefaultApp(single.Path));
             Add(s.ContextView, act.View);
-            if (!remote) Add(s.ContextEdit, act.Edit);
+            Add(s.ContextEdit, act.Edit);
         }
         if (ContextItems.Children.Count > 0) ContextItems.Children.Add(MenuSeparator());
 

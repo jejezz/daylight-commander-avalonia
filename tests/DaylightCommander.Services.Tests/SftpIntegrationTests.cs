@@ -273,4 +273,23 @@ public sealed class SftpIntegrationTests : IClassFixture<SftpServerFixture>, IDi
         var e = await Assert.ThrowsAsync<FileOperationException>(() => ConnectAsync());
         Assert.IsType<FileError.RemoteHostKeyChanged>(e.Error);
     }
+
+    [FactIfSftpServer]
+    public async Task 원격_편집_연결은_덮어쓰고_서버의_변경을_알아챈다()
+    {
+        await ConnectAsync();
+        File.WriteAllText(ServerFile("edit.txt"), "original");
+        var fs = _sessions.FileSystemFor(_server.Url());
+        var url = _server.Url("edit.txt");
+        var link = new RemoteEditLink(fs, url, await fs.StatAsync(url));
+
+        File.WriteAllText(Path.Combine(_local, "edit.txt"), "edited and longer");
+        Assert.False(await link.ChangedOnServerAsync());
+        await link.UploadAsync(Path.Combine(_local, "edit.txt"));
+        Assert.Equal("edited and longer", File.ReadAllText(ServerFile("edit.txt")));
+        Assert.False(await link.ChangedOnServerAsync());
+
+        File.WriteAllText(ServerFile("edit.txt"), "changed by someone else!!");
+        Assert.True(await link.ChangedOnServerAsync());
+    }
 }

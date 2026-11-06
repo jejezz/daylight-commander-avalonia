@@ -33,22 +33,25 @@ public sealed class EditorWindow : Window
     static readonly List<EditorWindow> Windows = [];
 
     /// <summary>파일을 에디터 창에서 연다. 이미 열려 있으면 그 창을 앞으로 가져온다.</summary>
-    public static void Open(string path, Window origin)
+    public static void Open(string path, Window origin, IRemoteEditLink? link = null)
     {
-        var existing = Windows.FirstOrDefault(w => string.Equals(w._path, path, StringComparison.OrdinalIgnoreCase));
+        var existing = Windows.FirstOrDefault(w => link is not null
+            ? w._link?.Url == link.Url // 같은 원격 파일이면 열려 있는 창을 쓴다 (임시 사본의 경로는 열 때마다 다르다)
+            : w._link is null && string.Equals(w._path, path, StringComparison.OrdinalIgnoreCase));
         if (existing is not null)
         {
             if (existing.WindowState == WindowState.Minimized) existing.WindowState = WindowState.Normal;
             existing.Activate();
             return;
         }
-        var window = new EditorWindow(path);
+        var window = new EditorWindow(path, link);
         Windows.Add(window);
         window.Closed += (_, _) => Windows.Remove(window);
         WindowPlacementHelper.OpenNear(origin, window);
     }
 
     string _path;
+    readonly IRemoteEditLink? _link; // 원격 파일을 고치는 중이면: 저장할 때 서버에 올린다
     EditorTextFile? _file;
     bool _readOnly;
     bool _closeApproved;
@@ -81,9 +84,10 @@ public sealed class EditorWindow : Window
     readonly ToggleButton _regex = new() { Classes = { "tool" } };
     IReadOnlyList<TextMatch> _matches = [];
 
-    EditorWindow(string path)
+    EditorWindow(string path, IRemoteEditLink? link)
     {
         _path = path;
+        _link = link;
         Width = 1000;
         Height = 700;
         MinWidth = 520;
@@ -157,7 +161,7 @@ public sealed class EditorWindow : Window
         _previewToggle = IconToggle("preview", s.EditorPreviewTooltip, on => SetPreview(on));
         _previewToggle.IsVisible = false;
         buttons.Children.Add(_previewToggle);
-        buttons.Children.Add(IconButton("save-as", s.EditorSaveAs, () => _ = SaveAsPromptAsync()));
+        if (_link is null) buttons.Children.Add(IconButton("save-as", s.EditorSaveAs, () => _ = SaveAsPromptAsync())); // 원격 파일은 다른 이름으로 저장하지 않는다
         buttons.Children.Add(IconButton("save", s.EditorSave, () => _ = SaveAsync()));
 
         var grid = new Grid { ColumnDefinitions = new ColumnDefinitions("*,Auto") };
@@ -216,12 +220,13 @@ public sealed class EditorWindow : Window
             item.Click += (_, _) => click();
             return item;
         }
-        MenuItem Top(string header, params Control[] items)
+        MenuItem Top(string header, IEnumerable<Control> items)
         {
             var top = new MenuItem { Header = header };
             foreach (var i in items) top.Items.Add(i);
             return top;
         }
+        MenuItem TopOf(string header, params Control[] items) => Top(header, items);
         static Separator Sep() => new();
 
         _wrapItem = new MenuItem { Header = s.EditorWordWrap, ToggleType = MenuItemToggleType.CheckBox };
@@ -229,16 +234,18 @@ public sealed class EditorWindow : Window
         _previewItem = new MenuItem { Header = s.EditorPreviewTooltip, ToggleType = MenuItemToggleType.CheckBox, IsVisible = false, InputGesture = KeyGesture.Parse("Ctrl+Shift+V") };
         _previewItem.Click += (_, _) => SetPreview(_previewItem.IsChecked);
 
+        // 파일 메뉴: 원격 파일은 다른 이름으로 저장 항목이 없다.
+        var fileItems = new List<Control> { Item(s.EditorSave, "Ctrl+S", () => _ = SaveAsync()) };
+        if (_link is null) fileItems.Add(Item(s.EditorSaveAs, "Ctrl+Shift+S", () => _ = SaveAsPromptAsync()));
+        fileItems.Add(Sep());
+        fileItems.Add(Item(s.EditorScClose, "Escape", Close));
+
         var menu = new Menu
         {
             Items =
             {
-                Top(s.EditorGroupFile,
-                    Item(s.EditorSave, "Ctrl+S", () => _ = SaveAsync()),
-                    Item(s.EditorSaveAs, "Ctrl+Shift+S", () => _ = SaveAsPromptAsync()),
-                    Sep(),
-                    Item(s.EditorScClose, "Escape", Close)),
-                Top(s.EditorGroupEdit,
+                Top(s.EditorGroupFile, fileItems),
+                TopOf(s.EditorGroupEdit,
                     Item(s.EditorUndo, "Ctrl+Z", () => _editor.Undo()),
                     Item(s.EditorRedo, "Ctrl+Y", () => _editor.Redo()),
                     Sep(),
@@ -248,14 +255,14 @@ public sealed class EditorWindow : Window
                     Sep(),
                     Item(s.EditorScSelectAll, "Ctrl+A", () => _editor.SelectAll()),
                     Item(s.EditorScDeleteLine, "Ctrl+D", DeleteLine)),
-                Top(s.EditorGroupFind,
+                TopOf(s.EditorGroupFind,
                     Item(s.EditorFind, "Ctrl+F", () => ShowFind(replace: false)),
                     Item(s.EditorReplace, "Ctrl+H", () => ShowFind(replace: true)),
                     Item(s.EditorGoToLine, "Ctrl+G", () => _ = GoToLineAsync()),
                     Sep(),
                     Item(s.EditorNextMatch, null, () => GoToMatch(true, false)),
                     Item(s.EditorPrevMatch, null, () => GoToMatch(false, false))),
-                Top(s.EditorMenuView, _wrapItem, _previewItem),
+                TopOf(s.EditorMenuView, _wrapItem, _previewItem),
             },
         };
         _menuHost.BorderThickness = new Thickness(0, 0, 0, 1);
@@ -504,7 +511,7 @@ public sealed class EditorWindow : Window
         var shift = e.KeyModifiers.HasFlag(KeyModifiers.Shift);
         if (ctrl && e.Key == Key.S)
         {
-            if (shift) _ = SaveAsPromptAsync(); else _ = SaveAsync();
+            if (shift) { if (_link is null) _ = SaveAsPromptAsync(); } else _ = SaveAsync();
         }
         else if (ctrl && e.Key == Key.F) ShowFind(replace: false);
         else if (ctrl && e.Key == Key.H) ShowFind(replace: true);
@@ -535,7 +542,27 @@ public sealed class EditorWindow : Window
                     [s.EditorOverwrite, s.CommonCancel], 1, 1);
                 if (choice != 0) return false;
             }
+            // 원격 파일: 서버의 파일이 열 때와 달라졌으면 덮어쓸지 묻는다.
+            if (asPath is null && _link is not null && await _link.ChangedOnServerAsync())
+            {
+                var choice = await MessageDialog.ShowAsync(this, s.EditorExternalChangedTitle, s.EditorRemoteChangedBody,
+                    [s.EditorOverwrite, s.CommonCancel], 1, 1);
+                if (choice != 0) return false;
+            }
             _file = await TextFiles.SaveAsync(target, _editor.Document.Text, _file);
+            if (asPath is null && _link is not null)
+            {
+                try
+                {
+                    await _link.UploadAsync(target);
+                }
+                catch (Exception e) when (e is IOException or UnauthorizedAccessException)
+                {
+                    // 올리지 못했다: 고친 내용은 임시 파일에 남아 있고, 저장하지 않은 상태로 둔다 (닫을 때 다시 묻는다).
+                    await MessageDialog.ShowAsync(this, Path.GetFileName(target), s.EditorUploadFailed(s.FileErrorText(FileErrors.From(e, _link.Url)), target), [s.CommonConfirm], 0, 0);
+                    return false;
+                }
+            }
         }
         catch (Exception e) when (e is IOException or UnauthorizedAccessException)
         {

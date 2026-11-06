@@ -252,16 +252,12 @@ public sealed class RemoteHomeTests : IAsyncLifetime
     // --- 아직 안 되는 기능은 안내한다 ---
 
     [Fact]
-    public async Task 편집_속성_압축_터미널_탐색기는_원격에서_지원하지_않는다는_오류다()
+    public async Task 속성_압축_터미널_탐색기는_원격에서_지원하지_않는다는_오류다()
     {
         await ConnectAndGoAsync();
         var unsupported = new FileError.RemoteUnsupported();
 
         _home.Left.ClickEntry(Srv + "/home/me/note.txt");
-        _home.RequestEdit();
-        Assert.Equal(unsupported, _home.Left.State.Error);
-
-        _home.Left.ClearError();
         _home.RequestProperties();
         Assert.Equal(unsupported, _home.Left.State.Error);
 
@@ -297,5 +293,91 @@ public sealed class RemoteHomeTests : IAsyncLifetime
         _home.RequestDeletePaths([Srv + "/home/me/renamed.txt"]);
         _home.ConfirmDelete();
         await WaitUntil(() => !_fs.Exists("/home/me/renamed.txt"));
+    }
+
+    // --- 원격 파일 편집 (임시 사본을 고치고 저장할 때 서버에 올린다) ---
+
+    [Fact]
+    public async Task 원격_파일_편집은_받은_임시_사본과_올리기_연결을_알린다()
+    {
+        await ConnectAndGoAsync();
+        _home.Left.ClickEntry(Srv + "/home/me/note.txt");
+        var got = new TaskCompletionSource<(string Local, IRemoteEditLink Link)>();
+        _home.RemoteEditRequested += (local, link) => got.TrySetResult((local, link));
+
+        _home.RequestEdit();
+        var (localPath, edit) = await got.Task.WaitAsync(TimeSpan.FromSeconds(10));
+
+        Assert.Equal("remote note", File.ReadAllText(localPath));
+        Assert.Equal(Srv + "/home/me/note.txt", edit.Url);
+
+        File.WriteAllText(localPath, "edited locally");
+        Assert.False(await edit.ChangedOnServerAsync());
+        await edit.UploadAsync(localPath);
+        Assert.Equal("edited locally", _fs.Read("/home/me/note.txt"));
+        Assert.False(await edit.ChangedOnServerAsync()); // 올린 뒤에는 그 상태가 새 기준이다
+    }
+
+    [Fact]
+    public async Task 열어_둔_사이_서버의_파일이_바뀌면_알아챈다()
+    {
+        await ConnectAndGoAsync();
+        _home.Left.ClickEntry(Srv + "/home/me/note.txt");
+        var got = new TaskCompletionSource<IRemoteEditLink>();
+        _home.RemoteEditRequested += (_, link) => got.TrySetResult(link);
+        _home.RequestEdit();
+        var edit = await got.Task.WaitAsync(TimeSpan.FromSeconds(10));
+
+        _fs.File("/home/me/note.txt", "someone else changed this a lot");
+
+        Assert.True(await edit.ChangedOnServerAsync());
+    }
+
+    [Fact]
+    public async Task 서버의_파일이_없어지면_바뀐_것으로_본다()
+    {
+        await ConnectAndGoAsync();
+        _home.Left.ClickEntry(Srv + "/home/me/note.txt");
+        var got = new TaskCompletionSource<IRemoteEditLink>();
+        _home.RemoteEditRequested += (_, link) => got.TrySetResult(link);
+        _home.RequestEdit();
+        var edit = await got.Task.WaitAsync(TimeSpan.FromSeconds(10));
+
+        await _fs.DeleteAsync(Srv + "/home/me/note.txt");
+
+        Assert.True(await edit.ChangedOnServerAsync());
+    }
+
+    [Fact]
+    public async Task 너무_큰_원격_파일은_편집하지_않고_안내한다()
+    {
+        await ConnectAndGoAsync();
+        var big = new string('x', TextFiles.EditorMaxBytes + 10);
+        _fs.File("/home/me/big.txt", big);
+        await _home.Left.RefreshAsync();
+        _home.Left.ClickEntry(Srv + "/home/me/big.txt");
+        var requested = false;
+        _home.RemoteEditRequested += (_, _) => requested = true;
+
+        _home.RequestEdit();
+
+        Assert.Equal(new FileError.EditorTooLarge("big.txt"), _home.Left.State.Error);
+        Assert.False(requested);
+    }
+
+    [Fact]
+    public async Task 받을_수_없는_원격_파일_편집은_오류가_뜬다()
+    {
+        await ConnectAndGoAsync();
+        _home.Left.ClickEntry(Srv + "/home/me/note.txt");
+        await _fs.DeleteAsync(Srv + "/home/me/note.txt"); // 목록에는 남아 있지만 서버에는 이미 없다
+        var requested = false;
+        _home.RemoteEditRequested += (_, _) => requested = true;
+
+        _home.RequestEdit();
+        await WaitUntil(() => _home.Left.State.Error is not null);
+
+        Assert.IsType<FileError.NotFound>(_home.Left.State.Error);
+        Assert.False(requested);
     }
 }

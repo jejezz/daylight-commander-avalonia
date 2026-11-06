@@ -256,4 +256,23 @@ public sealed class WebDavIntegrationTests : IDisposable
         var e = await Assert.ThrowsAsync<FileOperationException>(() => _ops.CreateDirectoryAsync(home, "dup"));
         Assert.IsType<FileError.AlreadyExists>(e.Error);
     }
+
+    [FactIfWebDavServer]
+    public async Task 원격_편집_연결은_덮어쓰고_서버의_변경을_알아챈다()
+    {
+        var home = await ConnectAsync();
+        File.WriteAllText(ServerFile("edit.txt"), "original");
+        var fs = _sessions.FileSystemFor(home);
+        var url = _server.Url("edit.txt");
+        var link = new RemoteEditLink(fs, url, await fs.StatAsync(url));
+
+        File.WriteAllText(Path.Combine(_local, "edit.txt"), "edited and longer");
+        Assert.False(await link.ChangedOnServerAsync());
+        await link.UploadAsync(Path.Combine(_local, "edit.txt"));
+        Assert.Equal("edited and longer", File.ReadAllText(ServerFile("edit.txt")));
+        Assert.False(await link.ChangedOnServerAsync());
+
+        File.WriteAllText(ServerFile("edit.txt"), "changed by someone else!!");
+        Assert.True(await link.ChangedOnServerAsync());
+    }
 }

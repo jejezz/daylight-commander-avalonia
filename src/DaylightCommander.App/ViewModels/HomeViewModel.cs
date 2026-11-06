@@ -197,8 +197,7 @@ public sealed partial class HomeViewModel : ObservableObject, IDisposable
         var cursorIsFile = State.ActiveController.State.CursorEntry is { IsDirectory: false };
         CanView = cursorIsFile;
         CanExtract = State.ActiveController.State.CursorEntry is { IsDirectory: false } z && ArchiveService.IsZip(z.Name) && !Locations.IsRemote(z.Path);
-        var remoteCursor = State.ActiveController.State.CursorEntry is { } rc && Locations.IsRemote(rc.Path);
-        CanEdit = cursorIsFile && !remoteCursor; // 외부 편집기를 골랐으면 그것으로, 아니면 내장 에디터로 연다. 원격 파일 편집은 아직 없다
+        CanEdit = cursorIsFile; // 외부 편집기를 골랐으면 그것으로, 아니면 내장 에디터로 연다 (원격 파일은 늘 내장 에디터)
     }
 
     // 하단 기능 키 버튼과 단축키가 같은 명령을 쓴다.

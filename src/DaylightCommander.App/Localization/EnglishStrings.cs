@@ -160,6 +160,8 @@ public sealed class EnglishStrings : IAppStrings
     public string EditorExternalChangedTitle => "File changed";
     public string EditorExternalChangedBody => "The file on disk changed after you opened it. Overwrite it?";
     public string EditorOverwrite => "Overwrite";
+    public string EditorUploadFailed(string error, string tempPath) => $"Couldn't upload to the server: {error}\nYour changes are kept in this temporary file:\n{tempPath}";
+    public string EditorRemoteChangedBody => "The file on the server changed after you opened it. Overwrite it?";
     public string EditorSaveFailed(string error) => $"Couldn't save: {error}";
     public string EditorLoadFailed(string error) => $"Couldn't open the file: {error}";
     public string EditorFind => "Find";

@@ -222,6 +222,36 @@ public sealed class HomeState : IDisposable
             ViewRequested?.Invoke(entry.Path);
     }
 
+    /// <summary>
+    /// 원격 파일을 고치는 에디터를 열어 달라는 요청. 인자는 내려받은 임시 사본의 경로와, 저장할 때 서버에 올리는 연결
+    /// (<see cref="IRemoteEditLink"/>). 창이 이 이벤트를 받아 에디터 창을 연다.
+    /// </summary>
+    public event Action<string, IRemoteEditLink>? RemoteEditRequested;
+
+    async Task EditRemoteAsync(FileEntry entry, PaneSide side)
+    {
+        try
+        {
+            var fs = Remote.FileSystemFor(entry.Path);
+            var stamp = await fs.StatAsync(entry.Path);
+            var local = await RemoteFiles.DownloadToTempAsync(fs, entry.Path);
+            var link = new RemoteEditLink(fs, entry.Path, stamp);
+            await _onUi(() =>
+            {
+                RemoteEditRequested?.Invoke(local, link);
+                return Task.CompletedTask;
+            });
+        }
+        catch (Exception e) when (e is IOException or UnauthorizedAccessException)
+        {
+            await _onUi(() =>
+            {
+                Controller(side).ReportError(FileErrors.From(e, entry.Path));
+                return Task.CompletedTask;
+            });
+        }
+    }
+
     /// <summary>원격 파일을 임시 폴더로 내려받아 그 사본으로 <paramref name="open"/>을 부른다. 실패하면 그 패널의 상태줄에 오류를 띄운다.</summary>
     async Task OpenRemoteAsync(string url, PaneSide side, Action<string> open)
     {
@@ -582,7 +612,13 @@ public sealed class HomeState : IDisposable
     {
         var controller = ActiveController;
         if (controller.State.CursorEntry is not { IsDirectory: false } entry) return;
-        if (Locations.IsRemote(entry.Path)) { controller.ReportError(new FileError.RemoteUnsupported()); return; } // 원격 파일 편집(올려 두기)은 아직 없다
+        if (Locations.IsRemote(entry.Path))
+        {
+            // 원격 파일은 내려받은 임시 사본을 내장 에디터로 고치고, 저장할 때마다 서버에 올린다 (외부 편집기 설정과 상관없이).
+            if (entry.SizeBytes > TextFiles.EditorMaxBytes) { controller.ReportError(new FileError.EditorTooLarge(entry.Name)); return; }
+            _ = EditRemoteAsync(entry, Active);
+            return;
+        }
 
         if (_settings?.Value.ExternalEditor is { } executable)
         {

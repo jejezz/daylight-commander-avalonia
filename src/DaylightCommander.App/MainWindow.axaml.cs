@@ -362,6 +362,7 @@ public partial class MainWindow : Window
         _home.State.DialogChanged += d => Avalonia.Threading.Dispatcher.UIThread.Post(() => SyncDialog(d));
         _home.State.PropertiesRequested += paths => Avalonia.Threading.Dispatcher.UIThread.Post(() => PropertiesWindow.Open(paths, this));
         _home.State.EditRequested += path => Avalonia.Threading.Dispatcher.UIThread.Post(() => EditorWindow.Open(path, this));
+        _home.State.RemoteEditRequested += (path, link) => Avalonia.Threading.Dispatcher.UIThread.Post(() => EditorWindow.Open(path, this, link));
         _home.State.ViewRequested += path => Avalonia.Threading.Dispatcher.UIThread.Post(() => ViewerWindow.Open(path, this));
         _home.State.Queue.ConflictChanged += () => Avalonia.Threading.Dispatcher.UIThread.Post(SyncConflict);
         // 작업 목록은 기능 키 바 위에 겹쳐 뜨므로 바와 같은 높이를 넘지 않게 한다.
