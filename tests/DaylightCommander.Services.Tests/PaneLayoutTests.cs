@@ -90,4 +90,32 @@ public sealed class PaneLayoutTests : IAsyncLifetime
         await _home.SyncPathLeftAsync();
         Assert.Equal(sub, _home.Left.State.CurrentPath);
     }
+
+    [Fact]
+    public void 처음에는_2패널이고_전환하면_알리며_패널_상태는_그대로다()
+    {
+        Assert.False(_home.SinglePane);
+        var changes = 0;
+        _home.LayoutChanged += () => changes++;
+        _home.ToggleSinglePane();
+        Assert.True(_home.SinglePane);
+        _home.SetSinglePane(true); // 같은 값은 알리지 않는다
+        Assert.Equal(1, changes);
+        Assert.Equal(_left, _home.Left.State.CurrentPath);
+        Assert.Equal(_right, _home.Right.State.CurrentPath);
+        _home.ToggleSinglePane();
+        Assert.False(_home.SinglePane);
+        Assert.Equal(2, changes);
+    }
+
+    [Fact]
+    public void 교환과_1패널_모드는_서로_독립이다()
+    {
+        _home.ToggleSwap();
+        _home.ToggleSinglePane();
+        Assert.True(_home.Swapped);
+        Assert.True(_home.SinglePane);
+        _home.ToggleSinglePane();
+        Assert.True(_home.Swapped);
+    }
 }

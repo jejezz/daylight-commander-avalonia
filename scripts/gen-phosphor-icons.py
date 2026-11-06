@@ -64,6 +64,8 @@ ICONS = {
     "preview": ("article", "duotone"),
     "compare": ("git-diff", "duotone"),
     "swap": ("swap", "duotone"),
+    "single-panel": ("square", "duotone"),
+    "dual-panel": ("columns", "duotone"),
     "sync": ("arrows-left-right", "duotone"),
     "save": ("floppy-disk", "duotone"),
     "save-as": ("floppy-disk-back", "duotone"),

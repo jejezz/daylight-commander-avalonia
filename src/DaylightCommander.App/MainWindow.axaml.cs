@@ -195,6 +195,7 @@ public partial class MainWindow : Window
                 case Key.OemComma: SettingsWindow.Open(this); break; // 설정 (ui-ux.md §7)
                 case Key.T: TreeButton.IsChecked = TreeButton.IsChecked != true; break; // 디렉터리 트리
                 case Key.U: _home.State.ToggleSwap(); break; // 좌우 패널 교환
+                case Key.OemPipe: case Key.OemBackslash: _home.State.ToggleSinglePane(); break; // 1패널/2패널 전환 (Ctrl+\)
                 case Key.Right when shift: _ = _home.State.SyncPathRightAsync(); break; // 왼쪽 패널 경로를 오른쪽으로
                 case Key.Left when shift: _ = _home.State.SyncPathLeftAsync(); break;
                 case Key.W: Close(); break;
@@ -320,6 +321,10 @@ public partial class MainWindow : Window
         };
     }
 
+    const double DualMinWidth = 960, SingleMinWidth = 560;
+
+    void ApplyMinWidth() => MinWidth = _home.State.SinglePane ? SingleMinWidth : DualMinWidth;
+
     public MainWindow()
     {
         var primary = _count++ == 0;
@@ -381,7 +386,11 @@ public partial class MainWindow : Window
         if (primary)
         {
             _home.State.SetSwapped(settings.Value.PanesSwapped);
-            _home.State.LayoutChanged += () => settings.Update(x => x with { PanesSwapped = _home.State.Swapped });
+            _home.State.SetSinglePane(settings.Value.SinglePane);
+            _home.State.LayoutChanged += () => settings.Update(x => x with { PanesSwapped = _home.State.Swapped, SinglePane = _home.State.SinglePane });
         }
+        // 1패널 모드에서는 창을 더 좁게 줄일 수 있다 (원본). 2패널 모드로 돌아가면 최소 폭이 다시 늘어난다.
+        _home.State.LayoutChanged += ApplyMinWidth;
+        ApplyMinWidth();
     }
 }

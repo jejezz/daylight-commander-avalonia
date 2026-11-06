@@ -256,6 +256,9 @@ public interface IAppStrings
     string SwapPanesTooltip { get; }
     string SyncPathRightTooltip { get; }
     string SyncPathLeftTooltip { get; }
+    string SinglePaneTooltip { get; }
+    string DualPaneTooltip { get; }
+    string DockedPaneTooltip(string path);
     string SyncUseLeft { get; }
     string SyncUseRight { get; }
     string SyncDiffToRight(int count);

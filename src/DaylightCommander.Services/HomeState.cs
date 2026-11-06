@@ -223,6 +223,18 @@ public sealed class HomeState : IDisposable
 
     public void ToggleSwap() => SetSwapped(!Swapped);
 
+    /// <summary>1패널 모드: 활성 패널 하나만 펼치고 다른 패널은 가장자리의 좁은 막대로 접는다 (패널의 상태는 그대로).</summary>
+    public bool SinglePane { get; private set; }
+
+    public void SetSinglePane(bool single)
+    {
+        if (SinglePane == single) return;
+        SinglePane = single;
+        LayoutChanged?.Invoke();
+    }
+
+    public void ToggleSinglePane() => SetSinglePane(!SinglePane);
+
     /// <summary><paramref name="from"/> 패널의 현재 경로로 반대쪽 패널을 옮긴다 (두 패널 사이의 → ← 단추, Ctrl+Shift+←/→).</summary>
     public Task SyncPanePathAsync(PaneSide from)
     {

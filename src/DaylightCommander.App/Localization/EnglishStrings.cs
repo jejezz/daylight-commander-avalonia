@@ -252,6 +252,9 @@ public sealed class EnglishStrings : IAppStrings
     public string SwapPanesTooltip => "Swap Left and Right Panes (Ctrl+U)";
     public string SyncPathRightTooltip => "Send left pane path to the right (Ctrl+Shift+→)";
     public string SyncPathLeftTooltip => "Send right pane path to the left (Ctrl+Shift+←)";
+    public string SinglePaneTooltip => "Single Pane Mode (Ctrl+\\)";
+    public string DualPaneTooltip => "Dual Pane Mode (Ctrl+\\)";
+    public string DockedPaneTooltip(string path) => $"Collapsed pane: {path}\nClick to switch to it, drop files to copy/move";
     public string SyncUseLeft => "Use Left File";
     public string SyncUseRight => "Use Right File";
     public string SyncDiffToRight(int count) => $"Copy {count} differences →";

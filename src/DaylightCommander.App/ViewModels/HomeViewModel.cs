@@ -1,3 +1,4 @@
+using Avalonia.Controls;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using DaylightCommander.Domain;
@@ -38,6 +39,7 @@ public sealed partial class HomeViewModel : ObservableObject, IDisposable
         {
             Left.IsActive = side == PaneSide.Left;
             Right.IsActive = side == PaneSide.Right;
+            if (State.SinglePane) NotifyLayout(); // 1패널 모드에서는 활성 패널이 펼쳐진 쪽이다
             RefreshHasTarget();
         };
         State.Left.StateChanged += _ => { RefreshHasTarget(); RefreshCompare(); };
@@ -45,8 +47,7 @@ public sealed partial class HomeViewModel : ObservableObject, IDisposable
         State.CompareChanged += () => { OnPropertyChanged(nameof(CompareMode)); RefreshCompare(); };
         State.LayoutChanged += () =>
         {
-            OnPropertyChanged(nameof(LeftColumn));
-            OnPropertyChanged(nameof(RightColumn));
+            NotifyLayout();
             RefreshCompare(); // 동기화 막대의 → ←는 화면 위치 기준이다
         };
         // 편집기 설정이 바뀌면 F4 버튼의 사용 가능 여부도 바뀐다.
@@ -64,6 +65,40 @@ public sealed partial class HomeViewModel : ObservableObject, IDisposable
     public int RightColumn => State.Swapped ? 0 : 2;
 
     [RelayCommand] void SwapPanes() => State.ToggleSwap();
+    [RelayCommand] void TogglePaneMode() => State.ToggleSinglePane();
+
+    public bool SinglePane => State.SinglePane;
+    public bool DualPane => !State.SinglePane;
+
+    /// <summary>1패널 모드에서 이 패널이 펼쳐져 있는가 (아니면 가장자리 막대로 접혀 있다).</summary>
+    public bool LeftExpanded => !State.SinglePane || State.Active == PaneSide.Left;
+    public bool RightExpanded => !State.SinglePane || State.Active == PaneSide.Right;
+    public bool LeftIsRail => !LeftExpanded;
+    public bool RightIsRail => !RightExpanded;
+
+    static readonly GridLength Star = new(1, GridUnitType.Star);
+    static readonly GridLength RailWidth = new(36);
+
+    GridLength WidthAt(PaneSide side) => !State.SinglePane || State.Active == side ? Star : RailWidth;
+
+    /// <summary>본문 격자의 세 칸: 화면 왼쪽 패널 · 두 패널 사이 · 화면 오른쪽 패널. 접힌 패널의 칸은 막대 폭이 된다.</summary>
+    public GridLength ColAWidth => WidthAt(State.Leftmost);
+    public GridLength ColBWidth => WidthAt(State.Rightmost);
+    public GridLength GapWidth => State.SinglePane ? new GridLength(10) : new GridLength(28);
+
+    /// <summary>패널 모드 단추는 바꿔 갈 모드를 보여 준다.</summary>
+    public string PaneModeIcon => State.SinglePane ? "dual-panel" : "single-panel";
+    public string PaneModeTooltip => State.SinglePane ? Strings.Current.DualPaneTooltip : Strings.Current.SinglePaneTooltip;
+
+    void NotifyLayout()
+    {
+        foreach (var name in new[]
+        {
+            nameof(LeftColumn), nameof(RightColumn), nameof(SinglePane), nameof(DualPane), nameof(LeftExpanded), nameof(RightExpanded),
+            nameof(LeftIsRail), nameof(RightIsRail), nameof(ColAWidth), nameof(ColBWidth), nameof(GapWidth), nameof(PaneModeIcon), nameof(PaneModeTooltip),
+        })
+            OnPropertyChanged(name);
+    }
     [RelayCommand] Task SyncPathRight() => State.SyncPathRightAsync();
     [RelayCommand] Task SyncPathLeft() => State.SyncPathLeftAsync();
 

@@ -101,6 +101,10 @@ public sealed record AppSettings
     public const double DefaultTreeDockWidth = 220, MinTreeDockWidth = 160, MaxTreeDockWidth = 420;
 
     /// <summary>좌우 패널의 화면 위치를 맞바꿨는가 (패널의 경로·선택은 그대로).</summary>
+    /// <summary>1패널 모드: 활성 패널만 펼치고 다른 패널은 가장자리에 접어 둔다.</summary>
+    [JsonPropertyName("pane_single_mode")]
+    public bool SinglePane { get; init; }
+
     [JsonPropertyName("pane_swapped")]
     public bool PanesSwapped { get; init; }
 

@@ -252,6 +252,9 @@ public sealed class KoreanStrings : IAppStrings
     public string SwapPanesTooltip => "좌우 패널 교환 (Ctrl+U)";
     public string SyncPathRightTooltip => "왼쪽 패널 경로를 오른쪽으로 (Ctrl+Shift+→)";
     public string SyncPathLeftTooltip => "오른쪽 패널 경로를 왼쪽으로 (Ctrl+Shift+←)";
+    public string SinglePaneTooltip => "1패널 모드 (Ctrl+\\)";
+    public string DualPaneTooltip => "2패널 모드 (Ctrl+\\)";
+    public string DockedPaneTooltip(string path) => $"접힌 패널: {path}\n클릭하면 이 패널로 전환, 파일을 놓으면 복사/이동";
     public string SyncUseLeft => "왼쪽 파일 사용";
     public string SyncUseRight => "오른쪽 파일 사용";
     public string SyncDiffToRight(int count) => $"차이 {count}개 → 복사";
