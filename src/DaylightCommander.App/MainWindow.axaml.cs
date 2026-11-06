@@ -175,6 +175,7 @@ public partial class MainWindow : Window
                 case Key.H: c.ToggleShowHidden(); break;
                 case Key.R: _ = c.RefreshAsync(); break;
                 case Key.N: _home.State.RequestName(NameMode.NewFile); break;
+                case Key.D: _home.State.DuplicateInPlace(); break; // 여기에 복제
                 case Key.OemComma: SettingsWindow.Open(this); break; // 설정 (ui-ux.md §7)
                 case Key.W: Close(); break;
                 default: handled = false; break;

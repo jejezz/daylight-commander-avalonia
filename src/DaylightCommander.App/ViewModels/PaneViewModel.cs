@@ -174,6 +174,9 @@ public partial class PaneViewModel : ObservableObject, IDisposable
         return _controller.OpenCursorAsync();
     }
 
+    /// <summary>우클릭 메뉴·끌어다 놓기가 부르는 동작 (HomeViewModel이 연결한다).</summary>
+    public PaneActions? Actions { get; set; }
+
     /// <summary>파일을 기본 앱으로 열어 달라는 요청 (HomeViewModel이 연결한다).</summary>
     public Action<string>? OpenFileRequested { get; set; }
 

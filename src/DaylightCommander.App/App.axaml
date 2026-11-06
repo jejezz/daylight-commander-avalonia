@@ -69,6 +69,13 @@
             <Setter Property="Background" Value="{DynamicResource AppCursor}" />
         </Style>
 
+        <!-- 끌어다 놓을 폴더 행 -->
+        <Style Selector="ListBox.entries ListBoxItem.drop /template/ ContentPresenter#PART_ContentPresenter">
+            <Setter Property="Background" Value="{DynamicResource AppCursor}" />
+            <Setter Property="BorderBrush" Value="{DynamicResource AppPrimary}" />
+            <Setter Property="BorderThickness" Value="2" />
+        </Style>
+
         <!-- 작은 글자 (11): 코드가 만드는 TextBlock에 Classes="small"로 붙인다 -->
         <Style Selector="TextBlock.small">
             <Setter Property="FontSize" Value="{DynamicResource FsSmall}" />

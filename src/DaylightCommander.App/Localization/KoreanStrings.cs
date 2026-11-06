@@ -219,6 +219,19 @@ public sealed class KoreanStrings : IAppStrings
     public string PropCalculating => "계산 중…";
     public string PropIncomplete => "일부 항목은 읽지 못해 빠졌어요";
 
+    public string ContextOpen => "열기";
+    public string ContextOpenWithDefault => "기본 앱으로 열기";
+    public string ContextView => "보기 (F3)";
+    public string ContextEdit => "편집 (F4)";
+    public string ContextRename => "이름 변경 (F2)";
+    public string ContextCopy => "복사 → 반대 패널 (F5)";
+    public string ContextDuplicate => "여기에 복제 (Ctrl+D)";
+    public string ContextMove => "이동 → 반대 패널 (F6)";
+    public string ContextDelete => "삭제 (F8)";
+    public string ContextProperties => "속성 (Alt+Enter)";
+    public string ContextBookmark => "즐겨찾기에 추가";
+    public string ContextReveal => "파일 관리자에서 보기";
+
     public string FileErrorText(FileError error) => error switch
     {
         FileError.NameEmpty => "이름을 입력해 주세요",

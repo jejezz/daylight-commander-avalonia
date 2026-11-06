@@ -26,6 +26,8 @@ public sealed partial class HomeViewModel : ObservableObject, IDisposable
             ActivateRequested = () => State.Activate(PaneSide.Right),
             OpenFileRequested = path => State.OpenFile(path, PaneSide.Right),
         };
+        Left.Actions = ActionsFor(PaneSide.Left);
+        Right.Actions = ActionsFor(PaneSide.Right);
         Operations = new OperationsViewModel(State.Queue);
         Left.IsActive = true;
         State.ActiveChanged += side =>
@@ -42,6 +44,26 @@ public sealed partial class HomeViewModel : ObservableObject, IDisposable
     }
 
     readonly SettingsController _settings;
+
+    /// <summary>패널 화면이 부르는 동작. 각 동작은 먼저 그 패널을 활성 패널로 만든 뒤 홈 상태에 맡긴다.</summary>
+    PaneActions ActionsFor(PaneSide side)
+    {
+        Action On(Action action) => () => { State.Activate(side); action(); };
+        Action<string> OnPath(Action<string> action) => path => { State.Activate(side); action(path); };
+        return new PaneActions(
+            OpenWithDefaultApp: path => State.OpenFile(path, side),
+            View: On(State.RequestView),
+            Edit: On(State.RequestEdit),
+            Rename: On(() => State.RequestName(NameMode.Rename)),
+            Copy: On(() => State.RequestTransfer(FileOperationKind.Copy)),
+            Move: On(() => State.RequestTransfer(FileOperationKind.Move)),
+            Delete: On(() => State.RequestDelete()),
+            Duplicate: On(State.DuplicateInPlace),
+            Properties: On(State.RequestProperties),
+            Reveal: path => State.RevealInFileManager(path, side),
+            ToggleBookmark: OnPath(_settings.ToggleBookmark),
+            Drop: (paths, destination, mode) => State.Drop(paths, destination, mode, side));
+    }
 
     void OnSettingsChanged(DaylightCommander.Domain.Settings.AppSettings _) =>
         Avalonia.Threading.Dispatcher.UIThread.Post(RefreshHasTarget);
@@ -79,6 +101,7 @@ public sealed partial class HomeViewModel : ObservableObject, IDisposable
     [RelayCommand] void NewFolder() => State.RequestName(NameMode.NewFolder);
     [RelayCommand] void NewFile() => State.RequestName(NameMode.NewFile);
     [RelayCommand] void Delete() => State.RequestDelete();
+    [RelayCommand] void Duplicate() => State.DuplicateInPlace();
     [RelayCommand] void Properties() => State.RequestProperties();
 
     public Task StartAsync() => Task.WhenAll(Left.StartAsync(), Right.StartAsync());

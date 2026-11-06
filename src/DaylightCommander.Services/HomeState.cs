@@ -31,6 +31,7 @@ public sealed class HomeState : IDisposable
     readonly SettingsController? _settings;
     readonly ExternalEditorLauncher _editor;
     readonly IFileOpener _opener;
+    readonly IFileRevealer _revealer;
     readonly Func<Func<Task>, Task> _onUi;
     HomeDialog? _dialog;
 
@@ -40,9 +41,10 @@ public sealed class HomeState : IDisposable
     /// </param>
     public HomeState(string leftPath, string rightPath, PaneController.ListDirectory list,
         FileOperations? ops = null, Func<Func<Task>, Task>? runOnUi = null,
-        SettingsController? settings = null, ExternalEditorLauncher? editor = null, IFileOpener? opener = null)
+        SettingsController? settings = null, ExternalEditorLauncher? editor = null, IFileOpener? opener = null, IFileRevealer? revealer = null)
     {
         _opener = opener ?? new OpenWithDefaultApp();
+        _revealer = revealer ?? new FileReveal();
         _ops = ops ?? new FileOperations();
         _settings = settings;
         _editor = editor ?? new ExternalEditorLauncher();
@@ -150,6 +152,57 @@ public sealed class HomeState : IDisposable
         try
         {
             _opener.Open(path);
+        }
+        catch (Exception e) when (e is IOException or UnauthorizedAccessException)
+        {
+            Controller(side).ReportError(FileErrors.From(e, path));
+        }
+    }
+
+    // --- 끌어다 놓기·복제·파일 관리자에서 보기 ---
+
+    /// <summary>
+    /// 끌어다 놓기: <paramref name="sources"/>를 <paramref name="destinationDir"/>에 놓는다. 기본은 같은 드라이브면 이동, 다르면 복사이고
+    /// Ctrl(복사)·Shift(이동)로 바꿀 수 있다 (<see cref="DropPlanner"/>). 확인 대화상자 없이 바로 작업 큐에 넣는다.
+    /// 폴더를 자기 자신 안에 놓는 것 같은 오류는 <paramref name="errorSide"/> 패널의 상태줄에 띄운다.
+    /// </summary>
+    public void Drop(IReadOnlyList<string> sources, string destinationDir, DropMode mode = DropMode.Auto, PaneSide? errorSide = null)
+    {
+        var plan = DropPlanner.Plan(sources, destinationDir, new ListDrives().Invoke(), mode);
+        switch (plan.Action)
+        {
+            case DropAction.Error:
+                Controller(errorSide ?? Active).ReportError(plan.Error!);
+                return;
+            case DropAction.Copy:
+                Queue.EnqueueCopy(sources, destinationDir);
+                break;
+            case DropAction.Move:
+                Queue.EnqueueMove(sources, destinationDir);
+                break;
+            default:
+                return;
+        }
+        // 끌어 온 항목이 선택돼 있었다면 선택을 푼다.
+        foreach (var controller in new[] { Left, Right })
+            if (controller.State.Selected.Overlaps(sources)) controller.ClearSelection();
+    }
+
+    /// <summary>여기에 복제(Ctrl+D): 대상 항목을 같은 폴더에 "이름 (1)"로 복사한다 (충돌 질문 없이).</summary>
+    public void DuplicateInPlace()
+    {
+        var targets = ActiveController.TargetEntries();
+        if (targets.Count == 0) return;
+        Queue.EnqueueCopy(targets.Select(e => e.Path).ToList(), ActiveController.State.CurrentPath);
+        ActiveController.ClearSelection();
+    }
+
+    /// <summary>파일 관리자(탐색기 등)에서 항목을 보여 준다. 실패하면 해당 패널의 상태줄에 오류를 띄운다.</summary>
+    public void RevealInFileManager(string path, PaneSide side)
+    {
+        try
+        {
+            _revealer.Reveal(path);
         }
         catch (Exception e) when (e is IOException or UnauthorizedAccessException)
         {

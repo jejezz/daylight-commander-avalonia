@@ -219,6 +219,19 @@ public sealed class EnglishStrings : IAppStrings
     public string PropCalculating => "Calculating…";
     public string PropIncomplete => "Some items couldn't be read and were left out";
 
+    public string ContextOpen => "Open";
+    public string ContextOpenWithDefault => "Open with Default App";
+    public string ContextView => "View (F3)";
+    public string ContextEdit => "Edit (F4)";
+    public string ContextRename => "Rename (F2)";
+    public string ContextCopy => "Copy to Other Pane (F5)";
+    public string ContextDuplicate => "Duplicate Here (Ctrl+D)";
+    public string ContextMove => "Move to Other Pane (F6)";
+    public string ContextDelete => "Delete (F8)";
+    public string ContextProperties => "Properties (Alt+Enter)";
+    public string ContextBookmark => "Add to Bookmarks";
+    public string ContextReveal => "Show in File Manager";
+
     public string FileErrorText(FileError error) => error switch
     {
         FileError.NameEmpty => "Enter a name",

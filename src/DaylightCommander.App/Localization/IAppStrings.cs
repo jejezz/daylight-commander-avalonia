@@ -222,6 +222,20 @@ public interface IAppStrings
     string PropCalculating { get; }
     string PropIncomplete { get; }
 
+    // 우클릭 메뉴
+    string ContextOpen { get; }
+    string ContextOpenWithDefault { get; }
+    string ContextView { get; }
+    string ContextEdit { get; }
+    string ContextRename { get; }
+    string ContextCopy { get; }
+    string ContextDuplicate { get; }
+    string ContextMove { get; }
+    string ContextDelete { get; }
+    string ContextProperties { get; }
+    string ContextBookmark { get; }
+    string ContextReveal { get; }
+
     // 오류
     string FileErrorText(FileError error);
 }
