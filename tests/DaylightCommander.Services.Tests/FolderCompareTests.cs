@@ -1,4 +1,4 @@
-using DaylightCommander.Domain;
+﻿using DaylightCommander.Domain;
 using DaylightCommander.Services;
 
 namespace DaylightCommander.Services.Tests;
@@ -97,7 +97,12 @@ public sealed class FolderCompareTests : IAsyncLifetime
     public Task DisposeAsync()
     {
         _home.Dispose();
-        Directory.Delete(_root, recursive: true);
+        // 동기화가 백그라운드에서 복사하던 파일을 아직 쥐고 있을 수 있다 (Windows) — 잠깐 기다리며 다시 지운다.
+        for (var attempt = 0; ; attempt++)
+        {
+            try { Directory.Delete(_root, recursive: true); break; }
+            catch (Exception e) when (attempt < 40 && e is IOException or UnauthorizedAccessException) { Thread.Sleep(100); }
+        }
         return Task.CompletedTask;
     }
 
