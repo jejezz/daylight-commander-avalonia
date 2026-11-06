@@ -13,6 +13,7 @@ public sealed partial class HomeViewModel : ObservableObject, IDisposable
 {
     public HomeViewModel(string leftPath, string rightPath, ListLocalDirectory list, SettingsController settings)
     {
+        _settings = settings;
         State = new HomeState(leftPath, rightPath, (path, ct) => list.InvokeAsync(path, ct),
             runOnUi: work => Avalonia.Threading.Dispatcher.UIThread.InvokeAsync(work),
             settings: settings);
@@ -39,7 +40,6 @@ public sealed partial class HomeViewModel : ObservableObject, IDisposable
         State.Left.StateChanged += _ => RefreshHasTarget();
         State.Right.StateChanged += _ => RefreshHasTarget();
         // 편집기 설정이 바뀌면 F4 버튼의 사용 가능 여부도 바뀐다.
-        _settings = settings;
         settings.Changed += OnSettingsChanged;
     }
 

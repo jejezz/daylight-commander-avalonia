@@ -162,8 +162,12 @@
             <Setter Property="Background" Value="{DynamicResource AppSurfaceHi}" />
             <Setter Property="Padding" Value="4" />
             <Setter Property="BoxShadow" Value="0 4 16 0 #40000000" />
+            <Setter Property="TextElement.FontFamily" Value="{DynamicResource AppFont}" />
+            <Setter Property="TextElement.FontSize" Value="{DynamicResource FsBody}" />
         </Style>
         <Style Selector="Button.menuitem">
+            <Setter Property="FontFamily" Value="{DynamicResource AppFont}" />
+            <Setter Property="FontSize" Value="{DynamicResource FsBody}" />
             <Setter Property="CornerRadius" Value="6" />
             <Setter Property="Background" Value="Transparent" />
             <Setter Property="BorderThickness" Value="0" />
