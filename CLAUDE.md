@@ -19,3 +19,5 @@ Flutter 원본 `C:\Users\jejez\MyWork\Projects\FLUTTER\daylight-commander-flutte
 - 설정은 `%APPDATA%\DaylightCommanderAvalonia\settings.json`. 화면 문구는 `IAppStrings`(ko/en, `Localization/`), XAML은 `{DynamicResource Str.*}`,
   코드는 `Strings.Current`로 읽는다 (새 문구는 인터페이스 → 한국어 → 영어 순으로 모두 추가, 빠뜨리면 컴파일 오류).
 - 임시 시험 코드는 5단계에서 모두 지웠다 (`Trace`, 모드·색 순환 버튼, 뷰어 창). 뷰어는 7단계.
+
+
