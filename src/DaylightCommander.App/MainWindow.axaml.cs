@@ -31,6 +31,7 @@ public partial class MainWindow : Window
         (HomeDialog.Delete x, HomeDialog.Delete y) => x.Paths.SequenceEqual(y.Paths),
         (HomeDialog.NameInput x, HomeDialog.NameInput y) => x.Mode == y.Mode && x.OriginalPath == y.OriginalPath,
         (HomeDialog.SyncConflict x, HomeDialog.SyncConflict y) => x.Left.Path == y.Left.Path,
+        (HomeDialog.PatternSelect, HomeDialog.PatternSelect) => true,
         _ => false,
     };
 
@@ -110,6 +111,12 @@ public partial class MainWindow : Window
                 var end = n.Mode is NameMode.Rename or NameMode.Compress && dot > 0 ? dot : n.InitialText.Length;
                 var window = new TextPromptDialog(title, null, n.InitialText, 0, end, Strings.Current.CommonConfirm);
                 window.Confirmed += text => _ = state.ConfirmNameAsync(text);
+                return window;
+            }
+            case HomeDialog.PatternSelect:
+            {
+                var window = new PatternSelectDialog();
+                window.Confirmed += (pattern, add) => state.ConfirmPatternSelect(pattern, add);
                 return window;
             }
             case HomeDialog.SyncConflict c:

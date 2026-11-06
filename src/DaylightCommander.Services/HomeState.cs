@@ -22,6 +22,9 @@ public abstract record HomeDialog
 
     public sealed record Delete(IReadOnlyList<string> Paths, bool ToTrash) : HomeDialog;
 
+    /// <summary>패턴으로 선택 (F-바): 패턴 입력 대화상자.</summary>
+    public sealed record PatternSelect : HomeDialog;
+
     /// <summary>양방향 동기화 중 양쪽에 있지만 내용이 다른 파일: 어느 쪽을 쓸지 묻는다.</summary>
     public sealed record SyncConflict(FileEntry Left, FileEntry Right) : HomeDialog;
 
@@ -178,6 +181,17 @@ public sealed class HomeState : IDisposable
         await OtherController.RefreshAsync();
         await controller.RefreshAsync();
         if (error is not null) controller.ReportError(error); // 새로고침이 오류를 지우므로 그 뒤에 알린다
+    }
+
+    /// <summary>패턴 선택 대화상자를 연다.</summary>
+    public void RequestPatternSelect() => SetDialog(new HomeDialog.PatternSelect());
+
+    /// <summary>패턴 선택을 실행한다 (활성 패널): <paramref name="add"/>는 선택 추가, 아니면 선택 해제. 대화상자는 닫힌다.</summary>
+    public void ConfirmPatternSelect(string pattern, bool add)
+    {
+        if (_dialog is not HomeDialog.PatternSelect) return;
+        SetDialog(null);
+        ActiveController.SelectByPattern(pattern, add);
     }
 
     /// <summary>보기(F3) 요청. 화면(창)이 이 이벤트를 받아 뷰어 창을 연다. 인자는 파일 경로.</summary>

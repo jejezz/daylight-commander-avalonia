@@ -31,7 +31,8 @@
                     Command="{Binding ExtractCommand}"/>
             <Button Grid.Column="3" Classes="fkey" Content="{DynamicResource Str.FnProperties}"
                     Command="{Binding PropertiesCommand}" IsEnabled="{Binding HasTarget}"/>
-            <Button Grid.Column="4" Classes="fkey" Content="{DynamicResource Str.FnPatternSelect}" IsEnabled="False"/>
+            <Button Grid.Column="4" Classes="fkey" Content="{DynamicResource Str.FnPatternSelect}"
+                    Command="{Binding PatternSelectCommand}"/>
         </Grid>
     </StackPanel>
 </UserControl>

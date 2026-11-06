@@ -252,6 +252,10 @@ public sealed class EnglishStrings : IAppStrings
     public string SwapPanesTooltip => "Swap Left and Right Panes (Ctrl+U)";
     public string SyncPathRightTooltip => "Send left pane path to the right (Ctrl+Shift+→)";
     public string TerminalTooltip => "Open Terminal (active pane folder, Ctrl+`)";
+    public string PatternSelectTitle => "Select by Pattern";
+    public string PatternHint => "e.g. *.jpg, IMG_*.png";
+    public string PatternDeselect => "Deselect";
+    public string PatternAdd => "Add to Selection";
     public string SyncPathLeftTooltip => "Send right pane path to the left (Ctrl+Shift+←)";
     public string SinglePaneTooltip => "Single Pane Mode (Ctrl+\\)";
     public string DualPaneTooltip => "Dual Pane Mode (Ctrl+\\)";

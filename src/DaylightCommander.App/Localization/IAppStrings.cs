@@ -257,6 +257,10 @@ public interface IAppStrings
     string SyncPathRightTooltip { get; }
     string SyncPathLeftTooltip { get; }
     string TerminalTooltip { get; }
+    string PatternSelectTitle { get; }
+    string PatternHint { get; }
+    string PatternDeselect { get; }
+    string PatternAdd { get; }
     string SinglePaneTooltip { get; }
     string DualPaneTooltip { get; }
     string DockedPaneTooltip(string path);

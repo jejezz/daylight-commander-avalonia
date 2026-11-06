@@ -252,6 +252,10 @@ public sealed class KoreanStrings : IAppStrings
     public string SwapPanesTooltip => "좌우 패널 교환 (Ctrl+U)";
     public string SyncPathRightTooltip => "왼쪽 패널 경로를 오른쪽으로 (Ctrl+Shift+→)";
     public string TerminalTooltip => "터미널 열기 (활성 패널 경로, Ctrl+`)";
+    public string PatternSelectTitle => "패턴으로 선택";
+    public string PatternHint => "예: *.jpg, IMG_*.png";
+    public string PatternDeselect => "선택 해제";
+    public string PatternAdd => "선택 추가";
     public string SyncPathLeftTooltip => "오른쪽 패널 경로를 왼쪽으로 (Ctrl+Shift+←)";
     public string SinglePaneTooltip => "1패널 모드 (Ctrl+\\)";
     public string DualPaneTooltip => "2패널 모드 (Ctrl+\\)";

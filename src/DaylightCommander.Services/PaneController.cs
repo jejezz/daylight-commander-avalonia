@@ -202,6 +202,21 @@ public sealed class PaneController
             : s with { Selected = s.Selected.Union(visible) };
     });
 
+    /// <summary>
+    /// 패턴(<c>*</c>·<c>?</c>)에 이름이 맞는 보이는 항목을 선택에 더하거나(<paramref name="add"/>) 선택에서 뺀다 (원본 <c>selectByPattern</c>).
+    /// 빈 패턴은 아무것도 하지 않는다.
+    /// </summary>
+    public void SelectByPattern(string pattern, bool add)
+    {
+        if (string.IsNullOrWhiteSpace(pattern)) return;
+        var regex = GlobPattern.ToRegex(pattern.Trim());
+        Update(s =>
+        {
+            var matching = s.VisibleEntries.Where(e => regex.IsMatch(e.Name)).Select(e => e.Path).ToList();
+            return s with { Selected = add ? s.Selected.Union(matching) : s.Selected.Except(matching), AnchorPath = null };
+        });
+    }
+
     /// <summary>선택이 있었으면 지우고 true.</summary>
     public bool ClearSelection()
     {
