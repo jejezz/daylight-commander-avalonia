@@ -108,6 +108,56 @@ public sealed class HomeStateTests : IAsyncLifetime
     }
 
     [Fact]
+    public async Task F4는_외부_편집기가_없으면_내장_에디터를_열어_달라고_알린다()
+    {
+        var requested = new List<string>();
+        _home.EditRequested += requested.Add;
+        _home.RequestEdit(); // 커서가 폴더
+        Assert.Empty(requested);
+        _home.Left.ClickEntry(L("a.txt"));
+        _home.RequestEdit();
+        Assert.Equal([L("a.txt")], requested);
+        await Task.CompletedTask;
+    }
+
+    [Fact]
+    public void F4는_외부_편집기를_골랐으면_내장_에디터를_열지_않는다()
+    {
+        var exe = Path.Combine(_root, "editor.exe");
+        File.WriteAllText(exe, "");
+        var opened = new List<IReadOnlyList<string>>();
+        using var settings = new SettingsController(new DaylightCommander.Data.InMemorySettingsRepository(
+            new DaylightCommander.Domain.Settings.AppSettings
+            {
+                EditorMode = DaylightCommander.Domain.Settings.EditorMode.External,
+                EditorExecutable = exe,
+            }), TimeSpan.FromMinutes(1));
+        using var h = new HomeState(_left, _right, (p, ct) => _lister.InvokeAsync(p, ct), settings: settings,
+            editor: new ExternalEditorLauncher(isMac: false, start: opened.Add));
+        var builtin = new List<string>();
+        h.EditRequested += builtin.Add;
+        h.Left.StartAsync().GetAwaiter().GetResult();
+        h.Left.ClickEntry(L("a.txt"));
+        h.RequestEdit();
+        WaitUntil(() => opened.Count == 1).GetAwaiter().GetResult();
+        Assert.Empty(builtin);
+    }
+
+    [Fact]
+    public void 내장_에디터는_5MB를_넘는_파일을_열지_않고_이유를_알린다()
+    {
+        var big = L("big.log");
+        using (var s = File.Create(big)) s.SetLength(TextFiles.EditorMaxBytes + 1);
+        _home.Left.RefreshAsync().GetAwaiter().GetResult();
+        var requested = new List<string>();
+        _home.EditRequested += requested.Add;
+        _home.Left.ClickEntry(big);
+        _home.RequestEdit();
+        Assert.Empty(requested);
+        Assert.Equal(new FileError.EditorTooLarge("big.log"), _home.Left.State.Error);
+    }
+
+    [Fact]
     public async Task F4_실행이_실패하면_활성_패널_상태줄에_오류가_뜬다()
     {
         var exe = Path.Combine(_root, "editor.exe");
@@ -125,6 +175,89 @@ public sealed class HomeStateTests : IAsyncLifetime
         h.RequestEdit();
         await WaitUntil(() => h.Left.State.Error is not null);
         Assert.Equal(new FileError.EditorLaunchFailed("싫음"), h.Left.State.Error);
+    }
+
+    sealed class FakeOpener(Action<string>? onOpen = null) : IFileOpener
+    {
+        public List<string> Opened { get; } = [];
+
+        public void Open(string path)
+        {
+            onOpen?.Invoke(path);
+            Opened.Add(path);
+        }
+    }
+
+    [Fact]
+    public void 속성은_선택한_항목_없으면_커서_항목으로_요청한다()
+    {
+        var requested = new List<IReadOnlyList<string>>();
+        _home.PropertiesRequested += requested.Add;
+        _home.RequestProperties();
+        Assert.Equal([L("sub")], requested[0]); // 커서(정렬상 첫 항목)
+
+        _home.Left.ClickEntry(L("a.txt"));
+        _home.Left.ClickEntry(L("b.txt"), ctrl: true);
+        _home.RequestProperties();
+        Assert.Equal(new HashSet<string> { L("b.txt") }, requested[1].ToHashSet());
+    }
+
+    [Fact]
+    public async Task 속성은_대상이_없으면_요청하지_않는다()
+    {
+        var requested = new List<IReadOnlyList<string>>();
+        _home.PropertiesRequested += requested.Add;
+        var empty = Directory.CreateDirectory(Path.Combine(_root, "empty")).FullName;
+        await _home.Left.NavigateToAsync(empty);
+        _home.RequestProperties();
+        Assert.Empty(requested);
+    }
+
+    [Fact]
+    public async Task F3은_커서가_파일일_때만_보기_요청을_알린다()
+    {
+        var requested = new List<string>();
+        _home.ViewRequested += requested.Add;
+        _home.RequestView(); // 커서가 폴더(sub)
+        Assert.Empty(requested);
+        _home.Left.ClickEntry(L("a.txt"));
+        _home.RequestView();
+        Assert.Equal([L("a.txt")], requested);
+
+        // 비어 있는 폴더에서는 아무 일도 없다
+        var empty = Directory.CreateDirectory(Path.Combine(_root, "empty")).FullName;
+        await _home.Left.NavigateToAsync(empty);
+        _home.RequestView();
+        Assert.Single(requested);
+    }
+
+    [Fact]
+    public void 활성_패널의_파일을_보기_요청한다()
+    {
+        var requested = new List<string>();
+        _home.ViewRequested += requested.Add;
+        _home.Activate(PaneSide.Right);
+        File.WriteAllText(R("r.txt"), "R");
+        _home.Right.RefreshAsync().GetAwaiter().GetResult();
+        _home.Right.ClickEntry(R("r.txt"));
+        _home.RequestView();
+        Assert.Equal([R("r.txt")], requested);
+    }
+
+    [Fact]
+    public void 파일_열기는_기본_앱으로_넘기고_실패하면_그_패널_상태줄에_오류가_뜬다()
+    {
+        var ok = new FakeOpener();
+        using var h1 = new HomeState(_left, _right, (p, ct) => _lister.InvokeAsync(p, ct), opener: ok);
+        h1.OpenFile(L("a.txt"), PaneSide.Left);
+        Assert.Equal([L("a.txt")], ok.Opened);
+        Assert.Null(h1.Left.State.Error);
+
+        var failing = new FakeOpener(_ => throw new FileOperationException(new FileError.Other("연결된 앱 없음")));
+        using var h2 = new HomeState(_left, _right, (p, ct) => _lister.InvokeAsync(p, ct), opener: failing);
+        h2.OpenFile(L("a.txt"), PaneSide.Right);
+        Assert.Equal(new FileError.Other("연결된 앱 없음"), h2.Right.State.Error);
+        Assert.Null(h2.Left.State.Error);
     }
 
     [Fact]

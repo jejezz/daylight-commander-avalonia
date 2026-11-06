@@ -142,6 +142,86 @@ public interface IAppStrings
     string JobTitle(JobLabel label);
     string JobFailureSummary(IReadOnlyList<OperationFailure> failures, FileError? error);
 
+    // 뷰어 (F3)
+    string ViewerNormalView { get; }
+    string ViewerHexView { get; }
+    string ViewerUnsupported { get; }
+    string ViewerOpenWithDefaultApp { get; }
+    string ViewerLoadError(string error);
+    string ViewerImageLoadError(string error);
+    string ViewerHexTruncatedNote(int kb);
+    string ViewerTextTruncatedNote(int kb);
+
+    // 에디터 (F4)
+    string EditorSave { get; }
+    string EditorSaveAs { get; }
+    string EditorDontSave { get; }
+    string EditorUnsavedTitle { get; }
+    string EditorUnsavedBody(string name);
+    string EditorExternalChangedTitle { get; }
+    string EditorExternalChangedBody { get; }
+    string EditorOverwrite { get; }
+    string EditorSaveFailed(string error);
+    string EditorLoadFailed(string error);
+    string EditorFind { get; }
+    string EditorFindHint { get; }
+    string EditorReplaceHint { get; }
+    string EditorReplace { get; }
+    string EditorReplaceAll { get; }
+    string EditorMatchCase { get; }
+    string EditorRegex { get; }
+    string EditorPrevMatch { get; }
+    string EditorNextMatch { get; }
+    string EditorToggleReplace { get; }
+    string EditorNoMatches { get; }
+    string EditorMatchCount(int current, int total);
+    string EditorWordWrap { get; }
+    string EditorGoToLine { get; }
+    string EditorGoToLineHint(int max);
+    string EditorStatusPosition(int line, int column);
+    string EditorStatusSelected(int count);
+    string EditorHighlightOff { get; }
+    string EditorSaveAsHint { get; }
+    string EditorOverwriteExistingBody(string name);
+    string EditorReadOnlyBinary { get; }
+    string EditorUndo { get; }
+    string EditorRedo { get; }
+
+    // 정보 창·속성
+    string AboutTooltip { get; }
+    string AboutTagline { get; }
+    string AboutDescription { get; }
+    string AboutVersion(string version, int build);
+    string AboutOpenSourceLicenses { get; }
+    string AboutRepository { get; }
+    string AboutClose { get; }
+    string LicensesTitle { get; }
+    string LicensesProject { get; }
+    string LicensesNote { get; }
+    string PropTitle(string name);
+    string PropMultiName(int count);
+    string PropName { get; }
+    string PropLocation { get; }
+    string PropKind { get; }
+    string PropKindFolder { get; }
+    string PropKindFile { get; }
+    string PropKindFileExt(string ext);
+    string PropKindMixed { get; }
+    string PropLinkTarget { get; }
+    string PropSize { get; }
+    string PropSizeValue(string formatted, long bytes);
+    string PropContains { get; }
+    string PropContainsValue(int files, int folders);
+    string PropCreated { get; }
+    string PropModified { get; }
+    string PropAccessed { get; }
+    string PropAttributes { get; }
+    string PropReadOnly { get; }
+    string PropHidden { get; }
+    string PropSystem { get; }
+    string PropCalculating { get; }
+    string PropIncomplete { get; }
+
     // 오류
     string FileErrorText(FileError error);
 }

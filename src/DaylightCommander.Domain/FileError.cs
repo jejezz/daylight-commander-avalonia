@@ -41,6 +41,9 @@ public abstract record FileError
     /// <summary>편집기로 지정한 실행 파일이 없다.</summary>
     public sealed record EditorNotFound(string Path) : FileError;
 
+    /// <summary>내장 에디터로 열기에는 파일이 너무 크다 (5MB 초과). F3 보기로 열 수 있다.</summary>
+    public sealed record EditorTooLarge(string Name) : FileError;
+
     /// <summary>편집기를 실행하지 못했다. <paramref name="Detail"/>은 OS가 준 원문(있으면).</summary>
     public sealed record EditorLaunchFailed(string? Detail) : FileError;
 

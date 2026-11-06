@@ -162,8 +162,20 @@ public partial class PaneViewModel : ObservableObject, IDisposable
     /// <summary>경로 표시줄에서 Esc: 고치던 글을 버리고 현재 경로로 되돌린다.</summary>
     [RelayCommand] void ResetPathText() => PathText = CurrentPath;
 
-    /// <summary>더블클릭·Enter: 커서가 폴더면 들어간다. 파일 열기는 7단계(뷰어).</summary>
-    [RelayCommand] Task OpenCursor() => _controller.OpenCursorAsync();
+        [RelayCommand]
+    Task OpenCursor()
+    {
+        // 폴더는 들어가고, 파일은 OS 기본 앱으로 연다 (원본의 더블클릭·Enter).
+        if (_controller.State.CursorEntry is { IsDirectory: false } file)
+        {
+            OpenFileRequested?.Invoke(file.Path);
+            return Task.CompletedTask;
+        }
+        return _controller.OpenCursorAsync();
+    }
+
+    /// <summary>파일을 기본 앱으로 열어 달라는 요청 (HomeViewModel이 연결한다).</summary>
+    public Action<string>? OpenFileRequested { get; set; }
 
     /// <summary>마우스 클릭. Ctrl은 토글, Shift는 범위.</summary>
     public void Click(EntryItem item, bool ctrl, bool shift)

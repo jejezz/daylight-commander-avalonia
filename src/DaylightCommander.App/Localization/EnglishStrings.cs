@@ -41,7 +41,7 @@ public sealed class EnglishStrings : IAppStrings
     public string EditorTitle => "Text editor (F4)";
     public string EditorBuiltin => "Built-in editor (default)";
     public string EditorExternal => "External program";
-    public string EditorNotReady => "The built-in editor isn't ready yet. Pick an external program to open files with F4.";
+    public string EditorNotReady => "F4 opens files in the built-in editor.";
     public string EditorExternalHint => "F4 opens the file under the cursor with this program.";
     public string EditorExecutableNone => "No program selected";
     public string EditorChoose => "Browse…";
@@ -142,6 +142,83 @@ public sealed class EnglishStrings : IAppStrings
         return $"{failures.Count} failed: {name} — {FileErrorText(first.Error)}{more}";
     }
 
+    public string ViewerNormalView => "Normal View";
+    public string ViewerHexView => "View as Hex";
+    public string ViewerUnsupported => "This file type can't be previewed.";
+    public string ViewerOpenWithDefaultApp => "Open with Default App";
+    public string ViewerLoadError(string error) => $"Couldn't read the file: {error}";
+    public string ViewerImageLoadError(string error) => $"Couldn't open the image: {error}";
+    public string ViewerHexTruncatedNote(int kb) => $"Showing only the first {kb} KB.";
+    public string ViewerTextTruncatedNote(int kb) => $"Large file: showing only the first {kb} KB.";
+
+    public string EditorSave => "Save";
+    public string EditorSaveAs => "Save As";
+    public string EditorDontSave => "Don't Save";
+    public string EditorUnsavedTitle => "Unsaved changes";
+    public string EditorUnsavedBody(string name) => $"Save the changes to {name}?";
+    public string EditorExternalChangedTitle => "File changed";
+    public string EditorExternalChangedBody => "The file on disk changed after you opened it. Overwrite it?";
+    public string EditorOverwrite => "Overwrite";
+    public string EditorSaveFailed(string error) => $"Couldn't save: {error}";
+    public string EditorLoadFailed(string error) => $"Couldn't open the file: {error}";
+    public string EditorFind => "Find";
+    public string EditorFindHint => "Find";
+    public string EditorReplaceHint => "Replace with";
+    public string EditorReplace => "Replace";
+    public string EditorReplaceAll => "Replace All";
+    public string EditorMatchCase => "Match case";
+    public string EditorRegex => "Regular expression";
+    public string EditorPrevMatch => "Previous";
+    public string EditorNextMatch => "Next";
+    public string EditorToggleReplace => "Toggle Replace";
+    public string EditorNoMatches => "No matches";
+    public string EditorMatchCount(int current, int total) => $"{current}/{total}";
+    public string EditorWordWrap => "Word Wrap";
+    public string EditorGoToLine => "Go to Line";
+    public string EditorGoToLineHint(int max) => $"Line number (1–{max})";
+    public string EditorStatusPosition(int line, int column) => $"Ln {line}, Col {column}";
+    public string EditorStatusSelected(int count) => $"{count} selected";
+    public string EditorHighlightOff => "Syntax highlighting off (large file)";
+    public string EditorSaveAsHint => "Path to save to (a bare name uses the same folder)";
+    public string EditorOverwriteExistingBody(string name) => $"{name} already exists. Overwrite it?";
+    public string EditorReadOnlyBinary => "This file is binary or not UTF-8. It opens read-only, showing each byte as one character.";
+    public string EditorUndo => "Undo";
+    public string EditorRedo => "Redo";
+
+    public string AboutTooltip => "About";
+    public string AboutTagline => "A free dual-pane desktop file manager in the style of Total Commander and Midnight Commander";
+    public string AboutDescription => "A classic file manager built for fast keyboard-driven work, with a built-in viewer and editor and room for several windows side by side.";
+    public string AboutVersion(string version, int build) => $"Version {version} (build {build})";
+    public string AboutOpenSourceLicenses => "Open Source Licenses";
+    public string AboutRepository => "GitHub";
+    public string AboutClose => "Close";
+    public string LicensesTitle => "Open Source Licenses";
+    public string LicensesProject => "This project";
+    public string LicensesNote => "Full license texts and copyright notices are available in each project's repository.";
+    public string PropTitle(string name) => $"{name} Properties";
+    public string PropMultiName(int count) => $"{count} items";
+    public string PropName => "Name";
+    public string PropLocation => "Location";
+    public string PropKind => "Type";
+    public string PropKindFolder => "Folder";
+    public string PropKindFile => "File";
+    public string PropKindFileExt(string ext) => $"{ext} file";
+    public string PropKindMixed => "Multiple types";
+    public string PropLinkTarget => "Link target";
+    public string PropSize => "Size";
+    public string PropSizeValue(string formatted, long bytes) => $"{formatted} ({bytes:N0} bytes)";
+    public string PropContains => "Contains";
+    public string PropContainsValue(int files, int folders) => $"{files:N0} files, {folders:N0} folders";
+    public string PropCreated => "Created";
+    public string PropModified => "Modified";
+    public string PropAccessed => "Accessed";
+    public string PropAttributes => "Attributes";
+    public string PropReadOnly => "Read-only";
+    public string PropHidden => "Hidden";
+    public string PropSystem => "System";
+    public string PropCalculating => "Calculating…";
+    public string PropIncomplete => "Some items couldn't be read and were left out";
+
     public string FileErrorText(FileError error) => error switch
     {
         FileError.NameEmpty => "Enter a name",
@@ -156,6 +233,7 @@ public sealed class EnglishStrings : IAppStrings
         FileError.TrashFailed e => $"Couldn't move to the trash: {e.Name}" + (e.Detail is null ? "" : $" ({e.Detail})"),
         FileError.TargetFolderMissing => "The target folder doesn't exist. Check the path",
         FileError.EditorNotFound e => $"Editor not found: {e.Path}. Choose it again in Settings",
+        FileError.EditorTooLarge e => $"Files over 5 MB can't be edited. Open it with F3 View: {e.Name}",
         FileError.EditorLaunchFailed e => "Couldn't start the editor" + (e.Detail is null ? "" : $" ({e.Detail})"),
         FileError.Other e => e.Detail ?? "Unknown error",
         _ => "Unknown error",

@@ -16,8 +16,16 @@ public sealed partial class HomeViewModel : ObservableObject, IDisposable
         State = new HomeState(leftPath, rightPath, (path, ct) => list.InvokeAsync(path, ct),
             runOnUi: work => Avalonia.Threading.Dispatcher.UIThread.InvokeAsync(work),
             settings: settings);
-        Left = new PaneViewModel(State.Left, settings) { ActivateRequested = () => State.Activate(PaneSide.Left) };
-        Right = new PaneViewModel(State.Right, settings) { ActivateRequested = () => State.Activate(PaneSide.Right) };
+        Left = new PaneViewModel(State.Left, settings)
+        {
+            ActivateRequested = () => State.Activate(PaneSide.Left),
+            OpenFileRequested = path => State.OpenFile(path, PaneSide.Left),
+        };
+        Right = new PaneViewModel(State.Right, settings)
+        {
+            ActivateRequested = () => State.Activate(PaneSide.Right),
+            OpenFileRequested = path => State.OpenFile(path, PaneSide.Right),
+        };
         Operations = new OperationsViewModel(State.Queue);
         Left.IsActive = true;
         State.ActiveChanged += side =>
@@ -48,23 +56,30 @@ public sealed partial class HomeViewModel : ObservableObject, IDisposable
     /// <summary>활성 패널에 작업할 항목(커서 또는 선택)이 있는지. F 키 버튼의 사용 가능 여부.</summary>
     [ObservableProperty] public partial bool HasTarget { get; set; }
 
-    /// <summary>F4로 열 수 있는지: 커서가 파일이고 설정에서 외부 편집기를 골랐을 때 (내장 에디터는 7단계).</summary>
+    /// <summary>F3으로 볼 수 있는지: 커서가 파일일 때.</summary>
+    [ObservableProperty] public partial bool CanView { get; set; }
+
+    /// <summary>F4로 열 수 있는지: 커서가 파일일 때 (외부 편집기를 골랐으면 그것으로, 아니면 내장 에디터로).</summary>
     [ObservableProperty] public partial bool CanEdit { get; set; }
 
     public void RefreshHasTarget()
     {
         HasTarget = State.ActiveController.TargetEntries().Count > 0;
-        CanEdit = State.ActiveController.State.CursorEntry is { IsDirectory: false } && _settings.Value.ExternalEditor is not null;
+        var cursorIsFile = State.ActiveController.State.CursorEntry is { IsDirectory: false };
+        CanView = cursorIsFile;
+        CanEdit = cursorIsFile; // 외부 편집기를 골랐으면 그것으로, 아니면 내장 에디터로 연다
     }
 
     // 하단 기능 키 버튼과 단축키가 같은 명령을 쓴다.
     [RelayCommand] void Rename() => State.RequestName(NameMode.Rename);
+    [RelayCommand] void View() => State.RequestView();
     [RelayCommand] void Edit() => State.RequestEdit();
     [RelayCommand] void Copy() => State.RequestTransfer(FileOperationKind.Copy);
     [RelayCommand] void Move() => State.RequestTransfer(FileOperationKind.Move);
     [RelayCommand] void NewFolder() => State.RequestName(NameMode.NewFolder);
     [RelayCommand] void NewFile() => State.RequestName(NameMode.NewFile);
     [RelayCommand] void Delete() => State.RequestDelete();
+    [RelayCommand] void Properties() => State.RequestProperties();
 
     public Task StartAsync() => Task.WhenAll(Left.StartAsync(), Right.StartAsync());
 

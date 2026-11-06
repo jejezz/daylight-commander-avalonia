@@ -30,6 +30,7 @@ public sealed class HomeState : IDisposable
     readonly FileOperations _ops;
     readonly SettingsController? _settings;
     readonly ExternalEditorLauncher _editor;
+    readonly IFileOpener _opener;
     readonly Func<Func<Task>, Task> _onUi;
     HomeDialog? _dialog;
 
@@ -39,8 +40,9 @@ public sealed class HomeState : IDisposable
     /// </param>
     public HomeState(string leftPath, string rightPath, PaneController.ListDirectory list,
         FileOperations? ops = null, Func<Func<Task>, Task>? runOnUi = null,
-        SettingsController? settings = null, ExternalEditorLauncher? editor = null)
+        SettingsController? settings = null, ExternalEditorLauncher? editor = null, IFileOpener? opener = null)
     {
+        _opener = opener ?? new OpenWithDefaultApp();
         _ops = ops ?? new FileOperations();
         _settings = settings;
         _editor = editor ?? new ExternalEditorLauncher();
@@ -131,31 +133,79 @@ public sealed class HomeState : IDisposable
         }
     }
 
+    /// <summary>보기(F3) 요청. 화면(창)이 이 이벤트를 받아 뷰어 창을 연다. 인자는 파일 경로.</summary>
+    public event Action<string>? ViewRequested;
+
+    /// <summary>F3: 커서가 파일 위면 뷰어를 열어 달라고 알린다. 폴더 위에서는 아무것도 하지 않는다.</summary>
+    public void RequestView()
+    {
+        if (ActiveController.State.CursorEntry is { IsDirectory: false } entry) ViewRequested?.Invoke(entry.Path);
+    }
+
     /// <summary>
-    /// 편집(F4): 커서가 파일 위이고 설정의 외부 편집기가 정해져 있으면 그 프로그램으로 연다.
-    /// 내장 에디터는 7단계에서 만들 예정이라, 내장 모드이거나 편집기를 안 골랐으면 아무것도 하지 않는다.
-    /// 실행에 실패하면 활성 패널의 상태줄에 오류를 띄운다.
+    /// 파일을 OS 기본 앱으로 연다 (Enter·더블클릭, 원본과 같다). 실패하면 해당 패널의 상태줄에 오류를 띄운다.
+    /// </summary>
+    public void OpenFile(string path, PaneSide side)
+    {
+        try
+        {
+            _opener.Open(path);
+        }
+        catch (Exception e) when (e is IOException or UnauthorizedAccessException)
+        {
+            Controller(side).ReportError(FileErrors.From(e, path));
+        }
+    }
+
+    /// <summary>속성 창을 열어 달라는 요청. 인자는 대상 경로들(선택한 항목, 없으면 커서 항목).</summary>
+    public event Action<IReadOnlyList<string>>? PropertiesRequested;
+
+    /// <summary>속성(F-바): 활성 패널의 대상 항목들의 속성 창을 열어 달라고 알린다. 대상이 없으면 아무 일도 없다.</summary>
+    public void RequestProperties()
+    {
+        var targets = ActiveController.TargetEntries();
+        if (targets.Count > 0) PropertiesRequested?.Invoke(targets.Select(e => e.Path).ToList());
+    }
+
+    /// <summary>내장 에디터로 열어 달라는 요청. 화면(창)이 이 이벤트를 받아 에디터 창을 연다. 인자는 파일 경로.</summary>
+    public event Action<string>? EditRequested;
+
+    /// <summary>
+    /// 편집(F4): 커서가 파일 위일 때만 동작한다. 설정에서 외부 편집기를 골랐으면 그 프로그램으로 열고(실패하면 활성 패널의
+    /// 상태줄에 오류), 아니면 내장 에디터를 열어 달라고 알린다(<see cref="EditRequested"/>). 5MB를 넘는 파일은
+    /// 내장 에디터로 열지 않고 이유를 상태줄에 띄운다 — F3 보기로 열 수 있다.
     /// </summary>
     public void RequestEdit()
     {
         var controller = ActiveController;
         if (controller.State.CursorEntry is not { IsDirectory: false } entry) return;
-        if (_settings?.Value.ExternalEditor is not { } executable) return;
-        _ = Task.Run(async () =>
+
+        if (_settings?.Value.ExternalEditor is { } executable)
         {
-            try
+            _ = Task.Run(async () =>
             {
-                _editor.Open(executable, entry.Path);
-            }
-            catch (Exception e) when (e is IOException or UnauthorizedAccessException)
-            {
-                await _onUi(() =>
+                try
                 {
-                    controller.ReportError(FileErrors.From(e));
-                    return Task.CompletedTask;
-                });
-            }
-        });
+                    _editor.Open(executable, entry.Path);
+                }
+                catch (Exception e) when (e is IOException or UnauthorizedAccessException)
+                {
+                    await _onUi(() =>
+                    {
+                        controller.ReportError(FileErrors.From(e));
+                        return Task.CompletedTask;
+                    });
+                }
+            });
+            return;
+        }
+
+        if (entry.SizeBytes > TextFiles.EditorMaxBytes)
+        {
+            controller.ReportError(new FileError.EditorTooLarge(entry.Name));
+            return;
+        }
+        EditRequested?.Invoke(entry.Path);
     }
 
     // --- 대화상자 확정 ---

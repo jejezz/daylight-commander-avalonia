@@ -41,7 +41,7 @@ public sealed class KoreanStrings : IAppStrings
     public string EditorTitle => "텍스트 편집기 (F4)";
     public string EditorBuiltin => "내장 에디터 (기본)";
     public string EditorExternal => "외부 프로그램";
-    public string EditorNotReady => "내장 에디터는 아직 준비 중이에요. 외부 프로그램을 고르면 F4로 열 수 있어요.";
+    public string EditorNotReady => "F4를 누르면 내장 에디터로 열어요.";
     public string EditorExternalHint => "F4를 누르면 커서가 있는 파일을 이 프로그램으로 열어요.";
     public string EditorExecutableNone => "고른 프로그램이 없어요";
     public string EditorChoose => "찾아보기…";
@@ -142,6 +142,83 @@ public sealed class KoreanStrings : IAppStrings
         return $"{failures.Count}개 실패: {name} — {FileErrorText(first.Error)}{more}";
     }
 
+    public string ViewerNormalView => "일반 보기";
+    public string ViewerHexView => "Hex로 보기";
+    public string ViewerUnsupported => "미리보기를 지원하지 않는 파일 형식이에요.";
+    public string ViewerOpenWithDefaultApp => "기본 앱으로 열기";
+    public string ViewerLoadError(string error) => $"파일을 읽을 수 없어요: {error}";
+    public string ViewerImageLoadError(string error) => $"이미지를 열 수 없어요: {error}";
+    public string ViewerHexTruncatedNote(int kb) => $"처음 {kb}KB만 표시해요.";
+    public string ViewerTextTruncatedNote(int kb) => $"큰 파일이라 처음 {kb}KB만 표시해요.";
+
+    public string EditorSave => "저장";
+    public string EditorSaveAs => "다른 이름으로 저장";
+    public string EditorDontSave => "저장 안 함";
+    public string EditorUnsavedTitle => "저장하지 않은 변경";
+    public string EditorUnsavedBody(string name) => $"{name}의 변경 내용을 저장할까요?";
+    public string EditorExternalChangedTitle => "파일이 바뀌었어요";
+    public string EditorExternalChangedBody => "열어 둔 뒤에 디스크의 파일이 바뀌었어요. 덮어쓸까요?";
+    public string EditorOverwrite => "덮어쓰기";
+    public string EditorSaveFailed(string error) => $"저장하지 못했어요: {error}";
+    public string EditorLoadFailed(string error) => $"파일을 열지 못했어요: {error}";
+    public string EditorFind => "찾기";
+    public string EditorFindHint => "찾을 내용";
+    public string EditorReplaceHint => "바꿀 내용";
+    public string EditorReplace => "바꾸기";
+    public string EditorReplaceAll => "모두 바꾸기";
+    public string EditorMatchCase => "대소문자 구분";
+    public string EditorRegex => "정규식";
+    public string EditorPrevMatch => "이전";
+    public string EditorNextMatch => "다음";
+    public string EditorToggleReplace => "바꾸기 전환";
+    public string EditorNoMatches => "결과 없음";
+    public string EditorMatchCount(int current, int total) => $"{current}/{total}";
+    public string EditorWordWrap => "줄 바꿈";
+    public string EditorGoToLine => "줄 이동";
+    public string EditorGoToLineHint(int max) => $"줄 번호 (1–{max})";
+    public string EditorStatusPosition(int line, int column) => $"{line}행 {column}열";
+    public string EditorStatusSelected(int count) => $"{count}자 선택됨";
+    public string EditorHighlightOff => "구문 강조 꺼짐 (파일이 큼)";
+    public string EditorSaveAsHint => "저장할 경로 (이름만 쓰면 같은 폴더)";
+    public string EditorOverwriteExistingBody(string name) => $"{name}이(가) 이미 있어요. 덮어쓸까요?";
+    public string EditorReadOnlyBinary => "바이너리이거나 UTF-8이 아닌 파일이에요. 바이트를 글자 하나씩 그대로 보여 주는 읽기 전용이에요.";
+    public string EditorUndo => "실행 취소";
+    public string EditorRedo => "다시 실행";
+
+    public string AboutTooltip => "정보";
+    public string AboutTagline => "Total Commander · Midnight Commander 스타일의 무료 2단 패널 데스크톱 파일 매니저";
+    public string AboutDescription => "키보드 중심의 빠른 조작과 내장 뷰어·에디터, 여러 창을 나란히 쓸 수 있는 클래식 파일 매니저를 목표로 만들고 있어요.";
+    public string AboutVersion(string version, int build) => $"버전 {version} (빌드 {build})";
+    public string AboutOpenSourceLicenses => "오픈소스 라이선스";
+    public string AboutRepository => "GitHub";
+    public string AboutClose => "닫기";
+    public string LicensesTitle => "오픈소스 라이선스";
+    public string LicensesProject => "이 프로젝트";
+    public string LicensesNote => "각 항목의 전문과 저작권 고지는 해당 프로젝트 저장소에서 볼 수 있어요.";
+    public string PropTitle(string name) => $"{name} 속성";
+    public string PropMultiName(int count) => $"{count}개 항목";
+    public string PropName => "이름";
+    public string PropLocation => "위치";
+    public string PropKind => "종류";
+    public string PropKindFolder => "폴더";
+    public string PropKindFile => "파일";
+    public string PropKindFileExt(string ext) => $"{ext} 파일";
+    public string PropKindMixed => "여러 종류";
+    public string PropLinkTarget => "연결 대상";
+    public string PropSize => "크기";
+    public string PropSizeValue(string formatted, long bytes) => $"{formatted} ({bytes:N0}바이트)";
+    public string PropContains => "포함";
+    public string PropContainsValue(int files, int folders) => $"파일 {files:N0}개, 폴더 {folders:N0}개";
+    public string PropCreated => "만든 날짜";
+    public string PropModified => "수정한 날짜";
+    public string PropAccessed => "액세스한 날짜";
+    public string PropAttributes => "특성";
+    public string PropReadOnly => "읽기 전용";
+    public string PropHidden => "숨김";
+    public string PropSystem => "시스템";
+    public string PropCalculating => "계산 중…";
+    public string PropIncomplete => "일부 항목은 읽지 못해 빠졌어요";
+
     public string FileErrorText(FileError error) => error switch
     {
         FileError.NameEmpty => "이름을 입력해 주세요",
@@ -156,6 +233,7 @@ public sealed class KoreanStrings : IAppStrings
         FileError.TrashFailed e => $"휴지통으로 옮기지 못했어요: {e.Name}" + (e.Detail is null ? "" : $" ({e.Detail})"),
         FileError.TargetFolderMissing => "대상 폴더가 없어요. 경로를 확인해 주세요",
         FileError.EditorNotFound e => $"편집기를 찾을 수 없어요: {e.Path}. 설정에서 다시 골라 주세요",
+        FileError.EditorTooLarge e => $"5MB를 넘는 파일은 편집할 수 없어요. F3 보기로 열어 주세요: {e.Name}",
         FileError.EditorLaunchFailed e => "편집기를 실행하지 못했어요" + (e.Detail is null ? "" : $" ({e.Detail})"),
         FileError.Other e => e.Detail ?? "알 수 없는 오류예요",
         _ => "알 수 없는 오류예요",

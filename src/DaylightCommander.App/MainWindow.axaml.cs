@@ -17,23 +17,6 @@ public partial class MainWindow : Window
 
     readonly HomeViewModel _home;
 
-    /// <summary>
-    /// 새 창을 이 창이 있는 모니터에 연다 (이 창 위치에서 조금 비켜서). 지정하지 않으면 항상 주 모니터에 뜬다.
-    /// 소유자(owner)로 묶지 않는다: 소유된 창은 소유자 위에 붙어 다니고 같이 최소화되어 독립 창이 아니다.
-    /// </summary>
-    void OpenOnSameScreen(Window w)
-    {
-        // 최대화 상태의 Position은 화면 가장자리라, 보통 크기로 열 새 창은 그 모니터의 작업 영역 안쪽에 둔다.
-        var screen = Screens.ScreenFromWindow(this) ?? Screens.Primary;
-        var origin = screen?.WorkingArea.Position ?? Position;
-        var offset = (int)(40 * (screen?.Scaling ?? 1.0));
-        w.WindowStartupLocation = WindowStartupLocation.Manual;
-        w.Position = WindowState == WindowState.Normal
-            ? new PixelPoint(Position.X + offset, Position.Y + offset)
-            : new PixelPoint(origin.X + 2 * offset, origin.Y + 2 * offset);
-        w.Show();
-    }
-
     // --- 대화상자 ---
     // 홈 상태(HomeState)가 "어떤 대화상자가 열려야 하는지"를 가지고, 이 창이 그것을 모달 창으로 그린다.
     // 대화상자는 독립 창이 아니라 이 창에 묶인 모달 질문이다 (창 정책: 짧은 모달 질문은 대화상자).
@@ -180,6 +163,7 @@ public partial class MainWindow : Window
                 case Key.Left: _ = c.GoBackAsync(); break;
                 case Key.Right: _ = c.GoForwardAsync(); break;
                 case Key.Up: _ = c.GoUpAsync(); break;
+                case Key.Enter: _home.State.RequestProperties(); break; // 속성
                 default: handled = false; break;
             }
         }
@@ -208,10 +192,11 @@ public partial class MainWindow : Window
                 case Key.Home: c.CursorToStart(shift); break;
                 case Key.End: c.CursorToEnd(shift); break;
                 case Key.Space: case Key.Insert: c.ToggleSelectAtCursor(); break;
-                case Key.Enter: _ = c.OpenCursorAsync(); break;
+                case Key.Enter: _home.ActivePane.OpenCursorCommand.Execute(null); break; // 폴더는 들어가고 파일은 기본 앱으로
                 case Key.Back: if (!c.BackspaceFilter()) _ = c.GoUpAsync(); break;
                 case Key.Escape: if (!c.ClearFilter()) c.ClearSelection(); break;
                 case Key.F2: _home.State.RequestName(NameMode.Rename); break;
+                case Key.F3: _home.State.RequestView(); break;
                 case Key.F4: _home.State.RequestEdit(); break;
                 case Key.F5: _home.State.RequestTransfer(FileOperationKind.Copy); break;
                 case Key.F6: _home.State.RequestTransfer(FileOperationKind.Move); break;
@@ -297,6 +282,9 @@ public partial class MainWindow : Window
 
         // 큐와 홈 상태의 이벤트는 작업 스레드에서 올 수 있다 → UI 스레드로 옮겨서 그린다.
         _home.State.DialogChanged += d => Avalonia.Threading.Dispatcher.UIThread.Post(() => SyncDialog(d));
+        _home.State.PropertiesRequested += paths => Avalonia.Threading.Dispatcher.UIThread.Post(() => PropertiesWindow.Open(paths, this));
+        _home.State.EditRequested += path => Avalonia.Threading.Dispatcher.UIThread.Post(() => EditorWindow.Open(path, this));
+        _home.State.ViewRequested += path => Avalonia.Threading.Dispatcher.UIThread.Post(() => ViewerWindow.Open(path, this));
         _home.State.Queue.ConflictChanged += () => Avalonia.Threading.Dispatcher.UIThread.Post(SyncConflict);
         // 작업 목록은 기능 키 바 위에 겹쳐 뜨므로 바와 같은 높이를 넘지 않게 한다.
         Bar.SizeChanged += (_, e) => Operations.MaxHeight = e.NewSize.Height;
@@ -332,7 +320,8 @@ public partial class MainWindow : Window
             _trackPlacement = true;
         };
 
-        NewWindow.Click += (_, _) => OpenOnSameScreen(new MainWindow());
+        NewWindow.Click += (_, _) => WindowPlacementHelper.OpenNear(this, new MainWindow());
         SettingsButton.Click += (_, _) => SettingsWindow.Open(this);
+        AboutButton.Click += (_, _) => AboutDialog.Open(this);
     }
 }

@@ -5,6 +5,8 @@
     <AssemblyName>$(AppFileName)</AssemblyName>
     <RootNamespace>DaylightCommander.App</RootNamespace>
     <ApplicationManifest>app.manifest</ApplicationManifest>
+    <!-- 실행 파일(탐색기·작업 표시줄)의 아이콘 -->
+    <ApplicationIcon>Assets/app_icon.ico</ApplicationIcon>
     <AvaloniaUseCompiledBindingsByDefault>true</AvaloniaUseCompiledBindingsByDefault>
     <!-- 매개변수 있는 생성자만 가진 대화상자 창은 런타임 XAML 로더(디자이너용)로 못 연다. 쓰지 않으므로 경고를 끈다. -->
     <NoWarn>$(NoWarn);AVLN3001</NoWarn>
@@ -12,8 +14,10 @@
 
   <ItemGroup>
     <PackageReference Include="Avalonia" Version="12.1.5" />
+    <PackageReference Include="Avalonia.AvaloniaEdit" Version="12.0.0" />
     <PackageReference Include="Avalonia.Desktop" Version="12.1.5" />
     <PackageReference Include="Avalonia.Themes.Fluent" Version="12.1.5" />
+    <PackageReference Include="AvaloniaEdit.TextMate" Version="12.0.0" />
     <PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.2" />
   </ItemGroup>
 

@@ -4,12 +4,13 @@
              xmlns:app="using:DaylightCommander.App"
              x:Class="DaylightCommander.App.Views.FunctionKeyBar"
              x:DataType="vm:HomeViewModel">
-    <!-- 하단 버튼 두 줄 (원본의 F-키 바). 아직 없는 기능(보기·압축·속성·패턴선택)은 자리만 두고 꺼 둔다. 윗줄은 F2부터 F8까지 번호 순서. -->
+    <!-- 하단 버튼 두 줄 (원본의 F-키 바). 아직 없는 기능(압축·패턴선택)은 자리만 두고 꺼 둔다. 윗줄은 F2부터 F8까지 번호 순서. -->
     <StackPanel Spacing="6">
         <Grid ColumnDefinitions="*,*,*,*,*,*,*" ColumnSpacing="8">
             <Button Grid.Column="0" Classes="fkey" Content="{DynamicResource Str.FnRename}"
                     Command="{Binding RenameCommand}" IsEnabled="{Binding HasTarget}"/>
-            <Button Grid.Column="1" Classes="fkey" Content="{DynamicResource Str.FnView}" IsEnabled="False"/>
+            <Button Grid.Column="1" Classes="fkey" Content="{DynamicResource Str.FnView}"
+                    Command="{Binding ViewCommand}" IsEnabled="{Binding CanView}"/>
             <Button Grid.Column="2" Classes="fkey" Content="{DynamicResource Str.FnEdit}"
                     Command="{Binding EditCommand}" IsEnabled="{Binding CanEdit}"/>
             <Button Grid.Column="3" Classes="fkey" Content="{DynamicResource Str.FnCopy}"
@@ -26,7 +27,8 @@
                     Command="{Binding NewFileCommand}"/>
             <Button Grid.Column="1" Classes="fkey" Content="{DynamicResource Str.FnCompress}" IsEnabled="False"/>
             <Button Grid.Column="2" Classes="fkey" Content="{DynamicResource Str.FnExtract}" IsEnabled="False"/>
-            <Button Grid.Column="3" Classes="fkey" Content="{DynamicResource Str.FnProperties}" IsEnabled="False"/>
+            <Button Grid.Column="3" Classes="fkey" Content="{DynamicResource Str.FnProperties}"
+                    Command="{Binding PropertiesCommand}" IsEnabled="{Binding HasTarget}"/>
             <Button Grid.Column="4" Classes="fkey" Content="{DynamicResource Str.FnPatternSelect}" IsEnabled="False"/>
         </Grid>
     </StackPanel>

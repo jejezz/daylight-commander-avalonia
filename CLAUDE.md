@@ -2,7 +2,7 @@
 
 Flutter 원본 `C:\Users\jejez\MyWork\Projects\FLUTTER\daylight-commander-flutter`과 Kotlin/Compose 판
 `C:\Users\jejez\MyWork\Projects\KOTLIN\daylight-commander-compose`(보류 중, 커밋 6291ab4)를 C#/Avalonia로 옮기는 프로젝트.
-계획·결정·위험은 [ROADMAP.md](ROADMAP.md). **지금 위치: A·1~4단계 완료, 5단계(설정·영속화·언어) 구현됨·확인 대기.**
+계획·결정·위험은 [ROADMAP.md](ROADMAP.md). **지금 위치: A·1~5단계 완료. 6단계(패널 분리)는 보류하고 7단계(뷰어·에디터)를 진행 중 — 7a 뷰어(F3) 완료, 7b 내장 에디터(F4) 구현됨·확인 대기. 제품 마무리 9a(정보·속성·릴리스 워크플로) 구현됨·확인 대기.**
 
 - **Kotlin 판이 명세다.** 동작·키·문구·테스트를 그대로 옮긴다. 새로 설계하지 않는다.
 - **Look and feel은 최초 Flutter 앱과 동일**하게 (UI_UX.md, 규약 `conventions/ui-ux.md`, `theming.md`). 색은 `{DynamicResource AppBg...}`로만 읽는다.
