@@ -37,6 +37,7 @@ static class Strings
         Set("CommonConfirm", s.CommonConfirm);
         Set("AppBarNewWindow", s.AppBarNewWindow);
         Set("SettingsTooltip", s.SettingsTooltip);
+        Set("TreeTooltip", s.TreeTooltip);
 
         Set("SettingsSectionAppearance", s.SettingsSectionAppearance);
         Set("SettingsMode", s.SettingsMode);

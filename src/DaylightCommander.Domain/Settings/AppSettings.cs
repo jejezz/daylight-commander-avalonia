@@ -91,6 +91,15 @@ public sealed record AppSettings
     [JsonPropertyName("pane_last_right_path")]
     public string? LastRightPath { get; init; }
 
+    /// <summary>왼쪽의 디렉터리 트리를 열어 두었는가와 그 폭.</summary>
+    [JsonPropertyName("tree_dock_open")]
+    public bool TreeDockOpen { get; init; }
+
+    [JsonPropertyName("tree_dock_width")]
+    public double TreeDockWidth { get; init; } = DefaultTreeDockWidth;
+
+    public const double DefaultTreeDockWidth = 220, MinTreeDockWidth = 160, MaxTreeDockWidth = 420;
+
     [JsonPropertyName("window_placement")]
     public WindowPlacement? Window { get; init; }
 
@@ -107,8 +116,12 @@ public sealed record AppSettings
     public AppSettings WithFontSize(FontSize size) => this with { TextScale = size.Scale() };
 
     /// <summary>파일에서 읽은 값을 쓸 수 있는 값으로 고친다 (모르는 배율은 보통으로).</summary>
-    public AppSettings Normalized() =>
-        Enum.GetValues<FontSize>().Any(s => s.Scale() == TextScale) ? this : this with { TextScale = FontSize.Normal.Scale() };
+    public AppSettings Normalized()
+    {
+        var fixedScale = Enum.GetValues<FontSize>().Any(s => s.Scale() == TextScale) ? this : this with { TextScale = FontSize.Normal.Scale() };
+        var width = double.IsFinite(TreeDockWidth) ? Math.Clamp(TreeDockWidth, MinTreeDockWidth, MaxTreeDockWidth) : DefaultTreeDockWidth;
+        return width == fixedScale.TreeDockWidth ? fixedScale : fixedScale with { TreeDockWidth = width };
+    }
 
     public AppSettings WithVisit(string path) =>
         this with { RecentPaths = new[] { path }.Concat(RecentPaths.Where(p => p != path)).Take(MaxRecent).ToList() };

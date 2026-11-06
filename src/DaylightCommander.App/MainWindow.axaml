@@ -15,6 +15,9 @@
                            FontWeight="ExtraBold" FontSize="{DynamicResource FsTitle}"/>
                 <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
                     <Button x:Name="NewWindow" Classes="header" Content="{DynamicResource Str.AppBarNewWindow}"/>
+                    <ToggleButton x:Name="TreeButton" Classes="tool" ToolTip.Tip="{DynamicResource Str.TreeTooltip}">
+                        <PathIcon Data="{StaticResource IconTree}"/>
+                    </ToggleButton>
                     <Button x:Name="AboutButton" Classes="tool" ToolTip.Tip="{DynamicResource Str.AboutTooltip}">
                         <PathIcon Data="{StaticResource IconInfo}"/>
                     </Button>
@@ -25,14 +28,21 @@
             </Grid>
         </Border>
 
-        <!-- 좌우 두 패널. 카드는 둥근 모서리 12, 활성 패널은 주색 2px 테두리 -->
-        <Grid Grid.Row="1" ColumnDefinitions="*,*" Margin="8" ColumnSpacing="8">
-            <Border Grid.Column="0" Classes="card" Classes.active="{Binding Left.IsActive}">
-                <views:PaneView DataContext="{Binding Left}"/>
+        <!-- 왼쪽 디렉터리 트리(접을 수 있고 폭 조절) + 좌우 두 패널. 카드는 둥근 모서리 12, 활성 패널은 주색 2px 테두리 -->
+        <Grid Grid.Row="1" x:Name="Body" ColumnDefinitions="0,0,*" Margin="8">
+            <Border Grid.Column="0" Classes="card" x:Name="TreeCard" IsVisible="False">
+                <views:DirectoryTreeView DataContext="{Binding Tree}"/>
             </Border>
-            <Border Grid.Column="1" Classes="card" Classes.active="{Binding Right.IsActive}">
-                <views:PaneView DataContext="{Binding Right}"/>
-            </Border>
+            <GridSplitter Grid.Column="1" x:Name="TreeSplitter" Width="8" Background="Transparent" IsVisible="False"
+                          ResizeDirection="Columns" ResizeBehavior="PreviousAndNext" Cursor="SizeWestEast"/>
+            <Grid Grid.Column="2" ColumnDefinitions="*,*" ColumnSpacing="8">
+                <Border Grid.Column="0" Classes="card" Classes.active="{Binding Left.IsActive}">
+                    <views:PaneView DataContext="{Binding Left}"/>
+                </Border>
+                <Border Grid.Column="1" Classes="card" Classes.active="{Binding Right.IsActive}">
+                    <views:PaneView DataContext="{Binding Right}"/>
+                </Border>
+            </Grid>
         </Grid>
 
         <!-- 하단 기능 키 바. 파일 작업이 있으면 같은 자리를 작업 목록이 덮는다 (바 높이를 넘지 않는다) -->

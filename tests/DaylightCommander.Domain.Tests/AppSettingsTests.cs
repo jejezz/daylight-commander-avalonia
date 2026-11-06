@@ -99,4 +99,14 @@ public class AppSettingsTests
         Assert.Equal(AppLocale.English, Localization.Resolve(null, "ja"));
         Assert.Equal(AppLocale.English, Localization.Resolve(null, ""));
     }
+
+    [Fact]
+    public void 트리_폭은_허용_범위로_고친다()
+    {
+        Assert.False(new AppSettings().TreeDockOpen);
+        Assert.Equal(AppSettings.DefaultTreeDockWidth, new AppSettings().TreeDockWidth);
+        Assert.Equal(AppSettings.MaxTreeDockWidth, (new AppSettings() with { TreeDockWidth = 9999 }).Normalized().TreeDockWidth);
+        Assert.Equal(AppSettings.MinTreeDockWidth, (new AppSettings() with { TreeDockWidth = 10 }).Normalized().TreeDockWidth);
+        Assert.Equal(AppSettings.DefaultTreeDockWidth, (new AppSettings() with { TreeDockWidth = double.NaN }).Normalized().TreeDockWidth);
+    }
 }

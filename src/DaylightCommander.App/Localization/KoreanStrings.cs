@@ -13,6 +13,7 @@ public sealed class KoreanStrings : IAppStrings
 
     public string AppBarNewWindow => "새 창";
     public string SettingsTooltip => "설정";
+    public string TreeTooltip => "디렉토리 트리 (Ctrl+T)";
 
     public string SettingsWindowTitle(string appName) => $"{appName} 설정";
     public string SettingsSectionAppearance => "외형";

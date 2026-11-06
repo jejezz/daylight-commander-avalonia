@@ -29,6 +29,7 @@ public sealed partial class HomeViewModel : ObservableObject, IDisposable
         };
         Left.Actions = ActionsFor(PaneSide.Left);
         Right.Actions = ActionsFor(PaneSide.Right);
+        Tree = new DirectoryTreeViewModel(State);
         Operations = new OperationsViewModel(State.Queue);
         Left.IsActive = true;
         State.ActiveChanged += side =>
@@ -44,6 +45,8 @@ public sealed partial class HomeViewModel : ObservableObject, IDisposable
     }
 
     readonly SettingsController _settings;
+
+    public DirectoryTreeViewModel Tree { get; }
 
     /// <summary>패널 화면이 부르는 동작. 각 동작은 먼저 그 패널을 활성 패널로 만든 뒤 홈 상태에 맡긴다.</summary>
     PaneActions ActionsFor(PaneSide side)

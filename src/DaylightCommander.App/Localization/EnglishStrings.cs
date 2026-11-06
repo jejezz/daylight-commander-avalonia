@@ -13,6 +13,7 @@ public sealed class EnglishStrings : IAppStrings
 
     public string AppBarNewWindow => "New Window";
     public string SettingsTooltip => "Settings";
+    public string TreeTooltip => "Directory Tree (Ctrl+T)";
 
     public string SettingsWindowTitle(string appName) => $"{appName} Settings";
     public string SettingsSectionAppearance => "Appearance";

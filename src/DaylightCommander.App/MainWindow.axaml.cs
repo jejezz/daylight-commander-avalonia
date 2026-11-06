@@ -178,6 +178,7 @@ public partial class MainWindow : Window
                 case Key.N: _home.State.RequestName(NameMode.NewFile); break;
                 case Key.D: _home.State.DuplicateInPlace(); break; // 여기에 복제
                 case Key.OemComma: SettingsWindow.Open(this); break; // 설정 (ui-ux.md §7)
+                case Key.T: TreeButton.IsChecked = TreeButton.IsChecked != true; break; // 디렉터리 트리
                 case Key.W: Close(); break;
                 default: handled = false; break;
             }
@@ -269,6 +270,38 @@ public partial class MainWindow : Window
         if (next is not null && next != App.Settings.Value.Window) App.Settings.Update(s => s with { Window = next });
     }
 
+    /// <summary>왼쪽 디렉터리 트리: 열림·폭을 설정에서 복원하고, 바뀌면 저장한다 (첫 창만 저장).</summary>
+    void SetupTreeDock(bool primary, SettingsController settings)
+    {
+        void Apply(bool open, double width)
+        {
+            var col = Body.ColumnDefinitions;
+            col[0].MinWidth = open ? DaylightCommander.Domain.Settings.AppSettings.MinTreeDockWidth : 0;
+            col[0].MaxWidth = open ? DaylightCommander.Domain.Settings.AppSettings.MaxTreeDockWidth : 0;
+            col[0].Width = new GridLength(open ? width : 0);
+            col[1].Width = new GridLength(open ? 8 : 0);
+            TreeCard.IsVisible = TreeSplitter.IsVisible = open;
+            if (open) _home.Tree.Refresh();
+        }
+
+        var s = settings.Value;
+        TreeButton.IsChecked = primary && s.TreeDockOpen;
+        Apply(TreeButton.IsChecked == true, s.TreeDockWidth);
+
+        TreeButton.IsCheckedChanged += (_, _) =>
+        {
+            var open = TreeButton.IsChecked == true;
+            var width = settings.Value.TreeDockWidth;
+            Apply(open, width);
+            if (primary) settings.Update(x => x with { TreeDockOpen = open });
+        };
+        TreeSplitter.DragCompleted += (_, _) =>
+        {
+            var width = Math.Round(Body.ColumnDefinitions[0].ActualWidth);
+            if (primary && width >= DaylightCommander.Domain.Settings.AppSettings.MinTreeDockWidth) settings.Update(x => x with { TreeDockWidth = width });
+        };
+    }
+
     public MainWindow()
     {
         var primary = _count++ == 0;
@@ -325,5 +358,6 @@ public partial class MainWindow : Window
         NewWindow.Click += (_, _) => WindowPlacementHelper.OpenNear(this, new MainWindow());
         SettingsButton.Click += (_, _) => SettingsWindow.Open(this);
         AboutButton.Click += (_, _) => AboutDialog.Open(this);
+        SetupTreeDock(primary, settings);
     }
 }

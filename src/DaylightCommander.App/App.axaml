@@ -30,6 +30,9 @@
         <StreamGeometry x:Key="IconSaveAs">M19 12v7H5v-7H3v7c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2v-7h-2zm-6 .67l2.59-2.58L17 11.5l-5 5-5-5 1.41-1.41L11 12.67V3h2z</StreamGeometry>
         <StreamGeometry x:Key="IconArrowUp">M7.41 15.41L12 10.83l4.59 4.58L18 14l-6-6-6 6z</StreamGeometry>
         <StreamGeometry x:Key="IconGoToLine">M5 9h14V7H5v2zm0 4h14v-2H5v2zm0 4h8v-2H5v2z</StreamGeometry>
+        <StreamGeometry x:Key="IconChevronRight">M10 6 8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z</StreamGeometry>
+        <StreamGeometry x:Key="IconExpandMore">M16.59 8.59 12 13.17 7.41 8.59 6 10l6 6 6-6z</StreamGeometry>
+        <StreamGeometry x:Key="IconTree">M22 11V3h-7v3H9V3H2v8h7V8h2v10h4v3h7v-8h-7v3h-2V8h2v3z</StreamGeometry>
         <StreamGeometry x:Key="IconInfo">M11 7h2v2h-2zm0 4h2v6h-2zm1-9C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8z</StreamGeometry>
         <StreamGeometry x:Key="IconBack">M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z</StreamGeometry>
         <StreamGeometry x:Key="IconForward">M12 4l-1.41 1.41L16.17 11H4v2h12.17l-5.58 5.59L12 20l8-8z</StreamGeometry>
@@ -67,6 +70,26 @@
         </Style>
         <Style Selector="ListBox.entries ListBoxItem:selected:pointerover /template/ ContentPresenter#PART_ContentPresenter">
             <Setter Property="Background" Value="{DynamicResource AppCursor}" />
+        </Style>
+
+        <!-- 디렉터리 트리 -->
+        <Style Selector="Border.treerow">
+            <Setter Property="Background" Value="Transparent" />
+        </Style>
+        <Style Selector="Border.treerow:pointerover">
+            <Setter Property="Background" Value="{DynamicResource AppHover}" />
+        </Style>
+        <Style Selector="Border.treerow.sel">
+            <Setter Property="Background" Value="{DynamicResource AppCursor}" />
+        </Style>
+        <Style Selector="Button.treetoggle">
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="BorderThickness" Value="0" />
+            <Setter Property="Padding" Value="0" />
+            <Setter Property="Width" Value="20" />
+            <Setter Property="Height" Value="26" />
+            <Setter Property="CornerRadius" Value="0" />
+            <Setter Property="Foreground" Value="{DynamicResource AppTextMid}" />
         </Style>
 
         <!-- 끌어다 놓을 폴더 행 -->

@@ -1,0 +1,36 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:DaylightCommander.App.ViewModels"
+             xmlns:views="using:DaylightCommander.App.Views"
+             x:Class="DaylightCommander.App.Views.DirectoryTreeView"
+             x:DataType="vm:DirectoryTreeViewModel">
+    <!-- 탐색기 모양 트리: 행 26, 들여쓰기 14, 선택(현재 경로)은 커서 색 -->
+    <ScrollViewer HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto">
+        <ItemsControl ItemsSource="{Binding Rows}" Margin="0,4">
+            <ItemsControl.ItemTemplate>
+                <DataTemplate x:DataType="vm:TreeRow">
+                    <Border Classes="treerow" Classes.sel="{Binding Selected}" Height="26"
+                            Tag="{Binding}" Padding="{Binding Indent}">
+                        <Grid ColumnDefinitions="20,Auto,*">
+                            <Button Grid.Column="0" Classes="treetoggle" IsVisible="{Binding CanExpand}" Tag="{Binding}">
+                                <Grid>
+                                    <PathIcon Width="16" Height="16" Data="{StaticResource IconChevronRight}" IsVisible="{Binding ShowCollapsed}"/>
+                                    <PathIcon Width="16" Height="16" Data="{StaticResource IconExpandMore}" IsVisible="{Binding ShowExpanded}"/>
+                                </Grid>
+                            </Button>
+                            <Grid Grid.Column="1" VerticalAlignment="Center" Margin="0,0,6,0">
+                                <PathIcon Width="16" Height="16" Data="{StaticResource IconFolder}"
+                                          Foreground="{DynamicResource AppPrimary}" IsVisible="{Binding IsFolder}"/>
+                                <PathIcon Width="16" Height="16" Data="{StaticResource IconDrive}"
+                                          Foreground="{DynamicResource AppPrimary}" IsVisible="{Binding IsDrive}"/>
+                            </Grid>
+                            <TextBlock Grid.Column="2" Text="{Binding Label}" VerticalAlignment="Center"
+                                       TextTrimming="CharacterEllipsis" ToolTip.Tip="{Binding Path}"
+                                       FontWeight="{Binding Selected, Converter={x:Static views:TreeFonts.Weight}}"/>
+                        </Grid>
+                    </Border>
+                </DataTemplate>
+            </ItemsControl.ItemTemplate>
+        </ItemsControl>
+    </ScrollViewer>
+</UserControl>

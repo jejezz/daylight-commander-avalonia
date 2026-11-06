@@ -23,6 +23,7 @@ public interface IAppStrings
     // 앱 바
     string AppBarNewWindow { get; }
     string SettingsTooltip { get; }
+    string TreeTooltip { get; }
 
     // 설정 창
     string SettingsWindowTitle(string appName);
