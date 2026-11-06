@@ -1,3 +1,5 @@
+using System.ComponentModel;
+using System.Diagnostics;
 using System.Runtime.InteropServices;
 using DaylightCommander.Domain;
 
@@ -74,8 +76,78 @@ public sealed partial class WindowsTrash : ITrash
     private static partial int SHFileOperationW(ref ShFileOpStruct op);
 }
 
+/// <summary>
+/// 외부 프로그램에 휴지통 보내기를 맡기는 구현 (macOS·Linux). 프로그램을 셸 없이 인자로 부르고, 종료 코드가 0이 아니면
+/// <see cref="FileError.TrashFailed"/>로 알린다. 어떤 명령을 부를지는 <paramref name="commands"/>가 정하고 앞에서부터 하나씩 시도한다.
+/// </summary>
+public sealed class CommandTrash(Func<string, IReadOnlyList<IReadOnlyList<string>>> commands, Func<bool> isSupported, Func<IReadOnlyList<string>, (int ExitCode, string Error)>? run = null) : ITrash
+{
+    public bool IsSupported => isSupported();
+
+    public void MoveToTrash(string path)
+    {
+        var name = Path.GetFileName(path.TrimEnd((char)92, '/'));
+        var full = Path.GetFullPath(path);
+        string? lastError = null;
+        foreach (var command in commands(full))
+        {
+            try
+            {
+                var (code, error) = (run ?? Run)(command);
+                if (code == 0) return;
+                lastError = string.IsNullOrWhiteSpace(error) ? $"exit {code}" : error.Trim();
+            }
+            catch (Exception e) when (e is Win32Exception or IOException or InvalidOperationException)
+            {
+                lastError = e.Message; // 이 프로그램이 없다 — 다음 후보로
+            }
+        }
+        throw new FileOperationException(new FileError.TrashFailed(name, lastError));
+    }
+
+    static (int, string) Run(IReadOnlyList<string> command)
+    {
+        var info = new ProcessStartInfo(command[0]) { UseShellExecute = false, RedirectStandardError = true, RedirectStandardOutput = true, CreateNoWindow = true };
+        foreach (var arg in command.Skip(1)) info.ArgumentList.Add(arg);
+        using var process = Process.Start(info) ?? throw new InvalidOperationException(command[0]);
+        var error = process.StandardError.ReadToEndAsync();
+        process.StandardOutput.ReadToEnd();
+        if (!process.WaitForExit(30_000))
+        {
+            try { process.Kill(); } catch (InvalidOperationException) { }
+            return (-1, "timeout");
+        }
+        return (process.ExitCode, error.GetAwaiter().GetResult());
+    }
+}
+
 public static class Trash
 {
+    /// <summary>
+    /// macOS는 Finder에 시키는 <c>osascript</c> (처음 한 번 Finder 제어를 허락해야 한다). Linux는 GLib의 <c>gio trash</c>, 없으면
+    /// <c>trash-put</c> (trash-cli). 둘 다 없으면 지원하지 않는 것으로 보고 호출한 쪽이 영구 삭제로 안내한다.
+    /// </summary>
+    public static IReadOnlyList<IReadOnlyList<string>> MacCommands(string fullPath) =>
+        [["osascript", "-e", $"tell application \"Finder\" to delete POSIX file \"{EscapeAppleScript(fullPath)}\""]];
+
+    public static IReadOnlyList<IReadOnlyList<string>> LinuxCommands(string fullPath) =>
+        [["gio", "trash", "--", fullPath], ["trash-put", "--", fullPath]];
+
+    /// <summary>AppleScript 문자열 안에서 따옴표와 역슬래시는 앞에 역슬래시를 붙인다.</summary>
+    internal static string EscapeAppleScript(string s) => s.Replace("\\", "\\\\").Replace("\"", "\\\"");
+
+    static bool OnPath(string tool) =>
+        (Environment.GetEnvironmentVariable("PATH") ?? "").Split(Path.PathSeparator, StringSplitOptions.RemoveEmptyEntries)
+            .Any(dir => File.Exists(Path.Combine(dir, tool)));
+
     /// <summary>이 OS의 휴지통. 지원하지 않으면 <see cref="NoTrash"/>.</summary>
-    public static ITrash Default { get; } = OperatingSystem.IsWindows() ? new WindowsTrash() : new NoTrash();
+    public static ITrash Default { get; } = Create();
+
+    static ITrash Create()
+    {
+        if (OperatingSystem.IsWindows()) return new WindowsTrash();
+        if (OperatingSystem.IsMacOS()) return new CommandTrash(MacCommands, () => true);
+        if (OperatingSystem.IsLinux()) return new CommandTrash(LinuxCommands, () => OnPath("gio") || OnPath("trash-put"));
+        return new NoTrash();
+    }
 }

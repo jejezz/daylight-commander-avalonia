@@ -88,7 +88,7 @@ public partial class PaneView : UserControl
         }
         if (!point.Properties.IsLeftButtonPressed) return;
 
-        var ctrl = e.KeyModifiers.HasFlag(KeyModifiers.Control);
+        var ctrl = Mods.Primary(e.KeyModifiers);
         var shift = e.KeyModifiers.HasFlag(KeyModifiers.Shift);
         _pressArgs = e;
         _pressPoint = point.Position;
@@ -196,7 +196,7 @@ public partial class PaneView : UserControl
     ListBoxItem? _dropRow;
 
     static DropMode ModeOf(KeyModifiers keys) =>
-        keys.HasFlag(KeyModifiers.Control) ? DropMode.ForceCopy
+        Mods.Copy(keys) ? DropMode.ForceCopy
         : keys.HasFlag(KeyModifiers.Shift) ? DropMode.ForceMove
         : DropMode.Auto;
 

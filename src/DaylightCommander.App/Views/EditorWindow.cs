@@ -507,7 +507,7 @@ public sealed class EditorWindow : Window
 
     void OnKeyDown(object? sender, KeyEventArgs e)
     {
-        var ctrl = e.KeyModifiers.HasFlag(KeyModifiers.Control);
+        var ctrl = Mods.Primary(e.KeyModifiers);
         var shift = e.KeyModifiers.HasFlag(KeyModifiers.Shift);
         if (ctrl && e.Key == Key.S)
         {

@@ -171,7 +171,7 @@ public partial class DirectoryTreeView : UserControl
     // --- 끌어다 놓기 (목적지) ---
 
     static DropMode ModeOf(KeyModifiers keys, bool external) =>
-        keys.HasFlag(KeyModifiers.Control) ? DropMode.ForceCopy
+        Mods.Copy(keys) ? DropMode.ForceCopy
         : keys.HasFlag(KeyModifiers.Shift) ? DropMode.ForceMove
         : external ? DropMode.ForceCopy // 앱 밖의 파일은 기본으로 복사한다
         : DropMode.ForceMove;           // 트리 안에서는 기본이 이동 (원본)

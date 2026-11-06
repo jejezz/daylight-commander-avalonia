@@ -90,7 +90,7 @@ public sealed class PaneRail : Border
     }
 
     static DropMode ModeOf(KeyModifiers keys) =>
-        keys.HasFlag(KeyModifiers.Control) ? DropMode.ForceCopy
+        Mods.Copy(keys) ? DropMode.ForceCopy
         : keys.HasFlag(KeyModifiers.Shift) ? DropMode.ForceMove
         : DragSession.Paths is null ? DropMode.ForceCopy // 앱 밖의 파일은 기본으로 복사
         : DropMode.Auto;                                 // 같은 드라이브면 이동, 아니면 복사

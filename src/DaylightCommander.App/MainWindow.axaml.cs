@@ -202,7 +202,7 @@ public partial class MainWindow : Window
                 default: handled = false; break;
             }
         }
-        else if (e.KeyModifiers.HasFlag(KeyModifiers.Control))
+        else if (Mods.Primary(e.KeyModifiers))
         {
             switch (e.Key)
             {
