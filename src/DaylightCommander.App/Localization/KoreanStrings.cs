@@ -185,6 +185,17 @@ public sealed class KoreanStrings : IAppStrings
     public string EditorReadOnlyBinary => "바이너리이거나 UTF-8이 아닌 파일이에요. 바이트를 글자 하나씩 그대로 보여 주는 읽기 전용이에요.";
     public string EditorUndo => "실행 취소";
     public string EditorRedo => "다시 실행";
+    public string EditorMenuView => "보기";
+    public string EditorCut => "잘라내기";
+    public string EditorCopy => "복사";
+    public string EditorPaste => "붙여넣기";
+    public string EditorPreviewTooltip => "마크다운 미리보기";
+    public string EditorGroupFile => "파일";
+    public string EditorGroupEdit => "편집";
+    public string EditorGroupFind => "찾기";
+    public string EditorScClose => "닫기";
+    public string EditorScSelectAll => "모두 선택";
+    public string EditorScDeleteLine => "줄 지우기";
 
     public string AboutTooltip => "정보";
     public string AboutTagline => "Total Commander · Midnight Commander 스타일의 무료 2단 패널 데스크톱 파일 매니저";

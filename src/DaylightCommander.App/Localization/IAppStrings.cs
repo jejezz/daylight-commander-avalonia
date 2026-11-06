@@ -187,6 +187,17 @@ public interface IAppStrings
     string EditorReadOnlyBinary { get; }
     string EditorUndo { get; }
     string EditorRedo { get; }
+    string EditorMenuView { get; }
+    string EditorCut { get; }
+    string EditorCopy { get; }
+    string EditorPaste { get; }
+    string EditorPreviewTooltip { get; }
+    string EditorGroupFile { get; }
+    string EditorGroupEdit { get; }
+    string EditorGroupFind { get; }
+    string EditorScClose { get; }
+    string EditorScSelectAll { get; }
+    string EditorScDeleteLine { get; }
 
     // 정보 창·속성
     string AboutTooltip { get; }

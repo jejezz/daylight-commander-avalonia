@@ -20,7 +20,7 @@ namespace DaylightCommander.App.Views;
 /// <para>
 /// MVP 범위(원본 에디터의 1단계): 로컬 파일, UTF-8(BOM·줄바꿈 종류는 저장할 때 그대로 되돌림), 구문 강조, 저장·다른 이름으로 저장,
 /// 닫을 때 저장 여부 확인, 찾기·바꾸기(대소문자·정규식), 줄 이동. 바이너리이거나 UTF-8이 아닌 파일은 읽기 전용으로 열고,
-/// 5MB를 넘는 파일은 열지 않는다(F3 보기). 마크다운 미리보기·툴바 도움말·인코딩 선택은 아직 없다.
+/// 5MB를 넘는 파일은 열지 않는다(F3 보기). 메뉴 막대(단축키 표시)와 마크다운 미리보기(오른쪽 반)를 갖췄다. 인코딩 선택은 없다(원본에도 없음).
 /// </para>
 /// Ctrl+S 저장 · Ctrl+Shift+S 다른 이름으로 · Ctrl+F 찾기 · Ctrl+H 바꾸기 · Ctrl+G 줄 이동 · Esc (찾기가 열려 있으면 찾기만 닫고, 아니면 닫기).
 /// </summary>
@@ -56,6 +56,15 @@ public sealed class EditorWindow : Window
     string _language = "plaintext";
 
     readonly TextEditor _editor = new();
+    readonly MarkdownPreview _preview = new() { IsVisible = false };
+    readonly Border _previewDivider = new() { Width = 1, IsVisible = false };
+    readonly Border _menuHost = new();
+    MenuItem? _wrapItem;
+    MenuItem? _previewItem;
+    ToggleButton? _previewToggle;
+    ToggleButton? _wrapToggle;
+    bool _markdown;
+    bool _previewOn;
     readonly TextBlock _title = new();
     readonly Border _banner = new() { IsVisible = false };
     readonly TextBlock _positionText = new();
@@ -81,21 +90,25 @@ public sealed class EditorWindow : Window
         MinHeight = 320;
         UpdateTitle();
 
-        var root = new Grid { RowDefinitions = new RowDefinitions("Auto,Auto,Auto,*,Auto") };
+        var root = new Grid { RowDefinitions = new RowDefinitions("Auto,Auto,Auto,Auto,*,Auto") };
         var bar = BuildBar();
         var banner = BuildBanner();
         Grid.SetRow(bar, 0);
         Grid.SetRow(banner, 1);
-        Grid.SetRow(_findBar, 2);
+        Grid.SetRow(_menuHost, 2);
+        Grid.SetRow(_findBar, 3);
         var statusBar = BuildStatusBar();
-        Grid.SetRow(statusBar, 4);
+        Grid.SetRow(statusBar, 5);
         BuildFindBar();
+        BuildMenu();
         ConfigureEditor();
-        Grid.SetRow(_editor, 3);
+        var body = BuildBody();
+        Grid.SetRow(body, 4);
         root.Children.Add(bar);
         root.Children.Add(banner);
+        root.Children.Add(_menuHost);
         root.Children.Add(_findBar);
-        root.Children.Add(_editor);
+        root.Children.Add(body);
         root.Children.Add(statusBar);
         Content = root;
 
@@ -139,7 +152,11 @@ public sealed class EditorWindow : Window
         buttons.Children.Add(IconButton("search", s.EditorFind, () => ShowFind(replace: false)));
         buttons.Children.Add(IconButton("replace", s.EditorReplace, () => ShowFind(replace: true)));
         buttons.Children.Add(IconButton("goto-line", s.EditorGoToLine, () => _ = GoToLineAsync()));
-        buttons.Children.Add(IconToggle("wrap", s.EditorWordWrap, on => _editor.WordWrap = on));
+        _wrapToggle = IconToggle("wrap", s.EditorWordWrap, on => SetWordWrap(on));
+        buttons.Children.Add(_wrapToggle);
+        _previewToggle = IconToggle("preview", s.EditorPreviewTooltip, on => SetPreview(on));
+        _previewToggle.IsVisible = false;
+        buttons.Children.Add(_previewToggle);
         buttons.Children.Add(IconButton("save-as", s.EditorSaveAs, () => _ = SaveAsPromptAsync()));
         buttons.Children.Add(IconButton("save", s.EditorSave, () => _ = SaveAsync()));
 
@@ -151,6 +168,109 @@ public sealed class EditorWindow : Window
         bar.Bind(Border.BackgroundProperty, this.GetResourceObservable("AppSurface"));
         bar.Bind(Border.BorderBrushProperty, this.GetResourceObservable("AppStroke"));
         return bar;
+    }
+
+    /// <summary>편집 영역: 왼쪽 에디터, (마크다운이면) 오른쪽 미리보기.</summary>
+    Control BuildBody()
+    {
+        _previewDivider.Bind(Border.BackgroundProperty, this.GetResourceObservable("AppStroke"));
+        var body = new Grid { ColumnDefinitions = new ColumnDefinitions("*,Auto,*") };
+        Grid.SetColumn(_previewDivider, 1);
+        Grid.SetColumn(_preview, 2);
+        body.Children.Add(_editor);
+        body.Children.Add(_previewDivider);
+        body.Children.Add(_preview);
+        // 미리보기가 꺼져 있을 때는 오른쪽 칸이 폭을 먹지 않게 한다.
+        _preview.PropertyChanged += (_, e) =>
+        {
+            if (e.Property == IsVisibleProperty) body.ColumnDefinitions[2].Width = _preview.IsVisible ? new GridLength(1, GridUnitType.Star) : new GridLength(0);
+        };
+        body.ColumnDefinitions[2].Width = new GridLength(0);
+        return body;
+    }
+
+    void SetPreview(bool on)
+    {
+        _previewOn = on && _markdown;
+        _preview.IsVisible = _previewDivider.IsVisible = _previewOn;
+        if (_previewToggle is not null) _previewToggle.IsChecked = _previewOn;
+        if (_previewItem is not null) _previewItem.IsChecked = _previewOn;
+        if (_previewOn) _preview.SetText(_editor.Text, immediately: true);
+    }
+
+    void SetWordWrap(bool on)
+    {
+        _editor.WordWrap = on;
+        if (_wrapToggle is not null) _wrapToggle.IsChecked = on;
+        if (_wrapItem is not null) _wrapItem.IsChecked = on;
+    }
+
+    /// <summary>메뉴 막대: 파일 · 편집 · 찾기 · 보기. 각 항목 옆에 단축키가 보인다 (표시용 — 키 처리는 창과 에디터가 한다).</summary>
+    void BuildMenu()
+    {
+        var s = Strings.Current;
+        MenuItem Item(string header, string? gesture, Action click)
+        {
+            var item = new MenuItem { Header = header };
+            if (gesture is not null) item.InputGesture = KeyGesture.Parse(gesture);
+            item.Click += (_, _) => click();
+            return item;
+        }
+        MenuItem Top(string header, params Control[] items)
+        {
+            var top = new MenuItem { Header = header };
+            foreach (var i in items) top.Items.Add(i);
+            return top;
+        }
+        static Separator Sep() => new();
+
+        _wrapItem = new MenuItem { Header = s.EditorWordWrap, ToggleType = MenuItemToggleType.CheckBox };
+        _wrapItem.Click += (_, _) => SetWordWrap(_wrapItem.IsChecked);
+        _previewItem = new MenuItem { Header = s.EditorPreviewTooltip, ToggleType = MenuItemToggleType.CheckBox, IsVisible = false, InputGesture = KeyGesture.Parse("Ctrl+Shift+V") };
+        _previewItem.Click += (_, _) => SetPreview(_previewItem.IsChecked);
+
+        var menu = new Menu
+        {
+            Items =
+            {
+                Top(s.EditorGroupFile,
+                    Item(s.EditorSave, "Ctrl+S", () => _ = SaveAsync()),
+                    Item(s.EditorSaveAs, "Ctrl+Shift+S", () => _ = SaveAsPromptAsync()),
+                    Sep(),
+                    Item(s.EditorScClose, "Escape", Close)),
+                Top(s.EditorGroupEdit,
+                    Item(s.EditorUndo, "Ctrl+Z", () => _editor.Undo()),
+                    Item(s.EditorRedo, "Ctrl+Y", () => _editor.Redo()),
+                    Sep(),
+                    Item(s.EditorCut, "Ctrl+X", () => _editor.Cut()),
+                    Item(s.EditorCopy, "Ctrl+C", () => _editor.Copy()),
+                    Item(s.EditorPaste, "Ctrl+V", () => _editor.Paste()),
+                    Sep(),
+                    Item(s.EditorScSelectAll, "Ctrl+A", () => _editor.SelectAll()),
+                    Item(s.EditorScDeleteLine, "Ctrl+D", DeleteLine)),
+                Top(s.EditorGroupFind,
+                    Item(s.EditorFind, "Ctrl+F", () => ShowFind(replace: false)),
+                    Item(s.EditorReplace, "Ctrl+H", () => ShowFind(replace: true)),
+                    Item(s.EditorGoToLine, "Ctrl+G", () => _ = GoToLineAsync()),
+                    Sep(),
+                    Item(s.EditorNextMatch, null, () => GoToMatch(true, false)),
+                    Item(s.EditorPrevMatch, null, () => GoToMatch(false, false))),
+                Top(s.EditorMenuView, _wrapItem, _previewItem),
+            },
+        };
+        _menuHost.BorderThickness = new Thickness(0, 0, 0, 1);
+        _menuHost.Padding = new Thickness(8, 0);
+        _menuHost.Child = menu;
+        _menuHost.Bind(Border.BackgroundProperty, this.GetResourceObservable("AppSurface"));
+        _menuHost.Bind(Border.BorderBrushProperty, this.GetResourceObservable("AppStroke"));
+    }
+
+    /// <summary>커서가 있는 줄을 지운다 (Ctrl+D). 에디터 자체의 같은 키와 같은 일을 한다.</summary>
+    void DeleteLine()
+    {
+        if (_readOnly || _editor.Document is not { } doc) return;
+        var line = doc.GetLineByNumber(_editor.TextArea.Caret.Line);
+        doc.Remove(line.Offset, line.TotalLength);
     }
 
     Control BuildBanner()
@@ -297,9 +417,16 @@ public sealed class EditorWindow : Window
         {
             UpdateTitle();
             if (_findBar.IsVisible) RefreshMatches();
+            if (_previewOn) _preview.SetText(_editor.Text);
         };
         _editor.IsReadOnly = _readOnly;
         _banner.IsVisible = _readOnly;
+        // 마크다운이면 미리보기 버튼이 나오고 처음부터 미리보기를 켠다. 단축키 안내도 이때 정해진다 (마크다운 키가 더해진다).
+        _markdown = EditorLanguages.IsMarkdown(Path.GetFileName(_path)) && !_readOnly;
+        _preview.BaseDirectory = Path.GetDirectoryName(_path) ?? "";
+        if (_previewToggle is not null) _previewToggle.IsVisible = _markdown;
+        if (_previewItem is not null) _previewItem.IsVisible = _markdown;
+        SetPreview(_markdown);
         ApplyHighlight();
         UpdateInfo();
         UpdatePosition();
@@ -382,6 +509,8 @@ public sealed class EditorWindow : Window
         else if (ctrl && e.Key == Key.F) ShowFind(replace: false);
         else if (ctrl && e.Key == Key.H) ShowFind(replace: true);
         else if (ctrl && e.Key == Key.G) _ = GoToLineAsync();
+        else if (ctrl && !shift && e.Key == Key.D && _editor.TextArea.IsFocused) DeleteLine(); // 찾기 상자에서 누르면 지우지 않는다
+        else if (ctrl && shift && e.Key == Key.V && _markdown) SetPreview(!_previewOn);
         else if (e.Key == Key.Escape && !ctrl)
         {
             // 찾기가 열려 있으면 찾기만 닫고, 아니면 에디터를 닫는다.

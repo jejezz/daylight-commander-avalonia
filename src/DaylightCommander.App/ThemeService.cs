@@ -80,6 +80,14 @@ static class ThemeService
         Brush(app, "AppAccent", c.Accent);
         Brush(app, "AppDanger", c.Danger);
         // 파일 아이콘 색 (투톤 아이콘): 라이트는 진하게, 다크는 밝게 해서 두 모드 모두에서 또렷하다.
+        // 메뉴 막대(에디터)의 팝업: Fluent 기본 자원을 앱 색으로 덮는다.
+        Brush(app, "MenuFlyoutPresenterBackground", c.SurfaceHi);
+        Brush(app, "MenuFlyoutPresenterBorderBrush", c.StrokeStrong);
+        Brush(app, "MenuFlyoutItemBackgroundPointerOver", (c.TextHi & 0x00FFFFFFu) | 0x14000000u);
+        Brush(app, "MenuFlyoutItemBackgroundPressed", (c.TextHi & 0x00FFFFFFu) | 0x1Fu << 24);
+        Brush(app, "MenuFlyoutItemForeground", c.TextHi);
+        Brush(app, "MenuFlyoutItemForegroundPointerOver", c.TextHi);
+        Brush(app, "MenuFlyoutItemKeyboardAcceleratorTextForeground", c.TextMid);
         Brush(app, "AppFolder", dark ? 0xFFF2BC4Eu : 0xFFE3A12Bu);
         Brush(app, "AppIconFolder", dark ? 0xFFF2BC4Eu : 0xFFE3A12Bu);
         Brush(app, "AppIconArchive", dark ? 0xFFF0A940u : 0xFFD98A1Fu);

@@ -20,6 +20,7 @@ public sealed class LicensesWindow : Window
         ("Avalonia", "MIT", "https://github.com/AvaloniaUI/Avalonia"),
         ("AvaloniaEdit", "MIT", "https://github.com/AvaloniaUI/AvaloniaEdit"),
         ("TextMateSharp", "MIT", "https://github.com/danipen/TextMateSharp"),
+        ("Markdig", "BSD-2-Clause", "https://github.com/xoofx/markdig"),
         ("CommunityToolkit.Mvvm", "MIT", "https://github.com/CommunityToolkit/dotnet"),
         (".NET runtime", "MIT", "https://github.com/dotnet/runtime"),
         ("SkiaSharp / Skia", "MIT / BSD-3-Clause", "https://github.com/mono/SkiaSharp"),

@@ -45,6 +45,10 @@ public static class EditorLanguages
         [".dockerignore"] = ".ini",
     };
 
+    /// <summary>마크다운 문서인가 (에디터에 미리보기 버튼이 나온다).</summary>
+    public static bool IsMarkdown(string fileName) =>
+        Path.GetExtension(fileName).ToLowerInvariant() is ".md" or ".markdown" or ".mdown" or ".mkd";
+
     public static string? ExtensionFor(string fileName)
     {
         if (Names.TryGetValue(fileName, out var byName)) return byName;

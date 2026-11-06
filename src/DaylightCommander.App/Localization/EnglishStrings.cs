@@ -185,6 +185,17 @@ public sealed class EnglishStrings : IAppStrings
     public string EditorReadOnlyBinary => "This file is binary or not UTF-8. It opens read-only, showing each byte as one character.";
     public string EditorUndo => "Undo";
     public string EditorRedo => "Redo";
+    public string EditorMenuView => "View";
+    public string EditorCut => "Cut";
+    public string EditorCopy => "Copy";
+    public string EditorPaste => "Paste";
+    public string EditorPreviewTooltip => "Markdown Preview";
+    public string EditorGroupFile => "File";
+    public string EditorGroupEdit => "Edit";
+    public string EditorGroupFind => "Find";
+    public string EditorScClose => "Close";
+    public string EditorScSelectAll => "Select all";
+    public string EditorScDeleteLine => "Delete line";
 
     public string AboutTooltip => "About";
     public string AboutTagline => "A free dual-pane desktop file manager in the style of Total Commander and Midnight Commander";

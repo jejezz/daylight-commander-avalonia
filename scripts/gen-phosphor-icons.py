@@ -61,6 +61,7 @@ ICONS = {
     "replace": ("swap", "duotone"),
     "wrap": ("arrow-u-down-left", "duotone"),
     "goto-line": ("list-numbers", "duotone"),
+    "preview": ("article", "duotone"),
     "save": ("floppy-disk", "duotone"),
     "save-as": ("floppy-disk-back", "duotone"),
 }

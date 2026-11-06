@@ -40,6 +40,12 @@
             <Setter Property="Background" Value="{DynamicResource AppCursor}" />
         </Style>
 
+        <!-- 에디터 메뉴 막대와 그 팝업 -->
+        <Style Selector="MenuItem">
+            <Setter Property="FontFamily" Value="{DynamicResource AppFont}" />
+            <Setter Property="FontSize" Value="{DynamicResource FsBody}" />
+        </Style>
+
         <!-- 디렉터리 트리 -->
         <Style Selector="Border.treerow">
             <Setter Property="Background" Value="Transparent" />
