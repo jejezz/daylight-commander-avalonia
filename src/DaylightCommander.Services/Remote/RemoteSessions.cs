@@ -8,7 +8,8 @@ using Renci.SshNet.Common;
 namespace DaylightCommander.Services;
 
 /// <summary>연결 요청. 비밀번호는 연결하는 순간에만 쓰고 어디에도 저장하지 않는다.</summary>
-public sealed record RemoteConnectRequest(string Scheme, string Host, int Port, string User, string Password)
+/// <param name="Path">시작 폴더 (WebDAV에서 서버 주소 뒤의 경로). 비우면 서버 루트.</param>
+public sealed record RemoteConnectRequest(string Scheme, string Host, int Port, string User, string Password, string Path = "/")
 {
     /// <summary>이 서버의 열쇠 (<c>sftp://user@host[:port]</c>).</summary>
     public string Authority => Locations.FormatAuthority(Scheme, User, Host, Port);
@@ -43,7 +44,12 @@ public sealed class RemoteSessions : IDisposable
     /// <param name="connector">테스트용으로 바꿀 수 있다. 기본은 SFTP.</param>
     public RemoteSessions(IHostKeyStore? hostKeys = null, Connector? connector = null)
     {
-        _connector = connector ?? ((request, ct) => request.Scheme == "ftp" ? ConnectFtpAsync(request, ct) : ConnectSftpAsync(request, hostKeys, ct));
+        _connector = connector ?? ((request, ct) => request.Scheme switch
+        {
+            "ftp" => ConnectFtpAsync(request, ct),
+            "webdav" or "webdavs" => ConnectWebDavAsync(request, ct),
+            _ => ConnectSftpAsync(request, hostKeys, ct),
+        });
     }
 
     /// <summary>연결·해제가 있었다.</summary>
@@ -79,6 +85,7 @@ public sealed class RemoteSessions : IDisposable
         {
             SftpFileSystem sftp => sftp.WorkingDirectory,
             FtpFileSystem ftp => await ftp.GetWorkingDirectoryAsync(ct),
+            WebDavFileSystem => string.IsNullOrWhiteSpace(request.Path) ? "/" : request.Path,
             _ => "/",
         };
         return Locations.Format(new RemoteLocation(request.Scheme, request.User, request.Host, request.Port, Locations.NormalizeServerPath(home)));
@@ -116,6 +123,23 @@ public sealed class RemoteSessions : IDisposable
             _sessions.Clear();
         }
         foreach (var fs in all) (fs as IDisposable)?.Dispose();
+    }
+
+    // --- WebDAV ---
+
+    static async Task<IFileSystem> ConnectWebDavAsync(RemoteConnectRequest request, CancellationToken ct)
+    {
+        var fs = new WebDavFileSystem(WebDavFileSystem.CreateClient(request), request.Authority);
+        try
+        {
+            await fs.VerifyAsync(Locations.NormalizeServerPath(string.IsNullOrWhiteSpace(request.Path) ? "/" : request.Path), ct);
+            return fs;
+        }
+        catch
+        {
+            fs.Dispose();
+            throw;
+        }
     }
 
     // --- FTP ---

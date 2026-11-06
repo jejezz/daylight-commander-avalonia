@@ -185,6 +185,10 @@ public sealed record NetworkProfile
 
     [JsonPropertyName("user")]
     public string User { get; init; } = "";
+
+    /// <summary>시작 폴더 (WebDAV처럼 서버 주소 뒤에 <c>/dav/</c> 같은 경로가 붙는 곳). 옛 파일에는 없으므로 null일 수 있다.</summary>
+    [JsonPropertyName("path")]
+    public string? Path { get; init; }
 }
 
 /// <summary>설정을 읽고 쓴다. 구현은 data 계층.</summary>

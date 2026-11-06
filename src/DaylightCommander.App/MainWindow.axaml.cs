@@ -122,7 +122,7 @@ public partial class MainWindow : Window
             case HomeDialog.Connect c:
             {
                 var window = new ConnectDialog(c.Profile, c.Scheme);
-                window.Confirmed += (host, port, user, password, save, scheme) => _ = state.ConfirmConnectAsync(host, port, user, password, save, scheme);
+                window.Confirmed += (host, port, user, password, save, scheme, path) => _ = state.ConfirmConnectAsync(host, port, user, password, save, scheme, path);
                 return window;
             }
             case HomeDialog.PatternSelect:

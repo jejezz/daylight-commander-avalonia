@@ -9,13 +9,17 @@ using DaylightCommander.Services;
 namespace DaylightCommander.App.Dialogs;
 
 /// <summary>
-/// 서버 연결 대화상자 (SFTP·FTP): 프로토콜·서버 주소·포트·사용자 이름·비밀번호(FTP는 "익명으로 연결"도 있다). 비밀번호는 저장하지 않고, "이 서버를 저장"을 켜면 주소·포트·사용자 이름만
+/// 서버 연결 대화상자 (SFTP·FTP·WebDAV): 프로토콜·서버 주소·포트·사용자 이름·비밀번호. FTP는 "익명으로 연결", WebDAV는 시작 폴더(선택)가 더 있다. 비밀번호는 저장하지 않고, "이 서버를 저장"을 켜면 주소·포트·사용자 이름만
 /// 저장해 다음에 한 번에 고를 수 있다. 연결하는 동안 입력을 잠그고, 실패하면 열어 둔 채 오류를 보여 준다 (입력은 그대로).
 /// </summary>
 public sealed class ConnectDialog : DialogBase
 {
-    readonly ComboBox _scheme = new() { ItemsSource = new[] { "SFTP", "FTP" }, MinWidth = 120 };
+    readonly ComboBox _scheme = new() { ItemsSource = new[] { "SFTP", "FTP", "WebDAV", "WebDAV (HTTPS)" }, MinWidth = 120 };
     readonly CheckBox _anonymous = new();
+    readonly TextBox _path = new();
+    Control _pathField = null!;
+    static readonly string[] Schemes = ["sftp", "ftp", "webdav", "webdavs"];
+    static readonly int[] Ports = [22, 21, 80, 443];
     readonly TextBox _host = new();
     readonly TextBox _port = new() { Width = 90 };
     readonly TextBox _user = new();
@@ -38,7 +42,9 @@ public sealed class ConnectDialog : DialogBase
 
         _host.PlaceholderText = s.ConnectHostHint;
         _host.Text = profile?.Host ?? "";
-        _scheme.SelectedIndex = scheme == "ftp" ? 1 : 0;
+        _scheme.SelectedIndex = Math.Max(0, Array.IndexOf(Schemes, scheme));
+        _path.Text = profile?.Path ?? "";
+        _path.PlaceholderText = s.ConnectPathHint;
         _port.Text = (profile is { Port: > 0 } ? profile.Port : DefaultPort).ToString();
         _anonymous.Content = s.ConnectAnonymous;
         _anonymous.IsVisible = scheme == "ftp";
@@ -56,6 +62,8 @@ public sealed class ConnectDialog : DialogBase
             return new StackPanel { Spacing = 4, Children = { text, field } };
         }
 
+        _pathField = Labeled(s.ConnectPath, _path);
+        _pathField.IsVisible = scheme is "webdav" or "webdavs";
         var hostRow = new Grid { ColumnDefinitions = new ColumnDefinitions("*,Auto"), ColumnSpacing = 12 };
         var hostField = Labeled(s.ConnectHost, _host);
         var portField = Labeled(s.ConnectPort, _port);
@@ -68,14 +76,15 @@ public sealed class ConnectDialog : DialogBase
         {
             Margin = new Thickness(24),
             Spacing = 12,
-            Children = { heading, Labeled(s.ConnectProtocol, _scheme), hostRow, _anonymous, Labeled(s.ConnectUser, _user), Labeled(s.ConnectPassword, _password), _save, _error, buttons },
+            Children = { heading, Labeled(s.ConnectProtocol, _scheme), hostRow, _pathField, _anonymous, Labeled(s.ConnectUser, _user), Labeled(s.ConnectPassword, _password), _save, _error, buttons },
         };
 
         // 프로토콜을 바꾸면 포트가 기본값이었을 때 새 프로토콜의 기본 포트로 바꾼다. FTP만 "익명으로 연결"을 보인다.
         _scheme.SelectionChanged += (_, _) =>
         {
-            var wasDefault = _port.Text == (Scheme == "ftp" ? "22" : "21");
-            if (wasDefault) _port.Text = DefaultPort.ToString();
+            // 포트가 어느 프로토콜의 기본값 그대로였으면 새 프로토콜의 기본 포트로 바꾼다.
+            if (Ports.Any(p => p.ToString() == _port.Text)) _port.Text = DefaultPort.ToString();
+            _pathField.IsVisible = Scheme is "webdav" or "webdavs";
             _anonymous.IsVisible = Scheme == "ftp";
             if (!_anonymous.IsVisible) _anonymous.IsChecked = false;
         };
@@ -104,25 +113,25 @@ public sealed class ConnectDialog : DialogBase
         });
     }
 
-    string Scheme => _scheme.SelectedIndex == 1 ? "ftp" : "sftp";
+    string Scheme => Schemes[Math.Clamp(_scheme.SelectedIndex, 0, Schemes.Length - 1)];
 
-    int DefaultPort => Scheme == "ftp" ? 21 : 22;
+    int DefaultPort => Ports[Array.IndexOf(Schemes, Scheme)];
 
-    /// <summary>확정: 서버 주소, 포트, 사용자 이름, 비밀번호, 서버 저장 여부, 프로토콜(sftp/ftp).</summary>
-    public event Action<string, int, string, string, bool, string>? Confirmed;
+    /// <summary>확정: 서버 주소, 포트, 사용자 이름, 비밀번호, 서버 저장 여부, 프로토콜(sftp/ftp/webdav/webdavs), 시작 폴더.</summary>
+    public event Action<string, int, string, string, bool, string, string>? Confirmed;
 
     void Submit()
     {
         if (!_connect.IsEnabled) return;
         var port = int.TryParse(_port.Text, out var p) && p is > 0 and <= 65535 ? p : DefaultPort;
-        Confirmed?.Invoke(_host.Text ?? "", port, _user.Text ?? "", _password.Text ?? "", _save.IsChecked == true, Scheme);
+        Confirmed?.Invoke(_host.Text ?? "", port, _user.Text ?? "", _password.Text ?? "", _save.IsChecked == true, Scheme, _path.Text ?? "");
     }
 
     /// <summary>홈 상태가 알려 준 연결 진행 상황을 화면에 반영한다.</summary>
     public void Update(HomeDialog.Connect state)
     {
         var s = Strings.Current;
-        foreach (Control c in new Control[] { _scheme, _anonymous, _host, _port, _save, _cancel }) c.IsEnabled = !state.Busy;
+        foreach (Control c in new Control[] { _scheme, _anonymous, _host, _port, _path, _save, _cancel }) c.IsEnabled = !state.Busy;
         _user.IsEnabled = _password.IsEnabled = !state.Busy && _anonymous.IsChecked != true;
         _connect.IsEnabled = !state.Busy;
         _connect.Content = state.Busy ? s.ConnectBusy : s.ConnectButton;

@@ -261,6 +261,9 @@ public sealed class KoreanStrings : IAppStrings
     public string NetworkRemoveProfile => "저장한 서버 지우기";
     public string ConnectTitle => "서버에 연결";
     public string NetworkConnectFtp => "FTP 서버에 연결…";
+    public string NetworkConnectWebDav => "WebDAV 서버에 연결…";
+    public string ConnectPath => "시작 폴더 (선택)";
+    public string ConnectPathHint => "예: /remote.php/dav/files/me/";
     public string ConnectProtocol => "프로토콜";
     public string ConnectAnonymous => "익명으로 연결";
     public string ConnectHost => "서버 주소";

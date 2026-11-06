@@ -341,6 +341,7 @@ public partial class PaneView : UserControl
         var s = Strings.Current;
         NetworkItems.Children.Add(MenuRow(s.NetworkConnectSftp, () => act.Connect(null, "sftp"), NetworkPopup));
         NetworkItems.Children.Add(MenuRow(s.NetworkConnectFtp, () => act.Connect(null, "ftp"), NetworkPopup));
+        NetworkItems.Children.Add(MenuRow(s.NetworkConnectWebDav, () => act.Connect(null, "webdav"), NetworkPopup));
 
         var profiles = settings.Value.NetworkProfiles;
         if (profiles.Count > 0) NetworkItems.Children.Add(MenuSeparator());

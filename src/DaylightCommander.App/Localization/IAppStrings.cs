@@ -266,6 +266,9 @@ public interface IAppStrings
     string NetworkRemoveProfile { get; }
     string ConnectTitle { get; }
     string NetworkConnectFtp { get; }
+    string NetworkConnectWebDav { get; }
+    string ConnectPath { get; }
+    string ConnectPathHint { get; }
     string ConnectProtocol { get; }
     string ConnectAnonymous { get; }
     string ConnectHost { get; }

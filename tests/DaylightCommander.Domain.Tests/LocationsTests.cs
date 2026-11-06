@@ -47,6 +47,20 @@ public sealed class LocationsTests
     }
 
     [Fact]
+    public void WebDAV는_HTTP와_HTTPS가_서로_다른_스킴과_기본_포트다()
+    {
+        var http = Locations.TryParse("webdav://me@host/dav/x")!;
+        var https = Locations.TryParse("webdavs://me@host/dav/x")!;
+        Assert.Equal(("webdav", 80), (http.Scheme, http.Port));
+        Assert.Equal(("webdavs", 443), (https.Scheme, https.Port));
+        Assert.Equal("webdav://me@host", http.Authority);
+        Assert.Equal("webdavs://me@host", https.Authority);
+        Assert.False(Locations.SameServer("webdav://me@host/a", "webdavs://me@host/a")); // 같은 호스트라도 http/https는 다른 세션
+        Assert.Equal("webdavs://me@host:8443/dav", Locations.Parent("webdavs://me@host:8443/dav/x"));
+        Assert.Equal("webdav://host/", Locations.Format(Locations.TryParse("webdav://host")!)); // 계정 없는 열린 서버
+    }
+
+    [Fact]
     public void 호스트가_없으면_해석하지_않는다()
     {
         Assert.Null(Locations.TryParse("sftp://"));

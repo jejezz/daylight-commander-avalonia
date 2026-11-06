@@ -290,13 +290,15 @@ public sealed class HomeState : IDisposable
     /// 연결을 시도한다. 성공하면 대화상자를 닫고 (<paramref name="save"/>면 서버를 저장해 두고) 패널을 홈 폴더로 옮긴다. 실패하면
     /// 대화상자를 열어 둔 채 오류를 보여 준다 (입력한 값은 그대로). 비밀번호는 저장하지 않는다.
     /// </summary>
-    public async Task ConfirmConnectAsync(string host, int port, string user, string password, bool save, string scheme = "sftp")
+    public async Task ConfirmConnectAsync(string host, int port, string user, string password, bool save, string scheme = "sftp", string path = "")
     {
         if (_dialog is not HomeDialog.Connect d || d.Busy) return;
         host = host.Trim();
         user = user.Trim();
-        var profile = new NetworkProfile { Scheme = scheme, Host = host, Port = port, User = user };
-        if (host.Length == 0 || user.Length == 0)
+        path = path.Trim();
+        var profile = new NetworkProfile { Scheme = scheme, Host = host, Port = port, User = user, Path = path };
+        // SFTP는 계정이 꼭 있어야 하고 (FTP 익명은 "anonymous"), WebDAV는 계정 없이도 열린 서버가 있다.
+        if (host.Length == 0 || (scheme is "sftp" or "ftp" && user.Length == 0))
         {
             SetDialog(d with { Profile = profile, Scheme = scheme, Error = new FileError.RemoteConnectFailed(null) });
             return;
@@ -304,7 +306,7 @@ public sealed class HomeState : IDisposable
         SetDialog(d with { Profile = profile, Scheme = scheme, Error = null, Busy = true });
         try
         {
-            var home = await Remote.ConnectAsync(new RemoteConnectRequest(scheme, host, port, user, password));
+            var home = await Remote.ConnectAsync(new RemoteConnectRequest(scheme, host, port, user, password, path.Length == 0 ? "/" : path));
             if (_dialog is not HomeDialog.Connect) return; // 연결하는 동안 사용자가 대화상자를 닫았다 (연결은 남는다)
             if (save) _settings?.Update(s => s.WithNetworkProfile(profile));
             SetDialog(null);

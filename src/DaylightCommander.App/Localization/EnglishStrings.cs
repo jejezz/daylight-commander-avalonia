@@ -261,6 +261,9 @@ public sealed class EnglishStrings : IAppStrings
     public string NetworkRemoveProfile => "Remove Saved Server";
     public string ConnectTitle => "Connect to Server";
     public string NetworkConnectFtp => "Connect to FTP Server…";
+    public string NetworkConnectWebDav => "Connect to WebDAV Server…";
+    public string ConnectPath => "Start folder (optional)";
+    public string ConnectPathHint => "e.g. /remote.php/dav/files/me/";
     public string ConnectProtocol => "Protocol";
     public string ConnectAnonymous => "Connect anonymously";
     public string ConnectHost => "Server";
