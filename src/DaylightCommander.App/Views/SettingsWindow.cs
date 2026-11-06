@@ -146,8 +146,8 @@ public sealed class SettingsWindow : Window
         _refreshers.Clear();
         _nav.Children.Clear();
         var s = Strings.Current;
-        AddNavItem(Section.Appearance, s.SettingsSectionAppearance, "IconPalette");
-        AddNavItem(Section.Editor, s.SettingsSectionEditor, "IconEdit");
+        AddNavItem(Section.Appearance, s.SettingsSectionAppearance, "palette");
+        AddNavItem(Section.Editor, s.SettingsSectionEditor, "edit");
 
         var page = new StackPanel { Spacing = 8, MaxWidth = 640, HorizontalAlignment = HorizontalAlignment.Left };
         if (_section == Section.Appearance) BuildAppearance(page);
@@ -165,8 +165,7 @@ public sealed class SettingsWindow : Window
             HorizontalAlignment = HorizontalAlignment.Stretch,
             HorizontalContentAlignment = HorizontalAlignment.Left,
         };
-        var icon = new PathIcon { Width = 20, Height = 20 };
-        icon.Bind(PathIcon.DataProperty, this.GetResourceObservable(iconKey));
+        var icon = new Icons.DuoIcon { Icon = iconKey, Width = 20, Height = 20 };
         button.Content = new StackPanel
         {
             Orientation = Orientation.Horizontal,
@@ -223,7 +222,7 @@ public sealed class SettingsWindow : Window
     /// </summary>
     Control Segmented<T>((string Label, T Value)[] options, Func<T> current, Action<T> pick)
     {
-        var buttons = new List<(ToggleButton Button, PathIcon Check, T Value)>();
+        var buttons = new List<(ToggleButton Button, Icons.DuoIcon Check, T Value)>();
         var row = new StackPanel { Orientation = Orientation.Horizontal };
         for (var i = 0; i < options.Length; i++)
         {
@@ -234,8 +233,7 @@ public sealed class SettingsWindow : Window
                 divider.Bind(Border.BackgroundProperty, this.GetResourceObservable("AppStrokeStrong"));
                 row.Children.Add(divider);
             }
-            var check = new PathIcon { Width = 16, Height = 16, IsVisible = false };
-            check.Bind(PathIcon.DataProperty, this.GetResourceObservable("IconCheck"));
+            var check = new Icons.DuoIcon { Icon = "check", Width = 16, Height = 16, IsVisible = false };
             var button = new ToggleButton
             {
                 Classes = { "seg" },
@@ -315,8 +313,7 @@ public sealed class SettingsWindow : Window
         var s = Strings.Current;
         var button = new Button { Classes = { "picker" }, Height = ControlHeight, MinWidth = 260, HorizontalAlignment = HorizontalAlignment.Left };
         var label = new TextBlock { VerticalAlignment = VerticalAlignment.Center, TextTrimming = TextTrimming.CharacterEllipsis };
-        var arrow = new PathIcon { Width = 14, Height = 14 };
-        arrow.Bind(PathIcon.DataProperty, this.GetResourceObservable("IconArrowDown"));
+        var arrow = new Icons.DuoIcon { Icon = "caret-down", Width = 14, Height = 14 };
         button.Content = new DockPanel { LastChildFill = true, Children = { arrow, label } };
         DockPanel.SetDock(arrow, Dock.Right);
         arrow.Margin = new Thickness(8, 0, 0, 0);

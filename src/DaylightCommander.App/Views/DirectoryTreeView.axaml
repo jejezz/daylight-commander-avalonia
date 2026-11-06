@@ -1,4 +1,5 @@
 <UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:icons="using:DaylightCommander.App.Icons"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:vm="using:DaylightCommander.App.ViewModels"
              xmlns:views="using:DaylightCommander.App.Views"
@@ -14,16 +15,12 @@
                         <Grid ColumnDefinitions="20,Auto,*">
                             <Button Grid.Column="0" Classes="treetoggle" IsVisible="{Binding CanExpand}" Tag="{Binding}">
                                 <Grid>
-                                    <PathIcon Width="16" Height="16" Data="{StaticResource IconChevronRight}" IsVisible="{Binding ShowCollapsed}"/>
-                                    <PathIcon Width="16" Height="16" Data="{StaticResource IconExpandMore}" IsVisible="{Binding ShowExpanded}"/>
+                                    <icons:DuoIcon Width="14" Height="14" Icon="caret-right" ColorKey="AppTextMid" IsVisible="{Binding ShowCollapsed}"/>
+                                    <icons:DuoIcon Width="14" Height="14" Icon="caret-down" ColorKey="AppTextMid" IsVisible="{Binding ShowExpanded}"/>
                                 </Grid>
                             </Button>
-                            <Grid Grid.Column="1" VerticalAlignment="Center" Margin="0,0,6,0">
-                                <PathIcon Width="16" Height="16" Data="{StaticResource IconFolder}"
-                                          Foreground="{DynamicResource AppPrimary}" IsVisible="{Binding IsFolder}"/>
-                                <PathIcon Width="16" Height="16" Data="{StaticResource IconDrive}"
-                                          Foreground="{DynamicResource AppPrimary}" IsVisible="{Binding IsDrive}"/>
-                            </Grid>
+                            <icons:DuoIcon Grid.Column="1" Width="18" Height="18" Margin="0,0,6,0" VerticalAlignment="Center"
+                                           Icon="{Binding IconName}" ColorKey="{Binding IconColor}"/>
                             <TextBlock Grid.Column="2" Text="{Binding Label}" VerticalAlignment="Center"
                                        TextTrimming="CharacterEllipsis" ToolTip.Tip="{Binding Path}"
                                        FontWeight="{Binding Selected, Converter={x:Static views:TreeFonts.Weight}}"/>

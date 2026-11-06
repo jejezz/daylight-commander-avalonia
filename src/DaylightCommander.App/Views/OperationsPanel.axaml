@@ -1,4 +1,5 @@
 <UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:icons="using:DaylightCommander.App.Icons"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:vm="using:DaylightCommander.App.ViewModels"
              xmlns:app="using:DaylightCommander.App"
@@ -21,7 +22,7 @@
                                     <Button Grid.Column="2" Classes="tool" Width="24" Height="24"
                                             Command="{Binding CancelCommand}" IsVisible="{Binding CanCancel}"
                                             ToolTip.Tip="{DynamicResource Str.JobsCancel}">
-                                        <PathIcon Data="{StaticResource IconClose}" Width="14" Height="14"/>
+                                        <icons:DuoIcon Icon="close" Width="14" Height="14"/>
                                     </Button>
                                 </Grid>
                                 <ProgressBar IsVisible="{Binding IsRunning}" IsIndeterminate="{Binding IsIndeterminate}"

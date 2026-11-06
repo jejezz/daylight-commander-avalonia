@@ -12,6 +12,10 @@ public sealed partial class EntryItem(FileEntry entry) : ObservableObject
     public string Name => Entry.Name;
     public bool IsDirectory => Entry.IsDirectory;
     public bool IsFile => !Entry.IsDirectory;
+
+    /// <summary>아이콘 모양과 색(앱 색 자원 이름): 폴더·확장자별 파일 아이콘.</summary>
+    public string IconName { get; } = Icons.FileIcons.For(entry.Name, entry.IsDirectory).Icon;
+    public string IconColor { get; } = Icons.FileIcons.For(entry.Name, entry.IsDirectory).Color;
     public double RowOpacity => Entry.IsHidden ? 0.5 : 1.0;
     public string SizeText { get; } = BytesFormat.Format(entry.SizeBytes);
 

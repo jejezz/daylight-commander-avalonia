@@ -320,7 +320,7 @@ public partial class PaneView : UserControl
             // 한 줄: [경로 ............ ✕]. 경로를 누르면 이동, ✕를 누르면 즐겨찾기에서 뺀다.
             var go = MenuRow(PathText(path), () => _ = vm.Controller.NavigateToAsync(path), BookmarkPopup);
             var remove = new Button { Classes = { "tool" }, Width = 28, Height = 28, VerticalAlignment = VerticalAlignment.Center };
-            remove.Content = new PathIcon { Data = (Geometry?)Application.Current!.FindResource("IconClose"), Width = 14, Height = 14 };
+            remove.Content = new Icons.DuoIcon { Icon = "close", Width = 14, Height = 14 };
             ToolTip.SetTip(remove, s.BookmarkRemoveTooltip);
             remove.Click += (_, _) =>
             {

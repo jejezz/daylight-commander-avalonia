@@ -15,6 +15,8 @@ public sealed class TreeRow(string path, string label, int depth, bool expanded,
     public bool Selected { get; } = selected;
     public bool IsDrive { get; } = isDrive;
     public bool IsFolder => !IsDrive;
+    public string IconName => IsDrive ? "drive" : Expanded ? "folder-open" : "folder";
+    public string IconColor => IsDrive ? "AppPrimary" : "AppIconFolder";
     public bool CanExpand => !Leaf;
     public bool ShowCollapsed => !Leaf && !Expanded;
     public bool ShowExpanded => !Leaf && Expanded;

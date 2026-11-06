@@ -56,8 +56,7 @@ public sealed class ViewerWindow : Window
             TextTrimming = TextTrimming.CharacterEllipsis,
         };
         title.Bind(TextBlock.FontSizeProperty, this.GetResourceObservable("FsTitle"));
-        var icon = new PathIcon();
-        icon.Bind(PathIcon.DataProperty, this.GetResourceObservable("IconMemory"));
+        var icon = new Icons.DuoIcon { Icon = "memory" };
         _hexToggle.Content = icon;
         _hexToggle.Click += (_, _) => SetHex(_hexToggle.IsChecked == true);
         var barGrid = new Grid { ColumnDefinitions = new ColumnDefinitions("*,Auto") };

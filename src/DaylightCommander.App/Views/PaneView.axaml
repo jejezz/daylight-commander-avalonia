@@ -1,4 +1,5 @@
 <UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:icons="using:DaylightCommander.App.Icons"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:vm="using:DaylightCommander.App.ViewModels"
              xmlns:app="using:DaylightCommander.App"
@@ -9,39 +10,39 @@
         <Grid Grid.Row="0" ColumnDefinitions="Auto,Auto,Auto,Auto,Auto,Auto,Auto,*,Auto" Margin="6,4" ColumnSpacing="2">
             <Button Grid.Column="0" Classes="tool" Command="{Binding BackCommand}" IsEnabled="{Binding CanGoBack}"
                     ToolTip.Tip="{DynamicResource Str.PaneBackTooltip}">
-                <PathIcon Data="{StaticResource IconBack}"/>
+                <icons:DuoIcon Icon="back"/>
             </Button>
             <Button Grid.Column="1" Classes="tool" Command="{Binding ForwardCommand}" IsEnabled="{Binding CanGoForward}"
                     ToolTip.Tip="{DynamicResource Str.PaneForwardTooltip}">
-                <PathIcon Data="{StaticResource IconForward}"/>
+                <icons:DuoIcon Icon="forward"/>
             </Button>
             <Button Grid.Column="2" Classes="tool" Command="{Binding UpCommand}" IsEnabled="{Binding CanGoUp}"
                     ToolTip.Tip="{DynamicResource Str.PaneUpTooltip}">
-                <PathIcon Data="{StaticResource IconUp}"/>
+                <icons:DuoIcon Icon="up"/>
             </Button>
             <Button Grid.Column="3" Classes="tool" Command="{Binding RefreshCommand}"
                     ToolTip.Tip="{DynamicResource Str.PaneRefreshTooltip}">
-                <PathIcon Data="{StaticResource IconRefresh}"/>
+                <icons:DuoIcon Icon="refresh"/>
             </Button>
 
             <!-- 즐겨찾기(하트)와 최근 방문(시계) 메뉴. 메뉴 내용은 열 때 코드가 채운다 -->
             <Button Grid.Column="4" x:Name="BookmarkButton" Classes="tool"
                     ToolTip.Tip="{DynamicResource Str.BookmarkTooltip}">
                 <Grid>
-                    <PathIcon Data="{StaticResource IconHeart}" IsVisible="{Binding IsBookmarked}"
+                    <icons:DuoIcon Icon="heart" IsVisible="{Binding IsBookmarked}"
                               Foreground="{DynamicResource AppDanger}"/>
-                    <PathIcon Data="{StaticResource IconHeartOutline}" IsVisible="{Binding !IsBookmarked}"/>
+                    <icons:DuoIcon Icon="heart-outline" IsVisible="{Binding !IsBookmarked}"/>
                 </Grid>
             </Button>
             <Button Grid.Column="5" x:Name="RecentButton" Classes="tool"
                     ToolTip.Tip="{DynamicResource Str.RecentTooltip}">
-                <PathIcon Data="{StaticResource IconHistory}"/>
+                <icons:DuoIcon Icon="history"/>
             </Button>
 
             <!-- 드라이브 전환: 누르면 이 컴퓨터의 드라이브(볼륨) 목록이 뜬다 -->
             <Button Grid.Column="6" x:Name="DriveButton" Classes="tool"
                     ToolTip.Tip="{DynamicResource Str.DriveTooltip}">
-                <PathIcon Data="{StaticResource IconDrive}"/>
+                <icons:DuoIcon Icon="drive"/>
             </Button>
 
             <!-- 경로 표시줄: 직접 고쳐 쓰고 Enter로 이동, Esc로 되돌린다 -->
@@ -53,8 +54,8 @@
                           Command="{Binding ToggleHiddenCommand}"
                           ToolTip.Tip="{DynamicResource Str.PaneShowHiddenTooltip}">
                 <Grid>
-                    <PathIcon Data="{StaticResource IconVisible}" IsVisible="{Binding ShowHidden}"/>
-                    <PathIcon Data="{StaticResource IconVisibleOff}" IsVisible="{Binding !ShowHidden}"/>
+                    <icons:DuoIcon Icon="visible" IsVisible="{Binding ShowHidden}"/>
+                    <icons:DuoIcon Icon="visible-off" IsVisible="{Binding !ShowHidden}"/>
                 </Grid>
             </ToggleButton>
         </Grid>
@@ -105,16 +106,8 @@
                               Classes.picked="{Binding IsSelected}">
                             <!-- 이름 칸: 아이콘(고정) + 이름(남는 폭). StackPanel로 두면 이름이 폭 제한을 못 받아 긴 이름이 크기 칸을 덮는다 -->
                             <Grid Grid.Column="0" ColumnDefinitions="Auto,*" ColumnSpacing="8" ClipToBounds="True">
-                                <Grid Grid.Column="0" VerticalAlignment="Center">
-                                    <PathIcon Width="20" Height="20"
-                                              Data="{StaticResource IconFile}"
-                                              Foreground="{DynamicResource AppTextMid}"
-                                              IsVisible="{Binding IsFile}"/>
-                                    <PathIcon Width="20" Height="20"
-                                              Data="{StaticResource IconFolder}"
-                                              Foreground="{DynamicResource AppFolder}"
-                                              IsVisible="{Binding IsDirectory}"/>
-                                </Grid>
+                                <icons:DuoIcon Grid.Column="0" Width="22" Height="22" VerticalAlignment="Center"
+                                               Icon="{Binding IconName}" ColorKey="{Binding IconColor}"/>
                                 <!-- 줄어든 이름은 마우스를 올리면 전체 경로가 말풍선으로 보인다 -->
                                 <TextBlock Grid.Column="1" Text="{Binding Name}" VerticalAlignment="Center"
                                            TextTrimming="CharacterEllipsis" ToolTip.Tip="{Binding Path}"/>

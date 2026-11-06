@@ -109,8 +109,7 @@ public sealed class EditorWindow : Window
 
     static Button IconButton(string iconKey, string tip, Action click)
     {
-        var icon = new PathIcon();
-        icon.Bind(PathIcon.DataProperty, Application.Current!.GetResourceObservable(iconKey));
+        var icon = new Icons.DuoIcon { Icon = iconKey };
         var button = new Button { Classes = { "tool" }, Content = icon };
         ToolTip.SetTip(button, tip);
         button.Click += (_, _) => click();
@@ -119,8 +118,7 @@ public sealed class EditorWindow : Window
 
     static ToggleButton IconToggle(string iconKey, string tip, Action<bool> changed)
     {
-        var icon = new PathIcon();
-        icon.Bind(PathIcon.DataProperty, Application.Current!.GetResourceObservable(iconKey));
+        var icon = new Icons.DuoIcon { Icon = iconKey };
         var button = new ToggleButton { Classes = { "tool" }, Content = icon };
         ToolTip.SetTip(button, tip);
         button.Click += (_, _) => changed(button.IsChecked == true);
@@ -136,14 +134,14 @@ public sealed class EditorWindow : Window
         _title.Bind(TextBlock.FontSizeProperty, this.GetResourceObservable("FsTitle"));
 
         var buttons = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 2, VerticalAlignment = VerticalAlignment.Center };
-        buttons.Children.Add(IconButton("IconUndo", s.EditorUndo, () => _editor.Undo()));
-        buttons.Children.Add(IconButton("IconRedo", s.EditorRedo, () => _editor.Redo()));
-        buttons.Children.Add(IconButton("IconSearch", s.EditorFind, () => ShowFind(replace: false)));
-        buttons.Children.Add(IconButton("IconFindReplace", s.EditorReplace, () => ShowFind(replace: true)));
-        buttons.Children.Add(IconButton("IconGoToLine", s.EditorGoToLine, () => _ = GoToLineAsync()));
-        buttons.Children.Add(IconToggle("IconWrap", s.EditorWordWrap, on => _editor.WordWrap = on));
-        buttons.Children.Add(IconButton("IconSaveAs", s.EditorSaveAs, () => _ = SaveAsPromptAsync()));
-        buttons.Children.Add(IconButton("IconSave", s.EditorSave, () => _ = SaveAsync()));
+        buttons.Children.Add(IconButton("undo", s.EditorUndo, () => _editor.Undo()));
+        buttons.Children.Add(IconButton("redo", s.EditorRedo, () => _editor.Redo()));
+        buttons.Children.Add(IconButton("search", s.EditorFind, () => ShowFind(replace: false)));
+        buttons.Children.Add(IconButton("replace", s.EditorReplace, () => ShowFind(replace: true)));
+        buttons.Children.Add(IconButton("goto-line", s.EditorGoToLine, () => _ = GoToLineAsync()));
+        buttons.Children.Add(IconToggle("wrap", s.EditorWordWrap, on => _editor.WordWrap = on));
+        buttons.Children.Add(IconButton("save-as", s.EditorSaveAs, () => _ = SaveAsPromptAsync()));
+        buttons.Children.Add(IconButton("save", s.EditorSave, () => _ = SaveAsync()));
 
         var grid = new Grid { ColumnDefinitions = new ColumnDefinitions("*,Auto") };
         Grid.SetColumn(buttons, 1);
@@ -214,11 +212,11 @@ public sealed class EditorWindow : Window
         var row = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 2 };
         row.Children.Add(_findBox);
         row.Children.Add(_matchCount);
-        row.Children.Add(IconButton("IconArrowUp", s.EditorPrevMatch, () => GoToMatch(false, false)));
-        row.Children.Add(IconButton("IconArrowDown", s.EditorNextMatch, () => GoToMatch(true, false)));
+        row.Children.Add(IconButton("up", s.EditorPrevMatch, () => GoToMatch(false, false)));
+        row.Children.Add(IconButton("down", s.EditorNextMatch, () => GoToMatch(true, false)));
         row.Children.Add(_matchCase);
         row.Children.Add(_regex);
-        row.Children.Add(IconButton("IconClose", s.CommonCancel, HideFind));
+        row.Children.Add(IconButton("close", s.CommonCancel, HideFind));
 
         _replaceBox.PlaceholderText = s.EditorReplaceHint;
         _replaceBox.MinWidth = 220;

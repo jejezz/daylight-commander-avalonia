@@ -79,7 +79,20 @@ static class ThemeService
         Brush(app, "AppOnPrimary", c.OnPrimary);
         Brush(app, "AppAccent", c.Accent);
         Brush(app, "AppDanger", c.Danger);
-        Brush(app, "AppFolder", 0xFFFFB300);
+        // 파일 아이콘 색 (투톤 아이콘): 라이트는 진하게, 다크는 밝게 해서 두 모드 모두에서 또렷하다.
+        Brush(app, "AppFolder", dark ? 0xFFF2BC4Eu : 0xFFE3A12Bu);
+        Brush(app, "AppIconFolder", dark ? 0xFFF2BC4Eu : 0xFFE3A12Bu);
+        Brush(app, "AppIconArchive", dark ? 0xFFF0A940u : 0xFFD98A1Fu);
+        Brush(app, "AppIconPdf", dark ? 0xFFFF7A70u : 0xFFD6453Du);
+        Brush(app, "AppIconImage", dark ? 0xFF6FC3F0u : 0xFF2F8FCCu);
+        Brush(app, "AppIconVideo", dark ? 0xFF4DD0C8u : 0xFF1A9E96u);
+        Brush(app, "AppIconAudio", dark ? 0xFFFF7FB6u : 0xFFD4488Au);
+        Brush(app, "AppIconCode", dark ? 0xFFB093FFu : 0xFF7C4DDBu);
+        Brush(app, "AppIconText", dark ? 0xFF8FB0CFu : 0xFF5B7A99u);
+        Brush(app, "AppIconDoc", dark ? 0xFF7FA4FFu : 0xFF3C6FD8u);
+        Brush(app, "AppIconSheet", dark ? 0xFF5CCB88u : 0xFF2E9E5Bu);
+        Brush(app, "AppIconSlide", dark ? 0xFFFF9A5Cu : 0xFFE2702Bu);
+        Brush(app, "AppIconApp", dark ? 0xFFA3AEC0u : 0xFF6E7B8Fu);
         // 작업 알림 상자: 한 단계 띄운 면에 주색을 20% 섞은 불투명색 + 주색 테두리. (기능 키 바를 덮으므로 투명하면 안 된다)
         Brush(app, "AppNoticeBg", Blend(c.SurfaceHi, c.Primary, 0.20));
         Brush(app, "AppNoticeBorder", c.Primary);

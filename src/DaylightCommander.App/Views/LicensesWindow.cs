@@ -26,6 +26,7 @@ public sealed class LicensesWindow : Window
         ("HarfBuzz (HarfBuzzSharp)", "MIT", "https://github.com/harfbuzz/harfbuzz"),
         ("ANGLE", "BSD-3-Clause", "https://github.com/google/angle"),
         ("Oniguruma", "BSD-2-Clause", "https://github.com/kkos/oniguruma"),
+        ("Phosphor Icons (아이콘 / icons)", "MIT", "https://github.com/phosphor-icons/core"),
     ];
 
     static LicensesWindow? _instance;
