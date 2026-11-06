@@ -35,6 +35,7 @@ executable with no .NET runtime to install, starting in **under a second**. Runs
 
 ### Navigation & selection
 - **Two panes**: back/forward/up, editable address bar, drive switcher, sortable columns (name/size/date), single-pane mode
+- **View modes**: per pane — list / small previews / large previews (image thumbnails). Toolbar button, `Ctrl`+wheel, `Ctrl`+`Shift`+`1`–`3`
 - **Tree dock**: browse folders, drag & drop to copy/move, context menu
 - **Multi-select**: mouse (click/Shift/Ctrl) and keyboard (Space/Insert), select all, pattern (`*.jpg`) select/deselect
 - **Quick filter**: just type in a pane to narrow the list to matching names
@@ -91,6 +92,7 @@ Use `⌘` instead of `Ctrl` on macOS.
 | `Ctrl`+`R` | Refresh |
 | `Ctrl`+`N` / `Ctrl`+`D` | New file / Duplicate |
 | `Ctrl`+`T` | Tree dock |
+| `Ctrl`+wheel / `Ctrl`+`Shift`+`1` `2` `3` | View mode (list / small / large previews) |
 | `Ctrl`+`U` | Swap panes |
 | `Ctrl`+`Shift`+`←` `→` | Sync path to the other pane (→: left to right, ←: right to left) |
 | `Ctrl`+`\` | Single / dual pane |

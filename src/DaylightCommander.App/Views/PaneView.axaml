@@ -7,7 +7,7 @@
              x:DataType="vm:PaneViewModel">
     <Grid RowDefinitions="Auto,Auto,*,Auto">
         <!-- 툴바: 뒤로 · 앞으로 · 상위 · 새로고침 | 경로 | 숨김 파일 -->
-        <Grid Grid.Row="0" ColumnDefinitions="Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto,*,Auto" Margin="6,4" ColumnSpacing="2">
+        <Grid Grid.Row="0" ColumnDefinitions="Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto,*,Auto,Auto" Margin="6,4" ColumnSpacing="2">
             <Button Grid.Column="0" Classes="tool" Command="{Binding BackCommand}" IsEnabled="{Binding CanGoBack}"
                     ToolTip.Tip="{DynamicResource Str.PaneBackTooltip}">
                 <icons:DuoIcon Icon="back"/>
@@ -56,7 +56,16 @@
                      MinHeight="0" Padding="8,6" VerticalContentAlignment="Center"
                      Background="Transparent" BorderBrush="{DynamicResource AppStroke}" CornerRadius="6"/>
 
-            <ToggleButton Grid.Column="9" Classes="tool" IsChecked="{Binding ShowHidden, Mode=OneWay}"
+            <!-- 보기 방식: 목록 · 작은 미리보기 · 큰 미리보기 -->
+            <Button Grid.Column="9" x:Name="ViewButton" Classes="tool"
+                    ToolTip.Tip="{DynamicResource Str.PaneViewTooltip}">
+                <Grid>
+                    <icons:DuoIcon Icon="view-list" IsVisible="{Binding IsList}"/>
+                    <icons:DuoIcon Icon="view-grid" IsVisible="{Binding IsGrid}"/>
+                </Grid>
+            </Button>
+
+            <ToggleButton Grid.Column="10" Classes="tool" IsChecked="{Binding ShowHidden, Mode=OneWay}"
                           Command="{Binding ToggleHiddenCommand}"
                           ToolTip.Tip="{DynamicResource Str.PaneShowHiddenTooltip}">
                 <Grid>
@@ -88,13 +97,18 @@
                 <StackPanel x:Name="RecentItems"/></ScrollViewer></Border>
         </Popup>
 
+        <Popup x:Name="ViewPopup" PlacementTarget="{Binding #ViewButton}" Placement="BottomEdgeAlignedRight"
+               IsLightDismissEnabled="True">
+            <Border Classes="menu"><StackPanel x:Name="ViewItems" MinWidth="160"/></Border>
+        </Popup>
+
         <!-- 행 우클릭 메뉴 (내용은 우클릭할 때 코드가 채운다) -->
         <Popup x:Name="ContextPopup" PlacementTarget="{Binding #Entries}" Placement="Pointer" IsLightDismissEnabled="True" OverlayDismissEventPassThrough="True">
             <Border Classes="menu"><StackPanel x:Name="ContextItems" MinWidth="220"/></Border>
         </Popup>
 
         <!-- 컬럼 헤더: 이름 | 크기(80) | 수정일(130), 간격 12. 눌러서 정렬 -->
-        <Grid Grid.Row="1" ColumnDefinitions="*,80,130" Margin="12,0" ColumnSpacing="12">
+        <Grid Grid.Row="1" ColumnDefinitions="*,80,130" Margin="12,0" ColumnSpacing="12" IsVisible="{Binding IsList}">
             <Button Grid.Column="0" Classes="header" Command="{Binding SortCommand}" CommandParameter="Name">
                 <TextBlock Text="{Binding NameHeader}"/>
             </Button>
@@ -109,7 +123,7 @@
 
         <Grid Grid.Row="2">
             <!-- 선택(커서)은 컨트롤러가 정한다: 클릭은 코드 비하인드가 컨트롤러로 보내고, 목록은 따라 그리기만 한다 -->
-            <ListBox x:Name="Entries" ItemsSource="{Binding Items}" SelectedItem="{Binding Cursor, Mode=OneWay}"
+            <ListBox x:Name="Entries" ItemsSource="{Binding Items}" IsVisible="{Binding IsList}" SelectedItem="{Binding Cursor, Mode=OneWay}"
                      Background="Transparent" BorderThickness="0" Padding="0" Classes="entries">
                 <ListBox.ItemTemplate>
                     <DataTemplate x:DataType="vm:EntryItem">
@@ -130,6 +144,38 @@
                                        VerticalAlignment="Center"/>
                         </Grid>
                         </Border>
+                    </DataTemplate>
+                </ListBox.ItemTemplate>
+            </ListBox>
+            <!-- 격자 보기: 행 단위로 가상화한다. 한 행은 가로로 놓인 타일들. 타일 클릭·끌기는 코드 비하인드가 목록 보기와 같게 처리한다 -->
+            <ListBox x:Name="Tiles" ItemsSource="{Binding Rows}" IsVisible="{Binding IsGrid}"
+                     Background="Transparent" BorderThickness="0" Padding="0" Classes="tiles">
+                <ListBox.ItemTemplate>
+                    <DataTemplate x:DataType="vm:TileRow">
+                        <ItemsControl ItemsSource="{Binding Items}">
+                            <ItemsControl.ItemsPanel>
+                                <ItemsPanelTemplate><StackPanel Orientation="Horizontal"/></ItemsPanelTemplate>
+                            </ItemsControl.ItemsPanel>
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate x:DataType="vm:EntryItem">
+                                    <Border Classes="tile diffrow" Classes.cursor="{Binding IsCursor}" Classes.picked="{Binding IsSelected}"
+                                            Classes.onlyhere="{Binding IsOnlyHere}" Classes.differs="{Binding IsDiffers}"
+                                            Width="{Binding TileWidth}" Height="{Binding TileHeight}"
+                                            Opacity="{Binding RowOpacity}" ToolTip.Tip="{Binding Path}">
+                                        <StackPanel Margin="4" Spacing="4">
+                                            <Grid Width="{Binding IconSize}" Height="{Binding IconSize}" HorizontalAlignment="Center">
+                                                <icons:DuoIcon Icon="{Binding IconName}" ColorKey="{Binding IconColor}"
+                                                               IsVisible="{Binding NoThumbnail}"/>
+                                                <Image Source="{Binding Thumbnail}" Stretch="Uniform"
+                                                       IsVisible="{Binding HasThumbnail}"/>
+                                            </Grid>
+                                            <TextBlock Text="{Binding Name}" TextWrapping="Wrap" MaxLines="2" TextTrimming="CharacterEllipsis"
+                                                       TextAlignment="Center" FontSize="{DynamicResource FsSmall}"/>
+                                        </StackPanel>
+                                    </Border>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
                     </DataTemplate>
                 </ListBox.ItemTemplate>
             </ListBox>

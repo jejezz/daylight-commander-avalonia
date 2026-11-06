@@ -23,6 +23,40 @@ public static class Localization
 /// <summary>F4로 여는 텍스트 편집기. <see cref="Builtin"/>이 기본이고, <see cref="External"/>이면 사용자가 고른 실행 파일로 연다.</summary>
 public enum EditorMode { Builtin, External }
 
+/// <summary>패널 보기 방식: 목록(상세) · 작은 미리보기 · 큰 미리보기. 저장 값은 <c>list</c> / <c>small</c> / <c>large</c>.</summary>
+public enum PaneViewMode { List, SmallThumbs, LargeThumbs }
+
+public static class PaneViewModes
+{
+    /// <summary>격자 타일의 한 변(아이콘·썸네일 영역, DIP). 목록은 0.</summary>
+    public static int IconSize(this PaneViewMode mode) => mode switch
+    {
+        PaneViewMode.SmallThumbs => 48,
+        PaneViewMode.LargeThumbs => 112,
+        _ => 0,
+    };
+
+    /// <summary>타일 한 칸의 폭·높이 (아이콘 아래에 이름 두 줄이 들어간다). 목록은 0.</summary>
+    public static int TileWidth(this PaneViewMode mode) => mode switch
+    {
+        PaneViewMode.SmallThumbs => 88,
+        PaneViewMode.LargeThumbs => 140,
+        _ => 0,
+    };
+
+    public static int TileHeight(this PaneViewMode mode) => mode.IsGrid() ? mode.IconSize() + 56 : 0;
+
+    /// <summary>폭 <paramref name="width"/> 안에 들어가는 타일 열 수 (최소 1). 목록은 1.</summary>
+    public static int Columns(this PaneViewMode mode, double width) =>
+        mode.IsGrid() && double.IsFinite(width) ? Math.Max(1, (int)(width / mode.TileWidth())) : 1;
+
+    public static bool IsGrid(this PaneViewMode mode) => mode != PaneViewMode.List;
+
+    /// <summary>Ctrl+휠 한 칸: 위로 돌리면 더 크게, 아래로 돌리면 더 작게 (목록 ↔ 작은 ↔ 큰, 끝에서 멈춘다).</summary>
+    public static PaneViewMode Step(this PaneViewMode mode, int direction) =>
+        (PaneViewMode)Math.Clamp((int)mode + Math.Sign(direction), (int)PaneViewMode.List, (int)PaneViewMode.LargeThumbs);
+}
+
 /// <summary>글자 크기 선택지: 작게 · 보통 · 크게. 저장은 배율 숫자(<c>text_scale</c>)로 한다.</summary>
 public enum FontSize { Small, Normal, Large }
 
@@ -109,6 +143,15 @@ public sealed record AppSettings
     /// <summary>접속한 적 있는 SSH 서버의 호스트 키 지문 (<c>host:port</c> → 지문). 다음 접속 때 같은 서버인지 확인한다.</summary>
     [JsonPropertyName("known_host_keys")]
     public IReadOnlyDictionary<string, string> KnownHostKeys { get; init; } = new Dictionary<string, string>();
+
+    /// <summary>패널별 보기 방식. 파일에 없거나 모르는 값이면 목록(첫 항목)으로 읽힌다.</summary>
+    [JsonPropertyName("pane_left_view")]
+    [JsonConverter(typeof(PaneViewModeConverter))]
+    public PaneViewMode LeftView { get; init; } = PaneViewMode.List;
+
+    [JsonPropertyName("pane_right_view")]
+    [JsonConverter(typeof(PaneViewModeConverter))]
+    public PaneViewMode RightView { get; init; } = PaneViewMode.List;
 
     [JsonPropertyName("pane_single_mode")]
     public bool SinglePane { get; init; }

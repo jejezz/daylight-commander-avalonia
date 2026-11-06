@@ -41,6 +41,9 @@ public sealed class ColorPaletteConverter() : LenientEnumConverter<ColorPalette>
 public sealed class EditorModeConverter() : LenientEnumConverter<EditorMode>(
     ("builtin", EditorMode.Builtin), ("external", EditorMode.External));
 
+public sealed class PaneViewModeConverter() : LenientEnumConverter<PaneViewMode>(
+    ("list", PaneViewMode.List), ("small", PaneViewMode.SmallThumbs), ("large", PaneViewMode.LargeThumbs));
+
 /// <summary>언어는 비어 있을 수 있다(null = 시스템). 모르는 값도 null(시스템)로 읽는다.</summary>
 public sealed class AppLocaleConverter : JsonConverter<AppLocale?>
 {

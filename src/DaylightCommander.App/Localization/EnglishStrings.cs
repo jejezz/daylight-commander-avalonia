@@ -61,6 +61,10 @@ public sealed class EnglishStrings : IAppStrings
     public string PaneUpTooltip => "Parent Folder";
     public string PaneRefreshTooltip => "Refresh";
     public string PaneShowHiddenTooltip => "Show Hidden Files";
+    public string PaneViewTooltip => "View";
+    public string PaneViewList => "List";
+    public string PaneViewSmallThumbs => "Small Previews";
+    public string PaneViewLargeThumbs => "Large Previews";
     public string DriveTooltip => "Drives";
     public string ColumnName => "Name";
     public string ColumnSize => "Size";

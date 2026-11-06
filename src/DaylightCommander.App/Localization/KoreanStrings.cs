@@ -61,6 +61,10 @@ public sealed class KoreanStrings : IAppStrings
     public string PaneUpTooltip => "상위 폴더";
     public string PaneRefreshTooltip => "새로고침";
     public string PaneShowHiddenTooltip => "숨김 파일 표시";
+    public string PaneViewTooltip => "보기 방식";
+    public string PaneViewList => "목록";
+    public string PaneViewSmallThumbs => "작은 미리보기";
+    public string PaneViewLargeThumbs => "큰 미리보기";
     public string DriveTooltip => "드라이브";
     public string ColumnName => "이름";
     public string ColumnSize => "크기";

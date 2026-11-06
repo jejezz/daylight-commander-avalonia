@@ -40,6 +40,35 @@
             <Setter Property="Background" Value="{DynamicResource AppCursor}" />
         </Style>
 
+        <!-- 격자 보기: 행(ListBoxItem)은 아무 모양도 없고, 타일(Border.tile)이 커서·선택·올림을 그린다 -->
+        <Style Selector="ListBox.tiles ListBoxItem">
+            <Setter Property="Padding" Value="0" />
+            <Setter Property="MinHeight" Value="0" />
+            <Setter Property="CornerRadius" Value="0" />
+        </Style>
+        <Style Selector="ListBox.tiles ListBoxItem /template/ ContentPresenter#PART_ContentPresenter">
+            <Setter Property="Background" Value="Transparent" />
+        </Style>
+        <Style Selector="Border.tile">
+            <Setter Property="CornerRadius" Value="6" />
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="BorderThickness" Value="2" />
+            <Setter Property="BorderBrush" Value="Transparent" />
+        </Style>
+        <Style Selector="Border.tile:pointerover">
+            <Setter Property="Background" Value="{DynamicResource AppHover}" />
+        </Style>
+        <Style Selector="Border.tile.cursor">
+            <Setter Property="Background" Value="{DynamicResource AppCursor}" />
+        </Style>
+        <Style Selector="Border.tile.picked TextBlock">
+            <Setter Property="Foreground" Value="{DynamicResource AppPrimary}" />
+        </Style>
+        <Style Selector="Border.tile.drop">
+            <Setter Property="Background" Value="{DynamicResource AppCursor}" />
+            <Setter Property="BorderBrush" Value="{DynamicResource AppPrimary}" />
+        </Style>
+
         <!-- 폴더 비교: 행 배경 -->
         <Style Selector="Border.diffrow.onlyhere">
             <Setter Property="Background" Value="{DynamicResource AppDiffOnly}" />

@@ -116,6 +116,27 @@ public sealed class JsonSettingsRepositoryTests : IDisposable
     }
 
     [Fact]
+    public void 패널별_보기_방식은_저장하고_다시_읽는다()
+    {
+        var repo = Repo();
+        repo.Save(new AppSettings { LeftView = PaneViewMode.SmallThumbs, RightView = PaneViewMode.LargeThumbs });
+        Assert.Equal("small", Saved().GetProperty("pane_left_view").GetString());
+        Assert.Equal("large", Saved().GetProperty("pane_right_view").GetString());
+        var loaded = repo.Load();
+        Assert.Equal(PaneViewMode.SmallThumbs, loaded.LeftView);
+        Assert.Equal(PaneViewMode.LargeThumbs, loaded.RightView);
+    }
+
+    [Fact]
+    public void 보기_방식이_없거나_모르는_값이면_목록이다()
+    {
+        WriteRaw("""{ "pane_right_view": "mosaic" }""");
+        var loaded = Repo().Load();
+        Assert.Equal(PaneViewMode.List, loaded.LeftView);
+        Assert.Equal(PaneViewMode.List, loaded.RightView);
+    }
+
+    [Fact]
     public void 저장_키와_값은_모든_앱_공통_규약을_따른다()
     {
         Repo().Save(Full);
