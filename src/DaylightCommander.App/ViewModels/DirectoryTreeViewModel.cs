@@ -6,7 +6,7 @@ using DaylightCommander.Services;
 namespace DaylightCommander.App.ViewModels;
 
 /// <summary>트리의 한 줄 (드라이브 또는 폴더).</summary>
-public sealed class TreeRow(string path, string label, int depth, bool expanded, bool leaf, bool selected, bool isDrive)
+public sealed class TreeRow(string path, string label, int depth, bool expanded, bool leaf, bool selected, bool isDrive, DriveKind driveKind = DriveKind.Unknown)
 {
     public string Path { get; } = path;
     public string Label { get; } = label;
@@ -15,13 +15,13 @@ public sealed class TreeRow(string path, string label, int depth, bool expanded,
     public bool Selected { get; } = selected;
     public bool IsDrive { get; } = isDrive;
     public bool IsFolder => !IsDrive;
-    public string IconName => IsDrive ? "drive" : Expanded ? "folder-open" : "folder";
+    public string IconName => IsDrive ? Icons.FileIcons.ForDrive(driveKind) : Expanded ? "folder-open" : "folder";
     public string IconColor => IsDrive ? "AppPrimary" : "AppIconFolder";
     public bool CanExpand => !Leaf;
     public bool ShowCollapsed => !Leaf && !Expanded;
     public bool ShowExpanded => !Leaf && Expanded;
     public bool SameAs(TreeRow o) =>
-        Path == o.Path && Label == o.Label && Expanded == o.Expanded && Leaf == o.Leaf && Selected == o.Selected && Indent == o.Indent;
+        Path == o.Path && IconName == o.IconName && Label == o.Label && Expanded == o.Expanded && Leaf == o.Leaf && Selected == o.Selected && Indent == o.Indent;
     public Avalonia.Thickness Indent { get; } = new(4 + depth * 14, 0, 0, 0);
 }
 
@@ -96,18 +96,18 @@ public sealed partial class DirectoryTreeViewModel : ObservableObject
     {
         var rows = new List<TreeRow>();
 
-        void Add(string path, string label, int depth, bool isDrive)
+        void Add(string path, string label, int depth, bool isDrive, DriveKind kind = DriveKind.Unknown)
         {
             var expanded = _expanded.Contains(path);
             var children = _children.GetValueOrDefault(path);
             rows.Add(new TreeRow(path, label, depth, expanded, leaf: children is { Count: 0 },
-                selected: DirectoryTree.SamePath(path, _current), isDrive));
+                selected: DirectoryTree.SamePath(path, _current), isDrive, kind));
             if (expanded && children is not null)
                 foreach (var child in children)
                     Add(child, Path.GetFileName(child), depth + 1, isDrive: false);
         }
 
-        foreach (var drive in _drives) Add(drive.Path, drive.Name, 0, isDrive: true);
+        foreach (var drive in _drives) Add(drive.Path, drive.Name, 0, isDrive: true, drive.Kind);
 
         // 바뀐 줄만 갈아 끼운다 (통째로 비우면 스크롤 위치가 맨 위로 돌아간다).
         for (var i = 0; i < rows.Count; i++)

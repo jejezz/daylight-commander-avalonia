@@ -40,4 +40,12 @@ public static class FileIcons
         if (isDirectory) return ("folder", FolderColor);
         return ByExtension.TryGetValue(FileKinds.ExtensionOf(name), out var found) ? found : ("file", Plain);
     }
+
+    /// <summary>드라이브 종류별 아이콘: 내장은 하드 드라이브, 이동식은 USB, 네트워크는 네트워크 모양.</summary>
+    public static string ForDrive(DriveKind kind) => kind switch
+    {
+        DriveKind.Removable => "drive-removable",
+        DriveKind.Network => "drive-network",
+        _ => "drive",
+    };
 }

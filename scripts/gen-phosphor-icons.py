@@ -40,6 +40,8 @@ ICONS = {
     "heart-outline": ("heart", "regular"),
     "history": ("clock-counter-clockwise", "duotone"),
     "drive": ("hard-drives", "duotone"),
+    "drive-removable": ("usb", "duotone"),
+    "drive-network": ("network", "duotone"),
     "visible": ("eye", "duotone"),
     "visible-off": ("eye-slash", "duotone"),
     "tree": ("tree-structure", "duotone"),

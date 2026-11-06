@@ -303,7 +303,10 @@ public partial class PaneView : UserControl
             var label = drive.Name == drive.Path ? drive.Path : $"{drive.Name}   {drive.Path}";
             var text = new TextBlock { Text = label, MaxWidth = 420, TextTrimming = TextTrimming.CharacterEllipsis };
             if (drive == current) text.FontWeight = FontWeight.Bold;
-            DriveItems.Children.Add(MenuRow(text, () => _ = vm.Controller.NavigateToAsync(drive.Path), DrivePopup));
+            var row = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 8 };
+            row.Children.Add(new Icons.DuoIcon { Icon = Icons.FileIcons.ForDrive(drive.Kind), Width = 18, Height = 18, ColorKey = "AppPrimary" });
+            row.Children.Add(text);
+            DriveItems.Children.Add(MenuRow(row, () => _ = vm.Controller.NavigateToAsync(drive.Path), DrivePopup));
         }
     }
 
