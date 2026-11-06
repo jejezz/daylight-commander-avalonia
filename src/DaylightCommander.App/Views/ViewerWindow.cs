@@ -59,10 +59,18 @@ public sealed class ViewerWindow : Window
         var icon = new Icons.DuoIcon { Icon = "memory" };
         _hexToggle.Content = icon;
         _hexToggle.Click += (_, _) => SetHex(_hexToggle.IsChecked == true);
+        var openButton = new Button { Classes = { "tool" }, Content = new Icons.DuoIcon { Icon = "open-external" }, IsVisible = _kind is ViewerKind.Pdf or ViewerKind.Video or ViewerKind.Audio };
+        ToolTip.SetTip(openButton, Strings.Current.ViewerOpenWithDefaultApp);
+        openButton.Click += (_, _) =>
+        {
+            try { new OpenWithDefaultApp().Open(_path); }
+            catch (FileOperationException e) { _body.Child = Note(Strings.Current.FileErrorText(e.Error)); }
+        };
+        var tools = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 2, Children = { openButton, _hexToggle } };
         var barGrid = new Grid { ColumnDefinitions = new ColumnDefinitions("*,Auto") };
-        Grid.SetColumn(_hexToggle, 1);
+        Grid.SetColumn(tools, 1);
         barGrid.Children.Add(title);
-        barGrid.Children.Add(_hexToggle);
+        barGrid.Children.Add(tools);
         bar.Child = barGrid;
 
         var root = new Grid { RowDefinitions = new RowDefinitions("Auto,*") };
@@ -119,7 +127,8 @@ public sealed class ViewerWindow : Window
                 {
                     ViewerKind.Image => BuildImage(),
                     ViewerKind.Text => await BuildTextAsync(),
-                    _ => BuildUnsupported(), // PDF·오디오·비디오는 7단계 뒷부분에서 만든다
+                    ViewerKind.Pdf or ViewerKind.Video or ViewerKind.Audio => BuildWeb(),
+                    _ => BuildUnsupported(),
                 };
             }
             if (generation == _generation) _body.Child = view;
@@ -182,6 +191,18 @@ public sealed class ViewerWindow : Window
         panel.Children.Add(bar);
         panel.Children.Add(content);
         return panel;
+    }
+
+    /// <summary>
+    /// PDF·비디오·오디오는 운영체제의 웹뷰(Windows: WebView2)에 파일을 그대로 열어 보여 준다. 별도 재생 라이브러리를 싣지 않으므로
+    /// 앱이 커지지 않고, 웹뷰가 아는 형식(PDF, mp4·webm·mkv, mp3·wav·flac·aac·m4a·ogg 등)만 재생된다. 안 되는 형식은 위쪽의
+    /// "기본 앱으로 열기" 단추로 넘긴다. 창을 닫으면 웹뷰도 같이 치워져 소리가 멈춘다.
+    /// </summary>
+    Control BuildWeb()
+    {
+        var web = new NativeWebView { Source = new Uri(_path) };
+        Closed += (_, _) => _body.Child = null;
+        return web;
     }
 
     Control BuildUnsupported()
