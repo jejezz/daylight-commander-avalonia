@@ -1,4 +1,4 @@
-using Avalonia;
+﻿using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
 using Avalonia.Input;
@@ -200,7 +200,15 @@ public sealed class ViewerWindow : Window
     /// </summary>
     Control BuildWeb()
     {
-        var web = new NativeWebView { Source = new Uri(_path) };
+        var web = new NativeWebView();
+        // WebView2는 사용자 데이터 폴더를 기본으로 실행 파일 옆에 만든다. 설치본(C:\Program Files)은 쓸 수 없어 앱이 죽으므로
+        // 사용자별 쓰기 가능한 위치로 옮긴다. 초기화 전에(Source 설정 전에) 지정해야 한다.
+        web.EnvironmentRequested += (_, e) =>
+        {
+            if (e is Avalonia.Platform.WindowsWebView2EnvironmentRequestedEventArgs w2)
+                w2.UserDataFolder = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "DaylightCommander", "WebView2");
+        };
+        web.Source = new Uri(_path);
         Closed += (_, _) => _body.Child = null;
         return web;
     }
