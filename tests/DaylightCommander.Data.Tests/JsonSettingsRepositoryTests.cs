@@ -223,4 +223,21 @@ public sealed class JsonSettingsRepositoryTests : IDisposable
         Assert.Equal("settings.json", Path.GetFileName(file));
         Assert.Equal("DaylightCommander", Path.GetFileName(Path.GetDirectoryName(file)));
     }
+
+    [Fact]
+    public void 나중에_생긴_키가_없는_옛_파일을_읽어도_목록은_비어_있고_폭은_기본이다()
+    {
+        // 옛 버전이 쓴 파일: network_profiles, known_host_keys, tree_dock_width … 가 없다.
+        WriteRaw("""{ "theme_mode": "dark", "pane_bookmarks": ["C:/a"] }""");
+
+        var s = Repo().Load();
+
+        Assert.Equal(["C:/a"], s.Bookmarks);
+        Assert.NotNull(s.NetworkProfiles);
+        Assert.Empty(s.NetworkProfiles);
+        Assert.NotNull(s.KnownHostKeys);
+        Assert.Empty(s.KnownHostKeys);
+        Assert.NotNull(s.RecentPaths);
+        Assert.Equal(AppSettings.DefaultTreeDockWidth, s.TreeDockWidth);
+    }
 }

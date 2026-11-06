@@ -39,8 +39,8 @@ public sealed record PaneState(string CurrentPath)
     public bool CanGoBack => BackHistory.Count > 0;
     public bool CanGoForward => ForwardHistory.Count > 0;
 
-    /// <summary>루트(<c>C:\</c>, <c>/</c>)에는 부모가 없다.</summary>
-    public bool CanGoUp => Path.GetDirectoryName(CurrentPath) is not null;
+    /// <summary>루트(<c>C:\</c>, <c>/</c>, 서버 루트)에는 부모가 없다.</summary>
+    public bool CanGoUp => Locations.Parent(CurrentPath) is not null;
 
     /// <summary>표시 목록 안의 커서 위치. 목록이 비면 -1.</summary>
     public int CursorIndex

@@ -1,4 +1,5 @@
 using DaylightCommander.Domain;
+using DaylightCommander.Domain.Settings;
 
 namespace DaylightCommander.Services;
 
@@ -21,6 +22,9 @@ public abstract record HomeDialog
     public sealed record Transfer(FileOperationKind Kind, IReadOnlyList<string> Sources, string Target, FileError? Error = null) : HomeDialog;
 
     public sealed record Delete(IReadOnlyList<string> Paths, bool ToTrash) : HomeDialog;
+
+    /// <summary>서버에 연결하는 대화상자. <paramref name="Profile"/>은 미리 채울 값(저장해 둔 서버), <paramref name="Busy"/>는 연결하는 중.</summary>
+    public sealed record Connect(PaneSide Side, NetworkProfile? Profile = null, FileError? Error = null, bool Busy = false) : HomeDialog;
 
     /// <summary>패턴으로 선택 (F-바): 패턴 입력 대화상자.</summary>
     public sealed record PatternSelect : HomeDialog;
@@ -55,19 +59,24 @@ public sealed class HomeState : IDisposable
     /// </param>
     public HomeState(string leftPath, string rightPath, PaneController.ListDirectory list,
         FileOperations? ops = null, Func<Func<Task>, Task>? runOnUi = null,
-        SettingsController? settings = null, ExternalEditorLauncher? editor = null, IFileOpener? opener = null, IFileRevealer? revealer = null, ITerminalLauncher? terminal = null)
+        SettingsController? settings = null, ExternalEditorLauncher? editor = null, IFileOpener? opener = null, IFileRevealer? revealer = null, ITerminalLauncher? terminal = null,
+        RemoteSessions? remote = null)
     {
         _opener = opener ?? new OpenWithDefaultApp();
         _revealer = revealer ?? new FileReveal();
         _terminal = terminal ?? new TerminalLauncher();
-        _ops = ops ?? new FileOperations();
+        Remote = remote ?? new RemoteSessions();
+        _ops = ops ?? new FileOperations(remote: Remote);
         _settings = settings;
         _editor = editor ?? new ExternalEditorLauncher();
         var onUi = _onUi = runOnUi ?? (work => work());
         // 패널은 이동할 때마다 최근 경로에 기록한다 (시작 경로는 기록하지 않는다).
         void Visit(string path) => settings?.RecordVisit(path);
-        Left = new PaneController(leftPath, list, onVisit: Visit);
-        Right = new PaneController(rightPath, list, onVisit: Visit);
+        // 폴더 목록은 경로를 보고 고른다: sftp://… 는 연결된 서버에서, 나머지는 로컬 디스크에서.
+        PaneController.ListDirectory routed = (path, ct) =>
+            Locations.IsRemote(path) ? Remote.FileSystemFor(path).ListAsync(path, ct) : list(path, ct);
+        Left = new PaneController(leftPath, routed, onVisit: Visit);
+        Right = new PaneController(rightPath, routed, onVisit: Visit);
         // 작업이 끝나면 두 패널을 새로 읽는다.
         Queue = new OperationQueue(_ops, () => onUi(async () =>
         {
@@ -76,6 +85,9 @@ public sealed class HomeState : IDisposable
         }));
         Queue.ConflictChanged += () => ModalChanged?.Invoke();
     }
+
+    /// <summary>연결된 원격 서버들 (여러 창이 나눠 쓸 수 있게 밖에서 주입할 수 있다).</summary>
+    public RemoteSessions Remote { get; }
 
     public PaneController Left { get; }
     public PaneController Right { get; }
@@ -136,7 +148,8 @@ public sealed class HomeState : IDisposable
     {
         var targets = ActiveController.TargetEntries();
         if (targets.Count == 0) return;
-        SetDialog(new HomeDialog.Delete(targets.Select(e => e.Path).ToList(), ToTrash: !permanent && _ops.CanTrash));
+        var targetPaths = targets.Select(e => e.Path).ToList();
+        SetDialog(new HomeDialog.Delete(targetPaths, ToTrash: !permanent && _ops.CanTrash && !RemoteOperations.Involves(targetPaths)));
     }
 
     /// <summary>이름변경(F2, 커서 항목) / 새 폴더(F7) / 새 파일.</summary>
@@ -160,6 +173,7 @@ public sealed class HomeState : IDisposable
         var targets = ActiveController.TargetEntries();
         if (targets.Count == 0) return;
         var parent = ActiveController.State.CurrentPath;
+        if (Locations.IsRemote(parent)) { ActiveController.ReportError(new FileError.RemoteUnsupported()); return; }
         SetDialog(new HomeDialog.NameInput(NameMode.Compress, parent, InitialText: ArchiveService.DefaultZipName(targets.Select(e => e.Path).ToList())));
     }
 
@@ -168,6 +182,7 @@ public sealed class HomeState : IDisposable
     {
         var controller = ActiveController;
         if (controller.State.CursorEntry is not { IsDirectory: false } entry || !ArchiveService.IsZip(entry.Name)) return;
+        if (Locations.IsRemote(entry.Path)) { controller.ReportError(new FileError.RemoteUnsupported()); return; }
         FileError? error = null;
         try
         {
@@ -200,7 +215,34 @@ public sealed class HomeState : IDisposable
     /// <summary>F3: 커서가 파일 위면 뷰어를 열어 달라고 알린다. 폴더 위에서는 아무것도 하지 않는다.</summary>
     public void RequestView()
     {
-        if (ActiveController.State.CursorEntry is { IsDirectory: false } entry) ViewRequested?.Invoke(entry.Path);
+        if (ActiveController.State.CursorEntry is not { IsDirectory: false } entry) return;
+        if (Locations.IsRemote(entry.Path))
+            _ = OpenRemoteAsync(entry.Path, Active, local => ViewRequested?.Invoke(local));
+        else
+            ViewRequested?.Invoke(entry.Path);
+    }
+
+    /// <summary>원격 파일을 임시 폴더로 내려받아 그 사본으로 <paramref name="open"/>을 부른다. 실패하면 그 패널의 상태줄에 오류를 띄운다.</summary>
+    async Task OpenRemoteAsync(string url, PaneSide side, Action<string> open)
+    {
+        try
+        {
+            var local = await RemoteFiles.DownloadToTempAsync(Remote.FileSystemFor(url), url);
+            await _onUi(() =>
+            {
+                try { open(local); }
+                catch (Exception e) when (e is IOException or UnauthorizedAccessException) { Controller(side).ReportError(FileErrors.From(e, url)); }
+                return Task.CompletedTask;
+            });
+        }
+        catch (Exception e) when (e is IOException or UnauthorizedAccessException)
+        {
+            await _onUi(() =>
+            {
+                Controller(side).ReportError(FileErrors.From(e, url));
+                return Task.CompletedTask;
+            });
+        }
     }
 
     /// <summary>
@@ -208,6 +250,11 @@ public sealed class HomeState : IDisposable
     /// </summary>
     public void OpenFile(string path, PaneSide side)
     {
+        if (Locations.IsRemote(path))
+        {
+            _ = OpenRemoteAsync(path, side, local => _opener.Open(local));
+            return;
+        }
         try
         {
             _opener.Open(path);
@@ -222,6 +269,7 @@ public sealed class HomeState : IDisposable
     public void OpenTerminal(PaneSide side)
     {
         var path = Controller(side).State.CurrentPath;
+        if (Locations.IsRemote(path)) { Controller(side).ReportError(new FileError.RemoteUnsupported()); return; }
         try
         {
             _terminal.Open(path);
@@ -229,6 +277,55 @@ public sealed class HomeState : IDisposable
         catch (FileOperationException e)
         {
             Controller(side).ReportError(e.Error);
+        }
+    }
+
+    // --- 원격 서버 연결 ---
+
+    /// <summary>서버 연결 대화상자를 연다. 연결에 성공하면 지금 활성 패널이 그 서버의 홈 폴더로 간다.</summary>
+    public void RequestConnect(NetworkProfile? profile = null) => SetDialog(new HomeDialog.Connect(Active, profile));
+
+    /// <summary>
+    /// 연결을 시도한다. 성공하면 대화상자를 닫고 (<paramref name="save"/>면 서버를 저장해 두고) 패널을 홈 폴더로 옮긴다. 실패하면
+    /// 대화상자를 열어 둔 채 오류를 보여 준다 (입력한 값은 그대로). 비밀번호는 저장하지 않는다.
+    /// </summary>
+    public async Task ConfirmConnectAsync(string host, int port, string user, string password, bool save, string scheme = "sftp")
+    {
+        if (_dialog is not HomeDialog.Connect d || d.Busy) return;
+        host = host.Trim();
+        user = user.Trim();
+        var profile = new NetworkProfile { Scheme = scheme, Host = host, Port = port, User = user };
+        if (host.Length == 0 || user.Length == 0)
+        {
+            SetDialog(d with { Profile = profile, Error = new FileError.RemoteConnectFailed(null) });
+            return;
+        }
+        SetDialog(d with { Profile = profile, Error = null, Busy = true });
+        try
+        {
+            var home = await Remote.ConnectAsync(new RemoteConnectRequest(scheme, host, port, user, password));
+            if (_dialog is not HomeDialog.Connect) return; // 연결하는 동안 사용자가 대화상자를 닫았다 (연결은 남는다)
+            if (save) _settings?.Update(s => s.WithNetworkProfile(profile));
+            SetDialog(null);
+            await Controller(d.Side).NavigateToAsync(home);
+        }
+        catch (FileOperationException e)
+        {
+            if (_dialog is HomeDialog.Connect) SetDialog(d with { Profile = profile, Error = e.Error, Busy = false });
+        }
+    }
+
+    /// <summary>서버 연결을 끊는다. 그 서버를 보던 패널은 홈 폴더(로컬)로 돌아간다.</summary>
+    public async Task DisconnectAsync(string pathOrAuthority)
+    {
+        var authority = Locations.TryParse(pathOrAuthority)?.Authority;
+        if (authority is null) return;
+        Remote.Disconnect(authority);
+        var home = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
+        foreach (var side in new[] { PaneSide.Left, PaneSide.Right })
+        {
+            var c = Controller(side);
+            if (Locations.TryParse(c.State.CurrentPath)?.Authority == authority) await c.NavigateToAsync(home);
         }
     }
 
@@ -389,18 +486,20 @@ public sealed class HomeState : IDisposable
 
     /// <summary>트리의 "이름 바꾸기": 패널의 커서가 아니라 <paramref name="path"/> 항목을 바꾼다.</summary>
     public void RequestRenamePath(string path) =>
-        SetDialog(new HomeDialog.NameInput(NameMode.Rename, Path.GetDirectoryName(path) ?? "", path, Path.GetFileName(path)));
+        SetDialog(new HomeDialog.NameInput(NameMode.Rename, Locations.Parent(path) ?? "", path, Locations.NameOf(path)));
 
     /// <summary>트리의 "삭제": 패널의 선택이 아니라 <paramref name="paths"/>를 지울지 묻는다.</summary>
     public void RequestDeletePaths(IReadOnlyList<string> paths)
     {
-        if (paths.Count > 0) SetDialog(new HomeDialog.Delete(paths, ToTrash: _ops.CanTrash));
+        if (paths.Count > 0) SetDialog(new HomeDialog.Delete(paths, ToTrash: _ops.CanTrash && !RemoteOperations.Involves(paths)));
     }
 
     /// <summary>트리의 "속성": 해당 경로의 속성 창을 열어 달라고 알린다.</summary>
     public void RequestPropertiesOf(IReadOnlyList<string> paths)
     {
-        if (paths.Count > 0) PropertiesRequested?.Invoke(paths);
+        if (paths.Count == 0) return;
+        if (RemoteOperations.Involves(paths)) { ActiveController.ReportError(new FileError.RemoteUnsupported()); return; }
+        PropertiesRequested?.Invoke(paths);
     }
 
     // --- 끌어다 놓기·복제·파일 관리자에서 보기 ---
@@ -444,6 +543,7 @@ public sealed class HomeState : IDisposable
     /// <summary>파일 관리자(탐색기 등)에서 항목을 보여 준다. 실패하면 해당 패널의 상태줄에 오류를 띄운다.</summary>
     public void RevealInFileManager(string path, PaneSide side)
     {
+        if (Locations.IsRemote(path)) { Controller(side).ReportError(new FileError.RemoteUnsupported()); return; }
         try
         {
             _revealer.Reveal(path);
@@ -461,7 +561,10 @@ public sealed class HomeState : IDisposable
     public void RequestProperties()
     {
         var targets = ActiveController.TargetEntries();
-        if (targets.Count > 0) PropertiesRequested?.Invoke(targets.Select(e => e.Path).ToList());
+        if (targets.Count == 0) return;
+        var paths = targets.Select(e => e.Path).ToList();
+        if (RemoteOperations.Involves(paths)) { ActiveController.ReportError(new FileError.RemoteUnsupported()); return; }
+        PropertiesRequested?.Invoke(paths);
     }
 
     /// <summary>내장 에디터로 열어 달라는 요청. 화면(창)이 이 이벤트를 받아 에디터 창을 연다. 인자는 파일 경로.</summary>
@@ -476,6 +579,7 @@ public sealed class HomeState : IDisposable
     {
         var controller = ActiveController;
         if (controller.State.CursorEntry is not { IsDirectory: false } entry) return;
+        if (Locations.IsRemote(entry.Path)) { controller.ReportError(new FileError.RemoteUnsupported()); return; } // 원격 파일 편집(올려 두기)은 아직 없다
 
         if (_settings?.Value.ExternalEditor is { } executable)
         {
@@ -521,7 +625,16 @@ public sealed class HomeState : IDisposable
             SetDialog(d with { Target = targetText, Error = FileErrors.From(e, targetText) });
             return;
         }
-        if (!Directory.Exists(target))
+        if (Locations.IsRemote(target))
+        {
+            // 원격 폴더가 있는지는 여기서 (동기로) 알 수 없다 — 연결만 확인하고, 없으면 작업이 실패로 알려 준다.
+            if (!Remote.IsConnected(target))
+            {
+                SetDialog(d with { Target = targetText, Error = new FileError.RemoteNotConnected(Locations.TryParse(target)?.Authority ?? target) });
+                return;
+            }
+        }
+        else if (!Directory.Exists(target))
         {
             SetDialog(d with { Target = targetText, Error = new FileError.TargetFolderMissing() });
             return;

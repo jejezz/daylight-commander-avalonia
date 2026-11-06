@@ -7,7 +7,7 @@
              x:DataType="vm:PaneViewModel">
     <Grid RowDefinitions="Auto,Auto,*,Auto">
         <!-- 툴바: 뒤로 · 앞으로 · 상위 · 새로고침 | 경로 | 숨김 파일 -->
-        <Grid Grid.Row="0" ColumnDefinitions="Auto,Auto,Auto,Auto,Auto,Auto,Auto,*,Auto" Margin="6,4" ColumnSpacing="2">
+        <Grid Grid.Row="0" ColumnDefinitions="Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto,*,Auto" Margin="6,4" ColumnSpacing="2">
             <Button Grid.Column="0" Classes="tool" Command="{Binding BackCommand}" IsEnabled="{Binding CanGoBack}"
                     ToolTip.Tip="{DynamicResource Str.PaneBackTooltip}">
                 <icons:DuoIcon Icon="back"/>
@@ -46,11 +46,17 @@
             </Button>
 
             <!-- 경로 표시줄: 직접 고쳐 쓰고 Enter로 이동, Esc로 되돌린다 -->
-            <TextBox Grid.Column="7" x:Name="PathBox" Text="{Binding PathText}" Margin="6,0" FontSize="{DynamicResource FsMid}"
+            <!-- 네트워크 드라이브: 서버 연결·저장한 서버·연결 해제 -->
+            <Button Grid.Column="7" x:Name="NetworkButton" Classes="tool"
+                    ToolTip.Tip="{DynamicResource Str.NetworkTooltip}">
+                <icons:DuoIcon Icon="drive-network"/>
+            </Button>
+
+            <TextBox Grid.Column="8" x:Name="PathBox" Text="{Binding PathText}" Margin="6,0" FontSize="{DynamicResource FsMid}"
                      MinHeight="0" Padding="8,6" VerticalContentAlignment="Center"
                      Background="Transparent" BorderBrush="{DynamicResource AppStroke}" CornerRadius="6"/>
 
-            <ToggleButton Grid.Column="8" Classes="tool" IsChecked="{Binding ShowHidden, Mode=OneWay}"
+            <ToggleButton Grid.Column="9" Classes="tool" IsChecked="{Binding ShowHidden, Mode=OneWay}"
                           Command="{Binding ToggleHiddenCommand}"
                           ToolTip.Tip="{DynamicResource Str.PaneShowHiddenTooltip}">
                 <Grid>
@@ -70,6 +76,11 @@
                IsLightDismissEnabled="True">
             <Border Classes="menu"><ScrollViewer MaxHeight="360" VerticalScrollBarVisibility="Auto">
                 <StackPanel x:Name="DriveItems"/></ScrollViewer></Border>
+        </Popup>
+        <Popup x:Name="NetworkPopup" PlacementTarget="{Binding #NetworkButton}" Placement="BottomEdgeAlignedLeft"
+               IsLightDismissEnabled="True" OverlayDismissEventPassThrough="True">
+            <Border Classes="menu"><ScrollViewer MaxHeight="360" VerticalScrollBarVisibility="Auto">
+                <StackPanel x:Name="NetworkItems"/></ScrollViewer></Border>
         </Popup>
         <Popup x:Name="RecentPopup" PlacementTarget="{Binding #RecentButton}" Placement="BottomEdgeAlignedLeft"
                IsLightDismissEnabled="True">

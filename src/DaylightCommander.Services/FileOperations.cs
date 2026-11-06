@@ -17,26 +17,34 @@ namespace DaylightCommander.Services;
 /// </list>
 /// 경로는 문자열이다 (도메인이 파일 시스템 형식에 의존하지 않게).
 /// </summary>
-public sealed class FileOperations(ITrash? trash = null)
+public sealed class FileOperations(ITrash? trash = null, RemoteSessions? remote = null)
 {
     readonly ITrash _trash = trash ?? Services.Trash.Default;
+    readonly RemoteOperations? _remote = remote is null ? null : new RemoteOperations(remote);
+
+    /// <summary>원격 서버가 낀 작업이면 원격 작업 처리기, 아니면 null (로컬 작업은 아래 코드가 한다).</summary>
+    RemoteOperations? RemoteFor(IEnumerable<string> paths) => _remote is not null && RemoteOperations.Involves(paths) ? _remote : null;
+
+    RemoteOperations RemoteOrThrow() => _remote ?? throw new FileOperationException(new FileError.RemoteUnsupported());
 
     public bool CanTrash => _trash.IsSupported;
 
     public Task<OperationResult> CopyAsync(
         IReadOnlyList<string> sources, string targetDir, ConflictResolver resolver,
         Action<OperationProgress>? onProgress = null, CancellationToken ct = default) =>
-        Task.Run(() => new Transfer(resolver, onProgress, ct).RunAsync(sources, targetDir, move: false), ct);
+        RemoteFor([.. sources, targetDir]) is { } r ? r.CopyAsync(sources, targetDir, resolver, onProgress, ct)
+            : Task.Run(() => new Transfer(resolver, onProgress, ct).RunAsync(sources, targetDir, move: false), ct);
 
     public Task<OperationResult> MoveAsync(
         IReadOnlyList<string> sources, string targetDir, ConflictResolver resolver,
         Action<OperationProgress>? onProgress = null, CancellationToken ct = default) =>
-        Task.Run(() => new Transfer(resolver, onProgress, ct).RunAsync(sources, targetDir, move: true), ct);
+        RemoteFor([.. sources, targetDir]) is { } r ? r.MoveAsync(sources, targetDir, resolver, onProgress, ct)
+            : Task.Run(() => new Transfer(resolver, onProgress, ct).RunAsync(sources, targetDir, move: true), ct);
 
     public Task<OperationResult> DeleteAsync(
         IReadOnlyList<string> paths, bool toTrash,
         Action<OperationProgress>? onProgress = null, CancellationToken ct = default) =>
-        Task.Run(() =>
+        RemoteFor(paths) is { } r ? r.DeleteAsync(paths, onProgress, ct) : Task.Run(() =>
         {
             var failures = new List<OperationFailure>();
             var processed = 0;
@@ -62,7 +70,7 @@ public sealed class FileOperations(ITrash? trash = null)
         }, ct);
 
     /// <summary>이름을 바꾼다. 같은 이름이 이미 있으면 <see cref="FileError.AlreadyExists"/> (대소문자만 바꾸는 것은 허용).</summary>
-    public Task<string> RenameAsync(string path, string newName) => Task.Run(() =>
+    public Task<string> RenameAsync(string path, string newName) => Locations.IsRemote(path) ? RemoteOrThrow().RenameAsync(path, newName) : Task.Run(() =>
     {
         ValidateName(newName);
         var target = Path.Combine(Path.GetDirectoryName(path) ?? "", newName);
@@ -90,7 +98,7 @@ public sealed class FileOperations(ITrash? trash = null)
         return target;
     });
 
-    public Task<string> CreateDirectoryAsync(string parent, string name) => Task.Run(() =>
+    public Task<string> CreateDirectoryAsync(string parent, string name) => Locations.IsRemote(parent) ? RemoteOrThrow().CreateDirectoryAsync(parent, name) : Task.Run(() =>
     {
         ValidateName(name);
         var path = Path.Combine(parent, name);
@@ -99,7 +107,7 @@ public sealed class FileOperations(ITrash? trash = null)
         return path;
     });
 
-    public Task<string> CreateFileAsync(string parent, string name) => Task.Run(() =>
+    public Task<string> CreateFileAsync(string parent, string name) => Locations.IsRemote(parent) ? RemoteOrThrow().CreateFileAsync(parent, name) : Task.Run(() =>
     {
         ValidateName(name);
         var path = Path.Combine(parent, name);

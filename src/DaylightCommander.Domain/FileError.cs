@@ -50,6 +50,21 @@ public abstract record FileError
     /// <summary>쓸 수 있는 터미널 프로그램을 찾지 못했다.</summary>
     public sealed record TerminalNotFound : FileError;
 
+    /// <summary>원격 서버에 연결되어 있지 않다 (연결하지 않았거나 끊어졌다). <paramref name="Server"/>는 <c>sftp://user@host</c> 꼴.</summary>
+    public sealed record RemoteNotConnected(string Server) : FileError;
+
+    /// <summary>원격 서버가 계정·비밀번호를 받아 주지 않았다.</summary>
+    public sealed record RemoteAuthFailed : FileError;
+
+    /// <summary>원격 서버에 연결하지 못했다. <paramref name="Detail"/>은 원문(있으면).</summary>
+    public sealed record RemoteConnectFailed(string? Detail) : FileError;
+
+    /// <summary>서버의 호스트 키가 전에 본 것과 다르다. <paramref name="HostPort"/>는 <c>host:port</c>.</summary>
+    public sealed record RemoteHostKeyChanged(string HostPort) : FileError;
+
+    /// <summary>원격 항목에는 아직 지원하지 않는 기능이다.</summary>
+    public sealed record RemoteUnsupported : FileError;
+
     /// <summary>위에 해당하지 않는 오류. <paramref name="Detail"/>은 OS나 라이브러리가 준 원문이라 번역되지 않는다.</summary>
     public sealed record Other(string? Detail) : FileError;
 }

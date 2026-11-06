@@ -73,6 +73,7 @@ public sealed partial class DirectoryTreeViewModel : ObservableObject
 
     void Follow(string path)
     {
+        if (Locations.IsRemote(path)) return; // 트리는 로컬 폴더만 보여 준다 (서버 경로는 강조·펼침 없이 둔다)
         _current = path;
         foreach (var dir in DirectoryTree.Ancestors(path))
         {

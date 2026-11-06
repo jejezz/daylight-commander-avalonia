@@ -102,6 +102,14 @@ public sealed record AppSettings
 
     /// <summary>좌우 패널의 화면 위치를 맞바꿨는가 (패널의 경로·선택은 그대로).</summary>
     /// <summary>1패널 모드: 활성 패널만 펼치고 다른 패널은 가장자리에 접어 둔다.</summary>
+    /// <summary>자주 쓰는 네트워크 서버 (연결 대화상자에서 한 번에 고른다).</summary>
+    [JsonPropertyName("network_profiles")]
+    public IReadOnlyList<NetworkProfile> NetworkProfiles { get; init; } = [];
+
+    /// <summary>접속한 적 있는 SSH 서버의 호스트 키 지문 (<c>host:port</c> → 지문). 다음 접속 때 같은 서버인지 확인한다.</summary>
+    [JsonPropertyName("known_host_keys")]
+    public IReadOnlyDictionary<string, string> KnownHostKeys { get; init; } = new Dictionary<string, string>();
+
     [JsonPropertyName("pane_single_mode")]
     public bool SinglePane { get; init; }
 
@@ -123,21 +131,60 @@ public sealed record AppSettings
 
     public AppSettings WithFontSize(FontSize size) => this with { TextScale = size.Scale() };
 
-    /// <summary>파일에서 읽은 값을 쓸 수 있는 값으로 고친다 (모르는 배율은 보통으로).</summary>
+    /// <summary>
+    /// 파일에서 읽은 값을 쓸 수 있는 값으로 고친다 (모르는 배율은 보통으로, 폭은 범위 안으로).
+    /// 또 하나: JSON 소스 생성기는 파일에 없는 키의 <c>init</c> 속성을 초기값이 아니라 <c>null</c>/0으로 두므로, 이전 버전이 쓴 파일을
+    /// 읽으면 나중에 생긴 목록 속성이 null이 된다. 여기서 초기값으로 채운다.
+    /// </summary>
     public AppSettings Normalized()
     {
         var fixedScale = Enum.GetValues<FontSize>().Any(s => s.Scale() == TextScale) ? this : this with { TextScale = FontSize.Normal.Scale() };
-        var width = double.IsFinite(TreeDockWidth) ? Math.Clamp(TreeDockWidth, MinTreeDockWidth, MaxTreeDockWidth) : DefaultTreeDockWidth;
-        return width == fixedScale.TreeDockWidth ? fixedScale : fixedScale with { TreeDockWidth = width };
+        var width = !double.IsFinite(TreeDockWidth) || TreeDockWidth <= 0 ? DefaultTreeDockWidth : Math.Clamp(TreeDockWidth, MinTreeDockWidth, MaxTreeDockWidth);
+        var result = width == fixedScale.TreeDockWidth ? fixedScale : fixedScale with { TreeDockWidth = width };
+        // 파일에 없던 목록·표는 null로 읽힌다 (컴파일러는 null이 아니라고 믿으므로 object로 본다).
+        if ((object?)result.Bookmarks is null) result = result with { Bookmarks = [] };
+        if ((object?)result.RecentPaths is null) result = result with { RecentPaths = [] };
+        if ((object?)result.NetworkProfiles is null) result = result with { NetworkProfiles = [] };
+        if ((object?)result.KnownHostKeys is null) result = result with { KnownHostKeys = new Dictionary<string, string>() };
+        return result;
     }
 
     public AppSettings WithVisit(string path) =>
         this with { RecentPaths = new[] { path }.Concat(RecentPaths.Where(p => p != path)).Take(MaxRecent).ToList() };
 
+    /// <summary>서버를 저장한다. 같은 서버(스킴·호스트·포트·계정)가 이미 있으면 그 자리를 바꾸고, 없으면 맨 끝에 더한다.</summary>
+    public AppSettings WithNetworkProfile(NetworkProfile profile)
+    {
+        static bool Same(NetworkProfile a, NetworkProfile b) =>
+            a.Scheme == b.Scheme && a.Port == b.Port && a.User == b.User && string.Equals(a.Host, b.Host, StringComparison.OrdinalIgnoreCase);
+        return NetworkProfiles.Any(p => Same(p, profile))
+            ? this with { NetworkProfiles = NetworkProfiles.Select(p => Same(p, profile) ? profile : p).ToList() }
+            : this with { NetworkProfiles = [.. NetworkProfiles, profile] };
+    }
+
+    public AppSettings WithoutNetworkProfile(NetworkProfile profile) =>
+        this with { NetworkProfiles = NetworkProfiles.Where(p => p != profile).ToList() };
+
     public AppSettings WithBookmarkToggled(string path) =>
         Bookmarks.Contains(path)
             ? this with { Bookmarks = Bookmarks.Where(p => p != path).ToList() }
             : this with { Bookmarks = [.. Bookmarks, path] };
+}
+
+/// <summary>저장해 둔 네트워크 서버. 비밀번호는 저장하지 않는다 (연결할 때마다 묻는다).</summary>
+public sealed record NetworkProfile
+{
+    [JsonPropertyName("scheme")]
+    public string Scheme { get; init; } = "sftp";
+
+    [JsonPropertyName("host")]
+    public string Host { get; init; } = "";
+
+    [JsonPropertyName("port")]
+    public int Port { get; init; }
+
+    [JsonPropertyName("user")]
+    public string User { get; init; } = "";
 }
 
 /// <summary>설정을 읽고 쓴다. 구현은 data 계층.</summary>

@@ -43,6 +43,7 @@ static class Strings
         Set("SyncBidirectional", s.SyncBidirectional);
         Set("SwapPanesTooltip", s.SwapPanesTooltip);
         Set("TerminalTooltip", s.TerminalTooltip);
+        Set("NetworkTooltip", s.NetworkTooltip);
         Set("SyncPathRightTooltip", s.SyncPathRightTooltip);
         Set("SyncPathLeftTooltip", s.SyncPathLeftTooltip);
 

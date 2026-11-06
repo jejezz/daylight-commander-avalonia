@@ -261,6 +261,19 @@ public interface IAppStrings
     string PatternHint { get; }
     string PatternDeselect { get; }
     string PatternAdd { get; }
+    string NetworkTooltip { get; }
+    string NetworkConnectSftp { get; }
+    string NetworkRemoveProfile { get; }
+    string ConnectTitle { get; }
+    string ConnectHost { get; }
+    string ConnectHostHint { get; }
+    string ConnectPort { get; }
+    string ConnectUser { get; }
+    string ConnectPassword { get; }
+    string ConnectSave { get; }
+    string ConnectButton { get; }
+    string ConnectBusy { get; }
+    string NetworkDisconnect(string server);
     string SinglePaneTooltip { get; }
     string DualPaneTooltip { get; }
     string DockedPaneTooltip(string path);

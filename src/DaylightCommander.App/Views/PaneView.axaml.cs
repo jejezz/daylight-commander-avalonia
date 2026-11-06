@@ -41,6 +41,7 @@ public partial class PaneView : UserControl
         BookmarkButton.Click += (_, _) => { FillBookmarks(); BookmarkPopup.IsOpen = true; };
         DriveButton.Click += (_, _) => { FillDrives(); DrivePopup.IsOpen = true; };
         RecentButton.Click += (_, _) => { FillRecent(); RecentPopup.IsOpen = true; };
+        NetworkButton.Click += (_, _) => { FillNetwork(); NetworkPopup.IsOpen = true; };
 
         StatusBar.PointerPressed += (_, _) => Vm?.ClearErrorCommand.Execute(null);
 
@@ -158,6 +159,7 @@ public partial class PaneView : UserControl
         if (picked.Count == 0) return;
 
         var single = picked.Count == 1 ? picked[0] : null;
+        var remote = picked.Any(x => Locations.IsRemote(x.Path)); // 네트워크 항목: 편집·압축·속성·파일 관리자는 아직 없다
         var popup = ContextPopup;
         ContextItems.Children.Clear();
         void Add(string text, Action action) => ContextItems.Children.Add(MenuRow(text, action, popup));
@@ -167,7 +169,7 @@ public partial class PaneView : UserControl
         {
             Add(s.ContextOpenWithDefault, () => act.OpenWithDefaultApp(single.Path));
             Add(s.ContextView, act.View);
-            Add(s.ContextEdit, act.Edit);
+            if (!remote) Add(s.ContextEdit, act.Edit);
         }
         if (ContextItems.Children.Count > 0) ContextItems.Children.Add(MenuSeparator());
 
@@ -176,13 +178,16 @@ public partial class PaneView : UserControl
         Add(s.ContextDuplicate, act.Duplicate);
         Add(s.ContextMove, act.Move);
         Add(s.ContextDelete, act.Delete);
-        Add(s.FnCompress, act.Compress);
-        if (single is { IsFile: true } zip && ArchiveService.IsZip(zip.Name)) Add(s.FnExtract, act.Extract);
+        if (!remote)
+        {
+            Add(s.FnCompress, act.Compress);
+            if (single is { IsFile: true } zip && ArchiveService.IsZip(zip.Name)) Add(s.FnExtract, act.Extract);
+        }
         ContextItems.Children.Add(MenuSeparator());
 
-        Add(s.ContextProperties, act.Properties);
+        if (!remote) Add(s.ContextProperties, act.Properties);
         if (single is { IsDirectory: true }) Add(s.ContextBookmark, () => act.ToggleBookmark(single.Path));
-        Add(s.ContextReveal, () => act.Reveal(picked[0].Path));
+        if (!remote) Add(s.ContextReveal, () => act.Reveal(picked[0].Path));
         popup.IsOpen = true;
     }
 
@@ -326,6 +331,42 @@ public partial class PaneView : UserControl
         var marked = marks.Contains(here);
         BookmarkItems.Children.Add(MenuRow(
             marked ? s.BookmarkRemoveCurrent : s.BookmarkAddCurrent, () => settings.ToggleBookmark(here), BookmarkPopup));
+    }
+
+    /// <summary>네트워크 메뉴: 서버에 연결 · 저장한 서버 · 연결된 서버 해제.</summary>
+    void FillNetwork()
+    {
+        NetworkItems.Children.Clear();
+        if (Vm is not { Actions: { } act, Settings: { } settings }) return;
+        var s = Strings.Current;
+        NetworkItems.Children.Add(MenuRow(s.NetworkConnectSftp, () => act.Connect(null), NetworkPopup));
+
+        var profiles = settings.Value.NetworkProfiles;
+        if (profiles.Count > 0) NetworkItems.Children.Add(MenuSeparator());
+        foreach (var profile in profiles)
+        {
+            var label = Locations.FormatAuthority(profile.Scheme, profile.User, profile.Host, profile.Port);
+            // 한 줄: [서버 ............ ✕]. 서버를 누르면 연결 대화상자(미리 채워짐), ✕를 누르면 저장 목록에서 뺀다.
+            var go = MenuRow(PathText(label), () => act.Connect(profile), NetworkPopup);
+            var remove = new Button { Classes = { "tool" }, Width = 28, Height = 28, VerticalAlignment = VerticalAlignment.Center };
+            remove.Content = new Icons.DuoIcon { Icon = "close", Width = 14, Height = 14 };
+            ToolTip.SetTip(remove, s.NetworkRemoveProfile);
+            remove.Click += (_, _) =>
+            {
+                act.RemoveProfile(profile);
+                FillNetwork(); // 열어 둔 채 목록만 새로 그린다
+            };
+            var line = new DockPanel { LastChildFill = true };
+            DockPanel.SetDock(remove, Dock.Right);
+            line.Children.Add(remove);
+            line.Children.Add(go);
+            NetworkItems.Children.Add(line);
+        }
+
+        var connected = act.Connected();
+        if (connected.Count > 0) NetworkItems.Children.Add(MenuSeparator());
+        foreach (var server in connected)
+            NetworkItems.Children.Add(MenuRow(s.NetworkDisconnect(server), () => act.Disconnect(server), NetworkPopup));
     }
 
     void FillRecent()

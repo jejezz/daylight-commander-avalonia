@@ -32,6 +32,7 @@ public partial class MainWindow : Window
         (HomeDialog.NameInput x, HomeDialog.NameInput y) => x.Mode == y.Mode && x.OriginalPath == y.OriginalPath,
         (HomeDialog.SyncConflict x, HomeDialog.SyncConflict y) => x.Left.Path == y.Left.Path,
         (HomeDialog.PatternSelect, HomeDialog.PatternSelect) => true,
+        (HomeDialog.Connect, HomeDialog.Connect) => true,
         _ => false,
     };
 
@@ -49,6 +50,11 @@ public partial class MainWindow : Window
         if (_dialogWindow is not null && SameDialog(_shownDialog, dialog))
         {
             _shownDialog = dialog;
+            if (_dialogWindow is ConnectDialog connectWindow && dialog is HomeDialog.Connect connectState)
+            {
+                connectWindow.Update(connectState);
+                return;
+            }
             if (_dialogWindow is TextPromptDialog prompt)
             {
                 var error = dialog switch
@@ -111,6 +117,12 @@ public partial class MainWindow : Window
                 var end = n.Mode is NameMode.Rename or NameMode.Compress && dot > 0 ? dot : n.InitialText.Length;
                 var window = new TextPromptDialog(title, null, n.InitialText, 0, end, Strings.Current.CommonConfirm);
                 window.Confirmed += text => _ = state.ConfirmNameAsync(text);
+                return window;
+            }
+            case HomeDialog.Connect c:
+            {
+                var window = new ConnectDialog(c.Profile);
+                window.Confirmed += (host, port, user, password, save) => _ = state.ConfirmConnectAsync(host, port, user, password, save);
                 return window;
             }
             case HomeDialog.PatternSelect:
@@ -341,7 +353,7 @@ public partial class MainWindow : Window
         // 첫 창은 마지막에 보던 좌우 폴더로 연다 (없어졌으면 홈).
         var left = primary ? ExistingDirectory(settings.Value.LastLeftPath) ?? home : home;
         var right = primary ? ExistingDirectory(settings.Value.LastRightPath) ?? home : home;
-        _home = new HomeViewModel(left, right, new ListLocalDirectory(), settings);
+        _home = new HomeViewModel(left, right, new ListLocalDirectory(), settings, App.Remote);
         DataContext = _home;
         InitializeComponent();
         if (primary) RestorePlacement();

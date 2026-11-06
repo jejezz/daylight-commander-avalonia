@@ -63,7 +63,7 @@ public sealed class PaneController
         if (entries is null)
         {
             // 읽을 수 없다. 보던 폴더가 지워지거나 옮겨진 것이면 남아 있는 가장 가까운 상위 폴더로 간다 (원본과 같다).
-            if (!Directory.Exists(State.CurrentPath) && DirectoryTree.NearestExisting(State.CurrentPath) is { } nearest && nearest != State.CurrentPath)
+            if (!Locations.IsRemote(State.CurrentPath) && !Directory.Exists(State.CurrentPath) && DirectoryTree.NearestExisting(State.CurrentPath) is { } nearest && nearest != State.CurrentPath)
                 await NavigateToAsync(nearest, ct);
             return;
         }
@@ -132,7 +132,7 @@ public sealed class PaneController
     public async Task GoUpAsync(CancellationToken ct = default)
     {
         var from = State.CurrentPath;
-        var parent = Path.GetDirectoryName(from);
+        var parent = Locations.Parent(from);
         if (parent is null) return;
         await NavigateToAsync(parent, ct);
         Update(s => s.CurrentPath == parent ? s with { CursorPath = from } : s);
@@ -278,6 +278,7 @@ public sealed class PaneController
     /// <summary>앞뒤 공백을 지우고 절대 경로로 바꿔 <c>..</c>를 정리한다. 루트가 아니면 끝의 구분자는 뗀다.</summary>
     internal static string Normalize(string path)
     {
+        if (Locations.IsRemote(path.Trim())) return Locations.NormalizeRemote(path.Trim()); // sftp://… 는 서버 안의 경로를 다듬는다
         var full = Path.GetFullPath(path.Trim());
         var root = Path.GetPathRoot(full);
         return full == root ? full : full.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);

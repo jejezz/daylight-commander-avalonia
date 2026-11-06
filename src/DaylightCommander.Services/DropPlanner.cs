@@ -40,7 +40,8 @@ public static class DropPlanner
                 if (isMove) return DropPlan.None; // 이미 그 위치에 있다
                 continue;                          // 복사: 같은 폴더에 복제본
             }
-            if (Directory.Exists(source) && (Equal(dest, src) || Within(src, dest)))
+            // 원격 항목은 폴더인지 지금 알 수 없다: 놓을 곳이 자기 자신·안쪽이면 (파일은 그럴 수 없으므로) 폴더로 보고 막는다.
+            if ((Locations.IsRemote(source) || Directory.Exists(source)) && (Equal(dest, src) || Within(src, dest)))
                 return new DropPlan(DropAction.Error, new FileError.IntoItself(Name(src)));
         }
         return new DropPlan(isMove ? DropAction.Move : DropAction.Copy);
@@ -48,6 +49,8 @@ public static class DropPlanner
 
     public static bool SameDrive(string a, string b, IReadOnlyList<DriveEntry> drives)
     {
+        // 원격은 같은 서버(같은 계정)면 같은 곳으로 본다 — 서버 안에서는 이동, 로컬↔원격이나 다른 서버는 복사.
+        if (Locations.IsRemote(a) || Locations.IsRemote(b)) return Locations.SameServer(a, b);
         var da = ListDrives.DriveOf(a, drives);
         var db = ListDrives.DriveOf(b, drives);
         // 어느 쪽이든 드라이브를 못 찾으면(네트워크 경로 등) 같은 곳이라고 단정하지 않는다 → 복사.
@@ -56,20 +59,26 @@ public static class DropPlanner
 
     static StringComparison Comparison => OperatingSystem.IsLinux() ? StringComparison.Ordinal : StringComparison.OrdinalIgnoreCase;
 
+    static StringComparison ComparisonFor(string path) => Locations.IsRemote(path) ? StringComparison.Ordinal : Comparison;
+
     static string Full(string path)
     {
+        if (Locations.IsRemote(path)) return Locations.NormalizeRemote(path);
         var full = Path.GetFullPath(path);
         var root = Path.GetPathRoot(full);
         return full == root ? full : full.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
     }
 
-    static string Parent(string path) => Path.GetDirectoryName(path) ?? path;
+    static string Parent(string path) => Locations.Parent(path) ?? path;
 
-    static bool Equal(string a, string b) => string.Equals(a, b, Comparison);
+    static bool Equal(string a, string b) => string.Equals(a, b, ComparisonFor(a));
 
     /// <summary><paramref name="inner"/>가 <paramref name="outer"/> 폴더의 안쪽(하위)인가.</summary>
-    static bool Within(string outer, string inner) =>
-        inner.StartsWith(outer.TrimEnd(Path.DirectorySeparatorChar) + Path.DirectorySeparatorChar, Comparison);
+    static bool Within(string outer, string inner)
+    {
+        var sep = Locations.IsRemote(outer) ? '/' : Path.DirectorySeparatorChar;
+        return inner.StartsWith(outer.TrimEnd(sep) + sep, ComparisonFor(outer));
+    }
 
-    static string Name(string path) => Path.GetFileName(path) is { Length: > 0 } n ? n : path;
+    static string Name(string path) => Locations.NameOf(path);
 }
