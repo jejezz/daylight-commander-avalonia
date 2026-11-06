@@ -85,8 +85,10 @@ public sealed class LocationsTests
         Assert.Equal("sftp://me@host/", Locations.Parent("sftp://me@host/a"));
         Assert.Null(Locations.Parent("sftp://me@host/"));
         Assert.Null(Locations.Parent("sftp://me@host"));
-        Assert.Equal(@"C:\", Locations.Parent(@"C:\a"));
-        Assert.Null(Locations.Parent(@"C:\"));
+        // 로컬 경로는 운영체제의 규칙을 따른다 (Windows는 C:\, Linux·macOS는 /).
+        var root = Path.GetPathRoot(Path.GetTempPath())!;
+        Assert.Equal(root, Locations.Parent(Path.Combine(root, "a")));
+        Assert.Null(Locations.Parent(root));
     }
 
     [Fact]
@@ -97,8 +99,9 @@ public sealed class LocationsTests
         Assert.Equal("sftp://me@host:22022/a/한글 이름.txt", Locations.Combine("sftp://me@host:22022/a", "한글 이름.txt"));
         Assert.Equal("b.txt", Locations.NameOf("sftp://me@host/a/b.txt"));
         Assert.Equal("sftp://me@host", Locations.NameOf("sftp://me@host/")); // 서버 루트의 이름은 서버
-        Assert.Equal("b.txt", Locations.NameOf(@"C:\a\b.txt"));
-        Assert.Equal("a", Locations.NameOf(@"C:\a\"));
+        var root = Path.GetPathRoot(Path.GetTempPath())!;
+        Assert.Equal("b.txt", Locations.NameOf(Path.Combine(root, "a", "b.txt")));
+        Assert.Equal("a", Locations.NameOf(Path.Combine(root, "a") + Path.DirectorySeparatorChar));
     }
 
     [Fact]
