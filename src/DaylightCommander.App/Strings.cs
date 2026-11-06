@@ -81,6 +81,7 @@ static class Strings
         Set("PaneUpTooltip", s.PaneUpTooltip);
         Set("PaneRefreshTooltip", s.PaneRefreshTooltip);
         Set("PaneShowHiddenTooltip", s.PaneShowHiddenTooltip);
+        Set("PaneViewTooltip", s.PaneViewTooltip);
         Set("DriveTooltip", s.DriveTooltip);
         Set("BookmarkTooltip", s.BookmarkTooltip);
         Set("RecentTooltip", s.RecentTooltip);

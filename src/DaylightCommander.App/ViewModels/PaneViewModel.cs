@@ -19,10 +19,12 @@ public partial class PaneViewModel : ObservableObject, IDisposable
 
     readonly SettingsController? _settings;
 
-    public PaneViewModel(PaneController controller, SettingsController? settings = null)
+    public PaneViewModel(PaneController controller, SettingsController? settings = null, PaneSide side = PaneSide.Left)
     {
         _controller = controller;
         _settings = settings;
+        _side = side;
+        if (settings is not null) ViewMode = ViewOf(settings.Value);
         _controller.StateChanged += Apply;
         Apply(_controller.State);
         if (_settings is not null) _settings.Changed += OnSettingsChanged;
@@ -31,8 +33,75 @@ public partial class PaneViewModel : ObservableObject, IDisposable
 
     public SettingsController? Settings => _settings;
 
+    readonly PaneSide _side;
+
+    PaneViewMode ViewOf(AppSettings s) => _side == PaneSide.Left ? s.LeftView : s.RightView;
+
     void OnSettingsChanged(AppSettings s) =>
-        Avalonia.Threading.Dispatcher.UIThread.Post(() => IsBookmarked = s.Bookmarks.Contains(CurrentPath));
+        Avalonia.Threading.Dispatcher.UIThread.Post(() =>
+        {
+            IsBookmarked = s.Bookmarks.Contains(CurrentPath);
+            if (ViewOf(s) != ViewMode) ViewMode = ViewOf(s);
+        });
+
+    // --- 보기 방식 (목록 · 작은 미리보기 · 큰 미리보기) ---
+
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(IsGrid), nameof(IsList))]
+    public partial PaneViewMode ViewMode { get; set; }
+
+    public bool IsGrid => ViewMode.IsGrid();
+    public bool IsList => !IsGrid;
+
+    /// <summary>격자 보기에서 한 줄에 몇 칸인지. 화면이 폭을 알려 준다 (<see cref="SetGridWidth"/>).</summary>
+    public int Columns { get; private set; } = 1;
+
+    /// <summary>격자 보기의 행(한 행 = 가로로 놓인 타일들). 행 단위로 가상화해서 큰 폴더도 가볍다.</summary>
+    [ObservableProperty] public partial IReadOnlyList<TileRow> Rows { get; set; } = [];
+
+    double _gridWidth;
+
+    partial void OnViewModeChanged(PaneViewMode value)
+    {
+        foreach (var item in Items) ApplyTile(item);
+        RebuildRows();
+    }
+
+    /// <summary>보기 방식을 바꾸고 설정에 저장한다 (패널별).</summary>
+    public void SetViewMode(PaneViewMode mode)
+    {
+        if (_settings is null) { ViewMode = mode; return; }
+        _settings.Update(s => ViewOf(s) == mode ? s : _side == PaneSide.Left ? s with { LeftView = mode } : s with { RightView = mode });
+    }
+
+    /// <summary>Ctrl+휠: 위로 돌리면 더 큰 보기로, 아래로 돌리면 더 작은 보기로.</summary>
+    public void StepViewMode(int direction) => SetViewMode(ViewMode.Step(direction));
+
+    public void SetGridWidth(double width)
+    {
+        _gridWidth = width;
+        var columns = ViewMode.Columns(width);
+        if (columns == Columns) return;
+        Columns = columns;
+        RebuildRows();
+    }
+
+    void ApplyTile(EntryItem item)
+    {
+        item.IconSize = ViewMode.IconSize();
+        item.TileWidth = ViewMode.TileWidth();
+        item.TileHeight = ViewMode.TileHeight();
+    }
+
+    void RebuildRows()
+    {
+        Columns = ViewMode.Columns(_gridWidth);
+        Rows = !IsGrid ? []
+            : Items.Chunk(Columns).Select(chunk => new TileRow(chunk)).ToList();
+    }
+
+    /// <summary>커서가 있는 타일 행의 번호 (격자 보기에서 스크롤할 때 쓴다). 없으면 -1.</summary>
+    public int CursorRow => Cursor is null || !IsGrid ? -1 : Items.ToList().IndexOf(Cursor) / Columns;
 
     /// <summary>언어가 바뀌면 코드가 만들어 둔 문구(상태줄·머리글·안내)를 새 언어로 다시 만든다.</summary>
     void OnLanguageChanged() => Avalonia.Threading.Dispatcher.UIThread.Post(() => Apply(_controller.State));
@@ -99,7 +168,9 @@ public partial class PaneViewModel : ObservableObject, IDisposable
             var items = s.VisibleEntries.Select(e => new EntryItem(e) { DiffStatus = DiffLookup?.Invoke(e.Path) }).ToList();
             _byPath = items.ToDictionary(i => i.Path);
             _shownSelection = new HashSet<string>();
+            foreach (var tile in items) ApplyTile(tile);
             Items = items;
+            RebuildRows();
         }
         SyncSelection(s);
 
@@ -119,7 +190,12 @@ public partial class PaneViewModel : ObservableObject, IDisposable
         // 목록 컨트롤이 새 목록에서 선택을 잃은 채 남아 커서 강조가 사라진다 (복사 뒤 새로 읽은 뒤의 증상).
         var cursorPath = s.CursorEntry?.Path;
         var cursor = cursorPath is not null && _byPath.TryGetValue(cursorPath, out var item) ? item : null;
-        if (!ReferenceEquals(Cursor, cursor)) Cursor = cursor;
+        if (!ReferenceEquals(Cursor, cursor))
+        {
+            Cursor?.IsCursor = false;
+            Cursor = cursor;
+        }
+        if (cursor is not null) cursor.IsCursor = true;
     }
 
     /// <summary>바뀐 선택만 항목에 반영한다 (항목이 수만 개여도 선택이 바뀐 만큼만 일한다).</summary>
@@ -197,3 +273,6 @@ public partial class PaneViewModel : ObservableObject, IDisposable
 
     public void RequestActivate() => ActivateRequested?.Invoke();
 }
+
+/// <summary>격자 보기의 한 행.</summary>
+public sealed record TileRow(IReadOnlyList<EntryItem> Items);

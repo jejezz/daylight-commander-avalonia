@@ -10,6 +10,7 @@ using Avalonia.Layout;
 using Avalonia.Media;
 using DaylightCommander.App.ViewModels;
 using DaylightCommander.Domain;
+using DaylightCommander.Domain.Settings;
 using DaylightCommander.Services;
 
 namespace DaylightCommander.App.Views;
@@ -27,10 +28,35 @@ public partial class PaneView : UserControl
 
         // 행 클릭: 목록 컨트롤의 기본 선택 동작 대신 컨트롤러가 커서·선택을 정한다 (Ctrl 토글, Shift 범위).
         // 더블클릭은 Tapped 이벤트에 기대지 않고 ClickCount로 직접 판단한다.
-        Entries.AddHandler(PointerPressedEvent, OnEntryPressed, RoutingStrategies.Tunnel);
+        foreach (var list in new[] { Entries, Tiles })
+        {
+            list.AddHandler(PointerPressedEvent, OnEntryPressed, RoutingStrategies.Tunnel);
+            list.AddHandler(PointerMovedEvent, OnEntryMoved, RoutingStrategies.Tunnel);
+            list.AddHandler(PointerReleasedEvent, OnEntryReleased, RoutingStrategies.Tunnel);
+        }
 
-        Entries.AddHandler(PointerMovedEvent, OnEntryMoved, RoutingStrategies.Tunnel);
-        Entries.AddHandler(PointerReleasedEvent, OnEntryReleased, RoutingStrategies.Tunnel);
+        // 격자 보기: 폭에 맞춰 열 수를 정하고, 화면에 나타난 타일만 썸네일을 만든다 (사라지면 대기 취소).
+        Tiles.SizeChanged += (_, e) => Vm?.SetGridWidth(e.NewSize.Width - 20); // 세로 스크롤바 몫
+        Tiles.ContainerPrepared += (_, e) =>
+        {
+            if (e.Container.DataContext is TileRow row)
+                foreach (var item in row.Items) item.RequestThumbnail((int)item.IconSize);
+        };
+        Tiles.ContainerClearing += (_, e) =>
+        {
+            if (e.Container.DataContext is TileRow row)
+                foreach (var item in row.Items) item.CancelThumbnail();
+        };
+        DataContextChanged += (_, _) => HookViewModel();
+
+        // Ctrl+휠: 보기 방식을 한 단계씩 (위로 = 더 크게). 목록 위든 격자 위든 이 패널 어디서나.
+        AddHandler(PointerWheelChangedEvent, (_, e) =>
+        {
+            if (!Mods.Primary(e.KeyModifiers) || Vm is not { } vm || e.Delta.Y == 0) return;
+            vm.StepViewMode(e.Delta.Y > 0 ? 1 : -1);
+            e.Handled = true;
+        }, RoutingStrategies.Tunnel);
+        ViewButton.Click += (_, _) => { FillView(); ViewPopup.IsOpen = true; };
 
         // 끌어다 놓기: 이 패널 어디든 목적지가 된다.
         DragDrop.SetAllowDrop(this, true);
@@ -55,7 +81,7 @@ public partial class PaneView : UserControl
                     break;
                 case Key.Escape:
                     Vm?.ResetPathTextCommand.Execute(null);
-                    Entries.Focus();
+                    ActiveList.Focus();
                     e.Handled = true;
                     break;
             }
@@ -63,6 +89,39 @@ public partial class PaneView : UserControl
     }
 
     // --- 행 클릭·끌기·우클릭 ---
+
+    /// <summary>지금 보이는 목록 컨트롤 (목록 보기는 <c>Entries</c>, 격자 보기는 <c>Tiles</c>).</summary>
+    ListBox ActiveList => Vm?.IsGrid == true ? Tiles : Entries;
+
+    /// <summary>
+    /// 눌린 곳의 항목 칸: 목록 보기는 <see cref="ListBoxItem"/>, 격자 보기는 타일(<c>Border.tile</c>).
+    /// 둘 다 데이터는 <see cref="EntryItem"/>이다 (격자의 행 <see cref="ListBoxItem"/>은 <see cref="TileRow"/>라서 제외된다).
+    /// </summary>
+    static Control? EntryCell(Avalonia.Visual? from)
+    {
+        for (var v = from; v is not null; v = v.GetVisualParent())
+            if (v is Control c && c.DataContext is EntryItem && (c is ListBoxItem || c.Classes.Contains("tile"))) return c;
+        return null;
+    }
+
+    PaneViewModel? _hooked;
+
+    void HookViewModel()
+    {
+        if (_hooked is not null) _hooked.PropertyChanged -= OnVmChanged;
+        _hooked = Vm;
+        if (_hooked is not null) _hooked.PropertyChanged += OnVmChanged;
+    }
+
+    /// <summary>격자 보기에서 커서가 보이도록 스크롤한다 (목록 보기는 ListBox가 선택을 따라간다).</summary>
+    void OnVmChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
+    {
+        if (e.PropertyName is not (nameof(PaneViewModel.Cursor) or nameof(PaneViewModel.Rows)) || Vm is not { IsGrid: true } vm) return;
+        Avalonia.Threading.Dispatcher.UIThread.Post(() =>
+        {
+            if (vm.CursorRow is >= 0 and var row) Tiles.ScrollIntoView(row);
+        }, Avalonia.Threading.DispatcherPriority.Background);
+    }
 
     PointerPressedEventArgs? _pressArgs;
     Point _pressPoint;
@@ -73,8 +132,8 @@ public partial class PaneView : UserControl
 
     void OnEntryPressed(object? sender, PointerPressedEventArgs e)
     {
-        var point = e.GetCurrentPoint(Entries);
-        var row = (e.Source as Avalonia.Visual)?.FindAncestorOfType<ListBoxItem>(includeSelf: true);
+        var point = e.GetCurrentPoint(ActiveList);
+        var row = EntryCell(e.Source as Avalonia.Visual);
         if (row?.DataContext is not EntryItem item || Vm is not { } vm) return;
 
         if (point.Properties.IsRightButtonPressed)
@@ -82,7 +141,7 @@ public partial class PaneView : UserControl
             // 여러 개를 고른 상태에서 그 안의 행을 우클릭하면 선택을 유지하고, 아니면 그 행만 고른다.
             if (!item.IsSelected) vm.Click(item, ctrl: false, shift: false);
             _menuPending = true; // 선택이 바뀌면 줄이 다시 그려지므로, 놓을 때의 이벤트 대상 대신 이 표시로 메뉴를 연다
-            Entries.Focus();
+            ActiveList.Focus();
             e.Handled = true;
             return;
         }
@@ -95,7 +154,7 @@ public partial class PaneView : UserControl
         _pressItem = item;
         _clickDeferred = !ctrl && !shift && item.IsSelected && e.ClickCount == 1 && vm.Items.Count(x => x.IsSelected) > 1;
         if (!_clickDeferred) vm.Click(item, ctrl, shift);
-        Entries.Focus(); // 경로 표시줄에 있던 키보드 초점을 목록으로 돌려 단축키가 듣게 한다
+        ActiveList.Focus(); // 경로 표시줄에 있던 키보드 초점을 목록으로 돌려 단축키가 듣게 한다
         if (e.ClickCount == 2) vm.OpenCursorCommand.Execute(null);
         e.Handled = true;
     }
@@ -103,7 +162,7 @@ public partial class PaneView : UserControl
     async void OnEntryMoved(object? sender, PointerEventArgs e)
     {
         if (_pressArgs is not { } pressed || _pressItem is not { } item || _dragging || Vm is not { } vm) return;
-        var point = e.GetCurrentPoint(Entries);
+        var point = e.GetCurrentPoint(ActiveList);
         if (!point.Properties.IsLeftButtonPressed) { _pressArgs = null; return; }
         var delta = point.Position - _pressPoint;
         if (Math.Abs(delta.X) < 6 && Math.Abs(delta.Y) < 6) return;
@@ -193,7 +252,7 @@ public partial class PaneView : UserControl
 
     // --- 끌어다 놓기 (목적지) ---
 
-    ListBoxItem? _dropRow;
+    Control? _dropRow;
 
     static DropMode ModeOf(KeyModifiers keys) =>
         Mods.Copy(keys) ? DropMode.ForceCopy
@@ -201,10 +260,10 @@ public partial class PaneView : UserControl
         : DropMode.Auto;
 
     /// <summary>놓을 폴더: 포인터 아래가 (끌고 있지 않은) 폴더 행이면 그 폴더, 아니면 이 패널의 현재 폴더.</summary>
-    (string Destination, ListBoxItem? Row) TargetAt(DragEventArgs e, IReadOnlyList<string> sources)
+    (string Destination, Control? Row) TargetAt(DragEventArgs e, IReadOnlyList<string> sources)
     {
-        var hit = Entries.InputHitTest(e.GetPosition(Entries)) as Avalonia.Visual;
-        var row = hit?.FindAncestorOfType<ListBoxItem>(includeSelf: true);
+        var hit = ActiveList.InputHitTest(e.GetPosition(ActiveList)) as Avalonia.Visual;
+        var row = EntryCell(hit);
         if (row?.DataContext is EntryItem { IsDirectory: true } dir && !sources.Contains(dir.Path))
             return (dir.Path, row);
         return (Vm?.CurrentPath ?? "", null);
@@ -252,7 +311,7 @@ public partial class PaneView : UserControl
         e.Handled = true;
     }
 
-    void SetDropHighlight(ListBoxItem? row, bool frame)
+    void SetDropHighlight(Control? row, bool frame)
     {
         if (!ReferenceEquals(_dropRow, row))
         {
@@ -298,6 +357,23 @@ public partial class PaneView : UserControl
             row.Children.Add(text);
             DriveItems.Children.Add(MenuRow(row, () => _ = vm.Controller.NavigateToAsync(drive.Path), DrivePopup));
         }
+    }
+
+    /// <summary>보기 방식 메뉴: 현재 방식은 굵게 보인다.</summary>
+    void FillView()
+    {
+        ViewItems.Children.Clear();
+        if (Vm is not { } vm) return;
+        var s = Strings.Current;
+        void Add(string text, PaneViewMode mode)
+        {
+            var label = new TextBlock { Text = text, VerticalAlignment = VerticalAlignment.Center };
+            if (vm.ViewMode == mode) label.FontWeight = FontWeight.Bold;
+            ViewItems.Children.Add(MenuRow(label, () => vm.SetViewMode(mode), ViewPopup));
+        }
+        Add(s.PaneViewList, PaneViewMode.List);
+        Add(s.PaneViewSmallThumbs, PaneViewMode.SmallThumbs);
+        Add(s.PaneViewLargeThumbs, PaneViewMode.LargeThumbs);
     }
 
     void FillBookmarks()

@@ -26,6 +26,51 @@ public sealed partial class EntryItem(FileEntry entry) : ObservableObject
     /// <summary>선택된 항목 (커서와는 별개). 행 글자가 주색이 되고 배경이 옅게 깔린다.</summary>
     [ObservableProperty] public partial bool IsSelected { get; set; }
 
+    /// <summary>격자 보기의 커서 타일 (목록 보기는 ListBox의 선택으로 그린다).</summary>
+    [ObservableProperty] public partial bool IsCursor { get; set; }
+
+    /// <summary>격자 타일 크기. 보기 방식이 바뀌면 <see cref="PaneViewModel"/>이 맞춘다.</summary>
+    [ObservableProperty] public partial double IconSize { get; set; }
+    [ObservableProperty] public partial double TileWidth { get; set; }
+    [ObservableProperty] public partial double TileHeight { get; set; }
+
+    /// <summary>내용 썸네일. 만들기 전이나 대상이 아니면 null (이때 형식 아이콘을 보여 준다).</summary>
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(HasThumbnail), nameof(NoThumbnail))]
+    public partial Avalonia.Media.Imaging.Bitmap? Thumbnail { get; set; }
+
+    public bool HasThumbnail => Thumbnail is not null;
+    public bool NoThumbnail => Thumbnail is null;
+
+    CancellationTokenSource? _thumbCts;
+    int _thumbSize;
+
+    /// <summary>타일이 화면에 나타났을 때: 아직 없으면 백그라운드로 썸네일을 만든다. 같은 크기로 다시 불러도 한 번만 한다.</summary>
+    public void RequestThumbnail(int tileSize)
+    {
+        if (!Services.ThumbnailPolicy.ShouldGenerate(Entry) || (Thumbnail is not null && _thumbSize == tileSize) || _thumbCts is not null) return;
+        var cts = _thumbCts = new CancellationTokenSource();
+        _ = LoadThumbnailAsync(tileSize, cts); // 기다리지 않는다: UI는 형식 아이콘을 먼저 보이고, 끝나면 썸네일로 바뀐다
+    }
+
+    async Task LoadThumbnailAsync(int tileSize, CancellationTokenSource cts)
+    {
+        try
+        {
+            var bitmap = await ThumbnailLoader.LoadAsync(Entry, tileSize, cts.Token); // 이어지는 코드는 UI 스레드
+            if (!cts.IsCancellationRequested && bitmap is not null) { Thumbnail = bitmap; _thumbSize = tileSize; }
+        }
+        catch (OperationCanceledException) { }
+        finally { if (ReferenceEquals(_thumbCts, cts)) _thumbCts = null; }
+    }
+
+    /// <summary>타일이 화면에서 사라졌다: 대기 중인 작업을 취소한다 (이미 만든 썸네일은 그대로 둔다).</summary>
+    public void CancelThumbnail()
+    {
+        _thumbCts?.Cancel();
+        _thumbCts = null;
+    }
+
     /// <summary>폴더 비교 모드에서의 비교 결과 (같거나 비교 중이 아니면 null). 행 배경색이 된다.</summary>
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(IsOnlyHere), nameof(IsDiffers))]

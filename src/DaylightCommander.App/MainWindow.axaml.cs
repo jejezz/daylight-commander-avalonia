@@ -211,6 +211,9 @@ public partial class MainWindow : Window
                 case Key.R: _ = c.RefreshAsync(); break;
                 case Key.N: _home.State.RequestName(NameMode.NewFile); break;
                 case Key.D: _home.State.DuplicateInPlace(); break; // 여기에 복제
+                case Key.D1 when shift: _home.ActivePane.SetViewMode(Domain.Settings.PaneViewMode.List); break; // 보기 방식
+                case Key.D2 when shift: _home.ActivePane.SetViewMode(Domain.Settings.PaneViewMode.SmallThumbs); break;
+                case Key.D3 when shift: _home.ActivePane.SetViewMode(Domain.Settings.PaneViewMode.LargeThumbs); break;
                 case Key.OemComma: SettingsWindow.Open(this); break; // 설정 (ui-ux.md §7)
                 case Key.T: TreeButton.IsChecked = TreeButton.IsChecked != true; break; // 디렉터리 트리
                 case Key.U: _home.State.ToggleSwap(); break; // 좌우 패널 교환
@@ -227,8 +230,11 @@ public partial class MainWindow : Window
             switch (e.Key)
             {
                 case Key.Tab: _home.State.SwitchActive(); break;
-                case Key.Down: c.MoveCursor(1, shift); break;
-                case Key.Up: c.MoveCursor(-1, shift); break;
+                // 격자 보기: ↑↓는 한 줄(열 수만큼), ←→는 한 칸. 목록 보기의 ←→는 그대로 비워 둔다.
+                case Key.Down: c.MoveCursor(_home.ActivePane.Columns, shift); break;
+                case Key.Up: c.MoveCursor(-_home.ActivePane.Columns, shift); break;
+                case Key.Right when _home.ActivePane.IsGrid: c.MoveCursor(1, shift); break;
+                case Key.Left when _home.ActivePane.IsGrid: c.MoveCursor(-1, shift); break;
                 case Key.PageDown: c.MoveCursor(PageRows, shift); break;
                 case Key.PageUp: c.MoveCursor(-PageRows, shift); break;
                 case Key.Home: c.CursorToStart(shift); break;

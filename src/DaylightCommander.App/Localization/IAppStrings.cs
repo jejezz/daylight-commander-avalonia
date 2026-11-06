@@ -74,6 +74,10 @@ public interface IAppStrings
     string PaneUpTooltip { get; }
     string PaneRefreshTooltip { get; }
     string PaneShowHiddenTooltip { get; }
+    string PaneViewTooltip { get; }
+    string PaneViewList { get; }
+    string PaneViewSmallThumbs { get; }
+    string PaneViewLargeThumbs { get; }
     string DriveTooltip { get; }
     string ColumnName { get; }
     string ColumnSize { get; }

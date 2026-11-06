@@ -44,6 +44,8 @@ ICONS = {
     "drive-network": ("network", "duotone"),
     "visible": ("eye", "duotone"),
     "visible-off": ("eye-slash", "duotone"),
+    "view-list": ("list-bullets", "duotone"),
+    "view-grid": ("squares-four", "duotone"),
     "tree": ("tree-structure", "duotone"),
     "settings": ("gear", "duotone"),
     "info": ("info", "duotone"),

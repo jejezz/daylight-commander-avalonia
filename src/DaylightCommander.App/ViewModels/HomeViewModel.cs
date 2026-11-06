@@ -18,12 +18,12 @@ public sealed partial class HomeViewModel : ObservableObject, IDisposable
         State = new HomeState(leftPath, rightPath, (path, ct) => list.InvokeAsync(path, ct),
             runOnUi: work => Avalonia.Threading.Dispatcher.UIThread.InvokeAsync(work),
             settings: settings, remote: remote);
-        Left = new PaneViewModel(State.Left, settings)
+        Left = new PaneViewModel(State.Left, settings, PaneSide.Left)
         {
             ActivateRequested = () => State.Activate(PaneSide.Left),
             OpenFileRequested = path => State.OpenFile(path, PaneSide.Left),
         };
-        Right = new PaneViewModel(State.Right, settings)
+        Right = new PaneViewModel(State.Right, settings, PaneSide.Right)
         {
             ActivateRequested = () => State.Activate(PaneSide.Right),
             OpenFileRequested = path => State.OpenFile(path, PaneSide.Right),
