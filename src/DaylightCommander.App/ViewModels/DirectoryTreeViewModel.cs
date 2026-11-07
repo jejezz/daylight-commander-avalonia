@@ -17,7 +17,7 @@ public sealed class TreeRow(string path, string label, int depth, bool expanded,
     public bool IsFolder => !IsDrive;
     /// <summary>숨김·시스템 폴더: 아이콘과 글자를 흐리게 그린다.</summary>
     public bool Dimmed { get; } = dimmed;
-    public double RowOpacity => Dimmed ? 0.55 : 1.0;
+    public double RowOpacity => Dimmed ? 0.5 : 1.0;
     public string IconName => IsDrive ? Icons.FileIcons.ForDrive(driveKind) : Expanded ? "folder-open" : "folder";
     public string IconColor => IsDrive ? "AppPrimary" : "AppIconFolder";
     public bool CanExpand => !Leaf;

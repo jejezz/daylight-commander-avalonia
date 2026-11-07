@@ -46,7 +46,7 @@ public sealed class ListLocalDirectory
                 IsDirectory: isDirectory,
                 SizeBytes: isDirectory ? null : ((FileInfo)info).Length,
                 ModifiedAt: new DateTimeOffset(info.LastWriteTimeUtc, TimeSpan.Zero),
-                IsHidden: info.Name.StartsWith('.'));
+                IsHidden: info.Name.StartsWith('.') || (info.Attributes & (FileAttributes.Hidden | FileAttributes.System)) != 0);
         }
         catch (Exception e) when (e is IOException or UnauthorizedAccessException)
         {
