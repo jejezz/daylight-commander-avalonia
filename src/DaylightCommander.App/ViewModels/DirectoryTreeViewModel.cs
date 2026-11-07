@@ -6,7 +6,7 @@ using DaylightCommander.Services;
 namespace DaylightCommander.App.ViewModels;
 
 /// <summary>트리의 한 줄 (드라이브 또는 폴더).</summary>
-public sealed class TreeRow(string path, string label, int depth, bool expanded, bool leaf, bool selected, bool isDrive, DriveKind driveKind = DriveKind.Unknown)
+public sealed class TreeRow(string path, string label, int depth, bool expanded, bool leaf, bool selected, bool isDrive, DriveKind driveKind = DriveKind.Unknown, bool dimmed = false)
 {
     public string Path { get; } = path;
     public string Label { get; } = label;
@@ -15,13 +15,16 @@ public sealed class TreeRow(string path, string label, int depth, bool expanded,
     public bool Selected { get; } = selected;
     public bool IsDrive { get; } = isDrive;
     public bool IsFolder => !IsDrive;
+    /// <summary>숨김·시스템 폴더: 아이콘과 글자를 흐리게 그린다.</summary>
+    public bool Dimmed { get; } = dimmed;
+    public double RowOpacity => Dimmed ? 0.55 : 1.0;
     public string IconName => IsDrive ? Icons.FileIcons.ForDrive(driveKind) : Expanded ? "folder-open" : "folder";
     public string IconColor => IsDrive ? "AppPrimary" : "AppIconFolder";
     public bool CanExpand => !Leaf;
     public bool ShowCollapsed => !Leaf && !Expanded;
     public bool ShowExpanded => !Leaf && Expanded;
     public bool SameAs(TreeRow o) =>
-        Path == o.Path && IconName == o.IconName && Label == o.Label && Expanded == o.Expanded && Leaf == o.Leaf && Selected == o.Selected && Indent == o.Indent;
+        Path == o.Path && IconName == o.IconName && Label == o.Label && Dimmed == o.Dimmed && Expanded == o.Expanded && Leaf == o.Leaf && Selected == o.Selected && Indent == o.Indent;
     public Avalonia.Thickness Indent { get; } = new(4 + depth * 14, 0, 0, 0);
 }
 
@@ -36,9 +39,10 @@ public sealed partial class DirectoryTreeViewModel : ObservableObject
     bool _reloading;
     IReadOnlyList<FileEntry>? _lastLeft, _lastRight;
     readonly HashSet<string> _expanded = new(PathComparer);
-    readonly Dictionary<string, IReadOnlyList<string>> _children = new(PathComparer);
+    readonly Dictionary<string, IReadOnlyList<DirectoryTree.SubFolder>> _children = new(PathComparer);
     readonly HashSet<string> _loading = new(PathComparer);
     IReadOnlyList<DriveEntry> _drives = [];
+    readonly Dictionary<string, string?> _driveLabels = new(PathComparer);
     string _current = "";
 
     static StringComparer PathComparer => OperatingSystem.IsLinux() ? StringComparer.Ordinal : StringComparer.OrdinalIgnoreCase;
@@ -67,6 +71,21 @@ public sealed partial class DirectoryTreeViewModel : ObservableObject
     {
         _drives = new ListDrives().Invoke();
         FollowActive();
+        _ = LoadDriveLabelsAsync();
+    }
+
+    /// <summary>드라이브 이름(볼륨 레이블)을 뒤에서 읽어 채운다 — 끊긴 네트워크 드라이브가 화면을 멈추지 않게 드라이브마다 따로 읽는다.</summary>
+    async Task LoadDriveLabelsAsync()
+    {
+        await Task.WhenAll(_drives.Select(async drive =>
+        {
+            var label = await Task.Run(() => ListDrives.VolumeLabel(drive));
+            if (!_driveLabels.TryGetValue(drive.Path, out var old) || old != label)
+            {
+                _driveLabels[drive.Path] = label;
+                Rebuild();
+            }
+        }));
     }
 
     void FollowActive() => Follow(_state.ActiveController.State.CurrentPath);
@@ -144,7 +163,7 @@ public sealed partial class DirectoryTreeViewModel : ObservableObject
     {
         _drives = await Task.Run(() => new ListDrives().Invoke());
         Rebuild();
-        await ReloadAsync();
+        await Task.WhenAll(ReloadAsync(), LoadDriveLabelsAsync());
     }
 
     // --- 폴더에 하는 동작 (우클릭 메뉴·끌어다 놓기). 모두 활성 패널을 기준으로 한다. ---
@@ -173,18 +192,19 @@ public sealed partial class DirectoryTreeViewModel : ObservableObject
     {
         var rows = new List<TreeRow>();
 
-        void Add(string path, string label, int depth, bool isDrive, DriveKind kind = DriveKind.Unknown)
+        void Add(string path, string label, int depth, bool isDrive, DriveKind kind = DriveKind.Unknown, bool dimmed = false)
         {
             var expanded = _expanded.Contains(path);
             var children = _children.GetValueOrDefault(path);
             rows.Add(new TreeRow(path, label, depth, expanded, leaf: children is { Count: 0 },
-                selected: DirectoryTree.SamePath(path, _current), isDrive, kind));
+                selected: DirectoryTree.SamePath(path, _current), isDrive, kind, dimmed));
             if (expanded && children is not null)
                 foreach (var child in children)
-                    Add(child, Path.GetFileName(child), depth + 1, isDrive: false);
+                    Add(child.Path, Path.GetFileName(child.Path), depth + 1, isDrive: false, dimmed: child.Dimmed);
         }
 
-        foreach (var drive in _drives) Add(drive.Path, drive.Name, 0, isDrive: true, drive.Kind);
+        foreach (var drive in _drives)
+            Add(drive.Path, ListDrives.DisplayName(drive, _driveLabels.GetValueOrDefault(drive.Path)), 0, isDrive: true, drive.Kind);
 
         // 바뀐 줄만 갈아 끼운다 (통째로 비우면 스크롤 위치가 맨 위로 돌아간다).
         for (var i = 0; i < rows.Count; i++)

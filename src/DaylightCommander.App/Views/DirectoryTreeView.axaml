@@ -11,7 +11,7 @@
             <ItemsControl ItemsSource="{Binding Rows}" Margin="0,4">
                 <ItemsControl.ItemTemplate>
                     <DataTemplate x:DataType="vm:TreeRow">
-                        <Border Classes="treerow" Classes.sel="{Binding Selected}" Height="26"
+                        <Border Classes="treerow" Classes.sel="{Binding Selected}" Height="26" Opacity="{Binding RowOpacity}"
                                 Tag="{Binding}" Padding="{Binding Indent}">
                             <Grid ColumnDefinitions="20,Auto,*">
                                 <Button Grid.Column="0" Classes="treetoggle" IsVisible="{Binding CanExpand}" Tag="{Binding}">

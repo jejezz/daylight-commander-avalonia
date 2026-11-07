@@ -57,17 +57,14 @@ public static class PaneViewModes
         (PaneViewMode)Math.Clamp((int)mode + Math.Sign(direction), (int)PaneViewMode.List, (int)PaneViewMode.LargeThumbs);
 }
 
-/// <summary>글자 크기 선택지: 작게 · 보통 · 크게. 저장은 배율 숫자(<c>text_scale</c>)로 한다.</summary>
-public enum FontSize { Small, Normal, Large }
-
-public static class FontSizes
+/// <summary>화면 글자 크기 배율의 범위·간격 (슬라이더 80%~160%, 5% 단위). 저장은 배율 숫자(<c>text_scale</c>)로 한다.</summary>
+public static class TextScales
 {
-    public static double Scale(this FontSize size) => size switch
-    {
-        FontSize.Small => 0.9,
-        FontSize.Large => 1.15,
-        _ => 1.0,
-    };
+    public const double Min = 0.8, Max = 1.6, Step = 0.05, Default = 1.0;
+
+    /// <summary>범위 안으로, 5% 단위로 맞춘다. 숫자가 아니면 기본(100%).</summary>
+    public static double Snap(double value) =>
+        !double.IsFinite(value) ? Default : Math.Round(Math.Clamp(Math.Round(value / Step) * Step, Min, Max), 2);
 }
 
 /// <summary>
@@ -92,7 +89,7 @@ public sealed record AppSettings
     public ColorPalette Palette { get; init; } = ColorPalette.Saturn;
 
     [JsonPropertyName("text_scale")]
-    public double TextScale { get; init; } = FontSize.Normal.Scale();
+    public double TextScale { get; init; } = TextScales.Default;
 
     /// <summary>null이면 시스템 언어를 따른다.</summary>
     [JsonPropertyName("app_locale")]
@@ -167,21 +164,17 @@ public sealed record AppSettings
     public string? ExternalEditor =>
         EditorMode == EditorMode.External && !string.IsNullOrWhiteSpace(EditorExecutable) ? EditorExecutable : null;
 
-    /// <summary><see cref="TextScale"/>에 해당하는 선택지. 목록에 없는 값이면 보통.</summary>
-    [JsonIgnore]
-    public FontSize FontSize =>
-        Enum.GetValues<FontSize>().FirstOrDefault(s => s.Scale() == TextScale, FontSize.Normal);
-
-    public AppSettings WithFontSize(FontSize size) => this with { TextScale = size.Scale() };
+    public AppSettings WithTextScale(double scale) => this with { TextScale = TextScales.Snap(scale) };
 
     /// <summary>
-    /// 파일에서 읽은 값을 쓸 수 있는 값으로 고친다 (모르는 배율은 보통으로, 폭은 범위 안으로).
+    /// 파일에서 읽은 값을 쓸 수 있는 값으로 고친다 (배율·폭은 범위 안으로).
     /// 또 하나: JSON 소스 생성기는 파일에 없는 키의 <c>init</c> 속성을 초기값이 아니라 <c>null</c>/0으로 두므로, 이전 버전이 쓴 파일을
     /// 읽으면 나중에 생긴 목록 속성이 null이 된다. 여기서 초기값으로 채운다.
     /// </summary>
     public AppSettings Normalized()
     {
-        var fixedScale = Enum.GetValues<FontSize>().Any(s => s.Scale() == TextScale) ? this : this with { TextScale = FontSize.Normal.Scale() };
+        var snapped = TextScales.Snap(TextScale);
+        var fixedScale = snapped == TextScale ? this : this with { TextScale = snapped };
         var width = !double.IsFinite(TreeDockWidth) || TreeDockWidth <= 0 ? DefaultTreeDockWidth : Math.Clamp(TreeDockWidth, MinTreeDockWidth, MaxTreeDockWidth);
         var result = width == fixedScale.TreeDockWidth ? fixedScale : fixedScale with { TreeDockWidth = width };
         // 파일에 없던 목록·표는 null로 읽힌다 (컴파일러는 null이 아니라고 믿으므로 object로 본다).

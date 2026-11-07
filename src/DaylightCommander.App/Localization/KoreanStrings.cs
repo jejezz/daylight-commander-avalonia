@@ -31,10 +31,8 @@ public sealed class KoreanStrings : IAppStrings
     public string SettingsFont => "글꼴";
     public string FontDefaultOption(string name) => $"{name} (기본)";
     public string FontSearchHint => "글꼴 검색";
-    public string SettingsFontSize => "글자 크기";
-    public string FontSizeSmall => "작게";
-    public string FontSizeNormal => "보통";
-    public string FontSizeLarge => "크게";
+    public string SettingsFontSize => "화면 글자 크기";
+    public string SettingsFontSizeHint => "메뉴, 탭, 폴더 이름, 상태 줄 등 모든 글자의 크기입니다.";
     public string SettingsLanguage => "언어";
     public string LanguageSystemShort => "시스템";
 
