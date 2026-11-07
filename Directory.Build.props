@@ -3,7 +3,7 @@
        Kotlin 판의 gradle.properties(app.*)에 해당. AppId는 릴리스 후 바꾸지 않는다.
        MAJOR는 1 이상 (macOS 패키징이 0.y.z를 거부). -->
   <PropertyGroup>
-    <AppVersion>1.0.0-rc.3</AppVersion>
+    <AppVersion>1.0.0</AppVersion>
     <AppBuild>1</AppBuild>
     <AppId>art.zoomon.daylightcommander.avalonia</AppId>
     <AppDisplayName>Daylight Commander</AppDisplayName>
