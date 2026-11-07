@@ -8,7 +8,6 @@ using Avalonia.Threading;
 using DaylightCommander.Domain;
 using DaylightCommander.Domain.Settings;
 using DaylightCommander.Domain.Theme;
-using SettingsFontSize = DaylightCommander.Domain.Settings.FontSize;
 
 namespace DaylightCommander.App.Views;
 
@@ -204,16 +203,47 @@ public sealed class SettingsWindow : Window
         page.Children.Add(FontPicker());
 
         page.Children.Add(Heading(s.SettingsFontSize));
-        page.Children.Add(Segmented(
-            [(s.FontSizeSmall, SettingsFontSize.Small), (s.FontSizeNormal, SettingsFontSize.Normal), (s.FontSizeLarge, SettingsFontSize.Large)],
-            () => App.Settings.Value.FontSize,
-            v => App.Settings.Update(x => x.WithFontSize(v))));
+        page.Children.Add(TextScaleSlider());
 
         page.Children.Add(Heading(s.SettingsLanguage));
         page.Children.Add(Segmented<AppLocale?>(
             [(s.LanguageSystemShort, null), ("한국어", AppLocale.Korean), ("English", AppLocale.English)],
             () => App.Settings.Value.Locale,
             v => App.Settings.Update(x => x with { Locale = v })));
+    }
+
+    /// <summary>화면 글자 크기 슬라이더 (80%~160%, 5% 단위). 끌 때마다 바로 적용되고 저장된다.</summary>
+    Control TextScaleSlider()
+    {
+        var slider = new Slider
+        {
+            Minimum = TextScales.Min,
+            Maximum = TextScales.Max,
+            TickFrequency = TextScales.Step,
+            IsSnapToTickEnabled = true,
+            Width = 360,
+            Value = App.Settings.Value.TextScale,
+        };
+        var percent = new TextBlock { VerticalAlignment = VerticalAlignment.Center, Width = 56, TextAlignment = TextAlignment.Right };
+        void ShowPercent() => percent.Text = $"{Math.Round(slider.Value * 100):0}%";
+        ShowPercent();
+        slider.ValueChanged += (_, _) =>
+        {
+            ShowPercent();
+            var scale = TextScales.Snap(slider.Value);
+            if (scale != App.Settings.Value.TextScale) App.Settings.Update(x => x.WithTextScale(scale));
+        };
+        var hint = new TextBlock { Text = Strings.Current.SettingsFontSizeHint, TextWrapping = TextWrapping.Wrap, Opacity = 0.8 };
+        hint.Bind(TextBlock.FontSizeProperty, this.GetResourceObservable("FsSmall"));
+        return new StackPanel
+        {
+            Spacing = 4,
+            Children =
+            {
+                new StackPanel { Orientation = Orientation.Horizontal, Spacing = 12, Children = { slider, percent } },
+                hint,
+            },
+        };
     }
 
     /// <summary>

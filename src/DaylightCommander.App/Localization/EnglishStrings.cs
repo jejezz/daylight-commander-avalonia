@@ -32,9 +32,7 @@ public sealed class EnglishStrings : IAppStrings
     public string FontDefaultOption(string name) => $"{name} (default)";
     public string FontSearchHint => "Search fonts";
     public string SettingsFontSize => "Text size";
-    public string FontSizeSmall => "Small";
-    public string FontSizeNormal => "Normal";
-    public string FontSizeLarge => "Large";
+    public string SettingsFontSizeHint => "Size of all text: menus, tabs, folder names, status bar.";
     public string SettingsLanguage => "Language";
     public string LanguageSystemShort => "System";
 

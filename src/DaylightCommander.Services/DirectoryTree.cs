@@ -3,23 +3,38 @@ namespace DaylightCommander.Services;
 /// <summary>디렉터리 트리(원본의 <c>DirectoryTree</c>)가 쓰는 화면과 무관한 규칙.</summary>
 public static class DirectoryTree
 {
+    /// <summary>트리의 하위 폴더 한 개. <paramref name="Dimmed"/>는 숨김·시스템 속성 폴더 (트리에서 흐리게 그린다).</summary>
+    public sealed record SubFolder(string Path, bool Dimmed);
+
     /// <summary>
-    /// <paramref name="path"/> 바로 아래 폴더들의 전체 경로를 이름순(대소문자 무시)으로. 숨김(점으로 시작) 폴더와 링크는 뺀다.
+    /// <paramref name="path"/> 바로 아래 폴더들을 이름순(대소문자 무시)으로. 점으로 시작하는 폴더와 링크는 뺀다.
+    /// Windows의 숨김·시스템 속성 폴더는 넣되 <see cref="SubFolder.Dimmed"/>로 표시한다.
     /// 읽을 수 없으면(권한 없음 등) 빈 목록 — 자식이 없는 것으로 취급한다.
     /// </summary>
-    public static IReadOnlyList<string> ListSubfolders(string path)
+    public static IReadOnlyList<SubFolder> ListSubfolders(string path)
     {
         try
         {
-            return Directory.EnumerateDirectories(path)
-                .Where(d => !Path.GetFileName(d).StartsWith('.') && new DirectoryInfo(d).LinkTarget is null)
-                .OrderBy(d => Path.GetFileName(d), StringComparer.OrdinalIgnoreCase)
-                .ToList();
+            var result = new List<SubFolder>();
+            foreach (var d in Directory.EnumerateDirectories(path))
+            {
+                if (Path.GetFileName(d).StartsWith('.')) continue;
+                var info = new DirectoryInfo(d);
+                if (info.LinkTarget is not null) continue;
+                result.Add(new SubFolder(d, IsHiddenOrSystem(info)));
+            }
+            return result.OrderBy(f => Path.GetFileName(f.Path), StringComparer.OrdinalIgnoreCase).ToList();
         }
         catch (Exception e) when (e is IOException or UnauthorizedAccessException)
         {
             return [];
         }
+    }
+
+    static bool IsHiddenOrSystem(DirectoryInfo info)
+    {
+        try { return (info.Attributes & (FileAttributes.Hidden | FileAttributes.System)) != 0; }
+        catch (Exception e) when (e is IOException or UnauthorizedAccessException) { return false; }
     }
 
     /// <summary><paramref name="path"/>의 조상들 (루트부터, 자기 자신은 제외). 트리에서 그 경로가 보이도록 펼칠 폴더들이다.</summary>

@@ -43,9 +43,7 @@ public interface IAppStrings
     string FontDefaultOption(string name);
     string FontSearchHint { get; }
     string SettingsFontSize { get; }
-    string FontSizeSmall { get; }
-    string FontSizeNormal { get; }
-    string FontSizeLarge { get; }
+    string SettingsFontSizeHint { get; }
     string SettingsLanguage { get; }
     string LanguageSystemShort { get; }
 
