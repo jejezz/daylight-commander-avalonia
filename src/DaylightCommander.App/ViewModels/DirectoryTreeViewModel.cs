@@ -25,7 +25,7 @@ public sealed class TreeRow(string path, string label, int depth, bool expanded,
     public bool ShowExpanded => !Leaf && Expanded;
     public bool SameAs(TreeRow o) =>
         Path == o.Path && IconName == o.IconName && Label == o.Label && Dimmed == o.Dimmed && Expanded == o.Expanded && Leaf == o.Leaf && Selected == o.Selected && Indent == o.Indent;
-    public Avalonia.Thickness Indent { get; } = new(4 + depth * 14, 0, 0, 0);
+    public Avalonia.Thickness Indent { get; } = new(UiScale.Scaled(4 + depth * 14), 0, 0, 0);
 }
 
 /// <summary>
@@ -52,6 +52,7 @@ public sealed partial class DirectoryTreeViewModel : ObservableObject
         _state = state;
         _toggleBookmark = toggleBookmark;
         state.ActiveChanged += _ => FollowActive();
+        UiScale.Changed += () => Rebuild(); // 들여쓰기도 글자 크기를 따라간다
         state.Left.StateChanged += st =>
         {
             if (state.Active == PaneSide.Left) Follow(st.CurrentPath);

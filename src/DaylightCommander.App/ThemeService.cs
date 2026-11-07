@@ -43,6 +43,7 @@ static class ThemeService
         app.Resources["FsMid"] = 12 * scale;
         app.Resources["FsSmall"] = 11 * scale;
         app.Resources["FsTitle"] = 16 * scale;
+        UiScale.Set(scale); // 아이콘 크기·버튼/행 높이도 같은 배율
     }
 
     public const string DefaultFontName = "SeoulNamsan";

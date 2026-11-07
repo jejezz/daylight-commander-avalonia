@@ -32,6 +32,8 @@ public sealed class DuoIcon : Control
     public string? ColorKey { get => GetValue(ColorKeyProperty); set => SetValue(ColorKeyProperty, value); }
     public IBrush? Foreground { get => GetValue(ForegroundProperty); set => SetValue(ForegroundProperty, value); }
 
+    public DuoIcon() => UiScale.Enable(this); // 글자 크기 배율에 맞춰 아이콘도 커지고 작아진다
+
     IDisposable? _colorBinding;
 
     void BindColorKey()
