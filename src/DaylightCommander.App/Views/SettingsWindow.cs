@@ -275,6 +275,7 @@ public sealed class SettingsWindow : Window
                     Children = { check, new TextBlock { Text = label, VerticalAlignment = VerticalAlignment.Center } },
                 },
             };
+            UiScale.Enable(button);
             button.Click += (_, _) => pick(value);
             buttons.Add((button, check, value));
             row.Children.Add(button);
@@ -323,6 +324,7 @@ public sealed class SettingsWindow : Window
                     Children = { dot, new TextBlock { Text = names[palette], VerticalAlignment = VerticalAlignment.Center } },
                 },
             };
+            UiScale.Enable(chip);
             chip.Click += (_, _) => App.Settings.Update(x => x with { Palette = palette });
             chips.Add((chip, palette));
             wrap.Children.Add(chip);
@@ -341,7 +343,7 @@ public sealed class SettingsWindow : Window
     Control FontPicker()
     {
         var s = Strings.Current;
-        var button = new Button { Classes = { "picker" }, Height = ControlHeight, MinWidth = 260, HorizontalAlignment = HorizontalAlignment.Left };
+        var button = UiScale.Enable(new Button { Classes = { "picker" }, Height = ControlHeight, MinWidth = 260, HorizontalAlignment = HorizontalAlignment.Left });
         var label = new TextBlock { VerticalAlignment = VerticalAlignment.Center, TextTrimming = TextTrimming.CharacterEllipsis };
         var arrow = new Icons.DuoIcon { Icon = "caret-down", Width = 14, Height = 14 };
         button.Content = new DockPanel { LastChildFill = true, Children = { arrow, label } };
@@ -414,10 +416,10 @@ public sealed class SettingsWindow : Window
         page.Children.Add(note);
 
         var path = new TextBlock { VerticalAlignment = VerticalAlignment.Center, TextTrimming = TextTrimming.CharacterEllipsis };
-        var choose = new Button { Content = s.EditorChoose, Height = ControlHeight };
-        var clear = new Button { Content = s.EditorClear, Height = ControlHeight };
+        var choose = UiScale.Enable(new Button { Content = s.EditorChoose, Height = ControlHeight });
+        var clear = UiScale.Enable(new Button { Content = s.EditorClear, Height = ControlHeight });
         var row = new Grid { ColumnDefinitions = new ColumnDefinitions("*,Auto,Auto"), ColumnSpacing = 8, Margin = new Thickness(28, 8, 0, 0) };
-        var pathBox = new Border { Classes = { "pathbox" }, Child = path, Height = ControlHeight };
+        var pathBox = UiScale.Enable(new Border { Classes = { "pathbox" }, Child = path, Height = ControlHeight });
         Grid.SetColumn(pathBox, 0); Grid.SetColumn(choose, 1); Grid.SetColumn(clear, 2);
         row.Children.Add(pathBox); row.Children.Add(choose); row.Children.Add(clear);
         page.Children.Add(row);

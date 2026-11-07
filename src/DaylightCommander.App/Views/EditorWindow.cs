@@ -168,7 +168,7 @@ public sealed class EditorWindow : Window
         Grid.SetColumn(buttons, 1);
         grid.Children.Add(_title);
         grid.Children.Add(buttons);
-        var bar = new Border { Height = 44, Padding = new Thickness(16, 0, 8, 0), BorderThickness = new Thickness(0, 0, 0, 1), Child = grid };
+        var bar = UiScale.Enable(new Border { Height = 44, Padding = new Thickness(16, 0, 8, 0), BorderThickness = new Thickness(0, 0, 0, 1), Child = grid });
         bar.Bind(Border.BackgroundProperty, this.GetResourceObservable("AppSurface"));
         bar.Bind(Border.BorderBrushProperty, this.GetResourceObservable("AppStroke"));
         return bar;
