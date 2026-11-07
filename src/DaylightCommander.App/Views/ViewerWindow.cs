@@ -45,7 +45,7 @@ public sealed class ViewerWindow : Window
         MinWidth = 420;
         MinHeight = 300;
 
-        var bar = new Border { Padding = new Thickness(16, 0, 8, 0), Height = 44, BorderThickness = new Thickness(0, 0, 0, 1) };
+        var bar = UiScale.Enable(new Border { Padding = new Thickness(16, 0, 8, 0), Height = 44, BorderThickness = new Thickness(0, 0, 0, 1) });
         bar.Bind(Border.BackgroundProperty, this.GetResourceObservable("AppSurface"));
         bar.Bind(Border.BorderBrushProperty, this.GetResourceObservable("AppStroke"));
         var title = new TextBlock

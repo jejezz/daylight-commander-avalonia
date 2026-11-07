@@ -54,6 +54,22 @@ public sealed class ListLocalDirectoryTests : IDisposable
     }
 
     [Fact]
+    public async Task Windows의_숨김과_시스템_속성_폴더도_숨김이다()
+    {
+        if (!OperatingSystem.IsWindows()) return;
+        Directory.CreateDirectory(P("hid"));
+        Directory.CreateDirectory(P("sys"));
+        Directory.CreateDirectory(P("plain"));
+        File.SetAttributes(P("hid"), FileAttributes.Hidden | FileAttributes.Directory);
+        File.SetAttributes(P("sys"), FileAttributes.System | FileAttributes.Directory);
+
+        var byName = await ByNameAsync();
+        Assert.True(byName["hid"].IsHidden);
+        Assert.True(byName["sys"].IsHidden);
+        Assert.False(byName["plain"].IsHidden);
+    }
+
+    [Fact]
     public async Task 빈_폴더는_빈_목록() => Assert.Empty(await _list.InvokeAsync(_dir));
 
     [Fact]

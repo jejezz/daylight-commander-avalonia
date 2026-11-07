@@ -62,9 +62,7 @@ static class Strings
         Set("SettingsFont", s.SettingsFont);
         Set("FontSearchHint", s.FontSearchHint);
         Set("SettingsFontSize", s.SettingsFontSize);
-        Set("FontSizeSmall", s.FontSizeSmall);
-        Set("FontSizeNormal", s.FontSizeNormal);
-        Set("FontSizeLarge", s.FontSizeLarge);
+        Set("SettingsFontSizeHint", s.SettingsFontSizeHint);
         Set("SettingsLanguage", s.SettingsLanguage);
         Set("LanguageSystemShort", s.LanguageSystemShort);
         Set("SettingsSectionEditor", s.SettingsSectionEditor);

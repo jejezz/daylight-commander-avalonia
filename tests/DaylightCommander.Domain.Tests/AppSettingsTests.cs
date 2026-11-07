@@ -12,7 +12,6 @@ public class AppSettingsTests
         Assert.Equal(ThemeMode.System, s.Theme);
         Assert.Equal(ColorPalette.Saturn, s.Palette);
         Assert.Equal(1.0, s.TextScale);
-        Assert.Equal(FontSize.Normal, s.FontSize);
         Assert.Null(s.Locale);
         Assert.Null(s.UiFontFamily);
         Assert.Equal(EditorMode.Builtin, s.EditorMode);
@@ -20,27 +19,21 @@ public class AppSettingsTests
     }
 
     [Fact]
-    public void 글자_크기_배율은_규약과_같다()
+    public void 글자_크기는_범위_안_5퍼센트_단위로_맞춘다()
     {
-        Assert.Equal(0.9, FontSize.Small.Scale());
-        Assert.Equal(1.0, FontSize.Normal.Scale());
-        Assert.Equal(1.15, FontSize.Large.Scale());
+        Assert.Equal(1.15, new AppSettings().WithTextScale(1.14).TextScale);
+        Assert.Equal(TextScales.Max, new AppSettings().WithTextScale(3).TextScale);
+        Assert.Equal(TextScales.Min, new AppSettings().WithTextScale(0.1).TextScale);
+        Assert.Equal(1.0, TextScales.Snap(double.NaN));
     }
 
     [Fact]
-    public void 글자_크기는_배율_숫자로_저장되고_선택지로_읽힌다()
-    {
-        var s = new AppSettings().WithFontSize(FontSize.Large);
-        Assert.Equal(1.15, s.TextScale);
-        Assert.Equal(FontSize.Large, s.FontSize);
-    }
-
-    [Fact]
-    public void 모르는_배율은_보통으로_고쳐_읽는다()
+    public void 범위_밖_배율은_범위_안으로_고쳐_읽는다()
     {
         var s = (new AppSettings() with { TextScale = 1.7 }).Normalized();
-        Assert.Equal(1.0, s.TextScale);
+        Assert.Equal(TextScales.Max, s.TextScale);
         Assert.Same(s, s.Normalized());
+        Assert.Equal(1.25, (new AppSettings() with { TextScale = 1.25 }).Normalized().TextScale);
     }
 
     [Fact]
