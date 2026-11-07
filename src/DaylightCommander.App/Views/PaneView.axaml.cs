@@ -177,8 +177,7 @@ public partial class PaneView : UserControl
             DragSession.Paths = paths;
             DragSession.Drives = new ListDrives().Invoke();
 
-            var data = new DataTransfer();
-            data.Add(DataTransferItem.Create(DataFormat.Text, string.Join("\n", paths)));
+            var data = await DragOut.BuildAsync(this, paths);
             await DragDrop.DoDragDropAsync(pressed, data, DragDropEffects.Copy | DragDropEffects.Move);
         }
         finally
