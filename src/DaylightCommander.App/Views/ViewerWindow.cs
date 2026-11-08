@@ -16,7 +16,7 @@ namespace DaylightCommander.App.Views;
 /// 바이너리는 안내와 "기본 앱으로 열기" 버튼을 보여 준다. Esc로 닫는다.
 /// <para>
 /// 텍스트는 UTF-8(실패하면 Latin-1)로 읽고 4MB까지만 보인다. 이미지는 휠로 확대·축소(0.1~8배), 끌어서 이동, 더블클릭으로
-/// 창 크기에 맞춘다. Hex는 앞 256KB만 보인다. 문구는 창을 열 때의 언어로 정해진다.
+/// 창 크기에 맞춘다. 맞춤 상태에서는 창 크기를 바꾸면 그림도 따라 맞춰진다. Hex는 앞 256KB만 보인다. 문구는 창을 열 때의 언어로 정해진다.
 /// </para>
 /// </summary>
 public sealed class ViewerWindow : Window
@@ -271,13 +271,24 @@ public sealed class ViewerWindow : Window
             Apply();
         }
 
-        var fitted = false;
-        surface.SizeChanged += (_, _) =>
+        // 맞춤 모드: 창 크기를 바꾸면 그림도 따라서 다시 맞춘다. 휠·끌기로 사용자가 배율·위치를 정하면 맞춤 모드가 풀리고,
+        // 이후 창 크기가 바뀌어도 배율은 유지한 채 보던 가운데 지점이 가운데에 남도록 위치만 옮긴다. 더블클릭하면 다시 맞춤 모드.
+        var fitMode = true;
+        var lastSize = new Size();
+        surface.SizeChanged += (_, e) =>
         {
-            if (!fitted) { fitted = true; Fit(); } // 처음 한 번만 맞춘다 (창 크기를 바꿔도 사용자가 정한 배율을 유지)
+            if (fitMode) Fit();
+            else
+            {
+                offsetX += (e.NewSize.Width - lastSize.Width) / 2;
+                offsetY += (e.NewSize.Height - lastSize.Height) / 2;
+                Apply();
+            }
+            lastSize = e.NewSize;
         };
         surface.PointerWheelChanged += (_, e) =>
         {
+            fitMode = false;
             var p = e.GetPosition(surface);
             var next = Math.Clamp(scale * Math.Pow(1.1, e.Delta.Y), MinScale, MaxScale);
             // 마우스 아래 점이 제자리에 있도록 이동량도 같이 바꾼다.
@@ -291,13 +302,14 @@ public sealed class ViewerWindow : Window
         surface.PointerPressed += (_, e) =>
         {
             if (!e.GetCurrentPoint(surface).Properties.IsLeftButtonPressed) return;
-            if (e.ClickCount == 2) { Fit(); return; }
+            if (e.ClickCount == 2) { fitMode = true; Fit(); return; }
             drag = e.GetPosition(surface);
             e.Pointer.Capture(surface);
         };
         surface.PointerMoved += (_, e) =>
         {
             if (drag is not { } start) return;
+            fitMode = false;
             var now = e.GetPosition(surface);
             offsetX += now.X - start.X;
             offsetY += now.Y - start.Y;
