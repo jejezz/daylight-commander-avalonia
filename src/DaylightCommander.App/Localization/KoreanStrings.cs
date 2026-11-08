@@ -147,6 +147,10 @@ public sealed class KoreanStrings : IAppStrings
 
     public string ViewerNormalView => "일반 보기";
     public string ViewerHexView => "Hex로 보기";
+    public string ViewerZoomIn => "확대";
+    public string ViewerZoomOut => "축소";
+    public string ViewerZoomFit => "창에 맞춤 (더블클릭)";
+    public string ViewerImageHint => "마우스 휠·트랙패드 스크롤 또는 두 손가락 벌리기/오므리기로 확대·축소 · 끌어서 이동 · 더블클릭으로 창에 맞춤";
     public string ViewerUnsupported => "미리보기를 지원하지 않는 파일 형식이에요.";
     public string ViewerOpenWithDefaultApp => "기본 앱으로 열기";
     public string ViewerLoadError(string error) => $"파일을 읽을 수 없어요: {error}";

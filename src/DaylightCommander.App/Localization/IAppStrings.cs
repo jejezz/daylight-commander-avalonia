@@ -148,6 +148,10 @@ public interface IAppStrings
     // 뷰어 (F3)
     string ViewerNormalView { get; }
     string ViewerHexView { get; }
+    string ViewerZoomIn { get; }
+    string ViewerZoomOut { get; }
+    string ViewerZoomFit { get; }
+    string ViewerImageHint { get; }
     string ViewerUnsupported { get; }
     string ViewerOpenWithDefaultApp { get; }
     string ViewerLoadError(string error);

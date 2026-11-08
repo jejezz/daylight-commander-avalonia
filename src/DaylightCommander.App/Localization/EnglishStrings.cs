@@ -147,6 +147,10 @@ public sealed class EnglishStrings : IAppStrings
 
     public string ViewerNormalView => "Normal View";
     public string ViewerHexView => "View as Hex";
+    public string ViewerZoomIn => "Zoom in";
+    public string ViewerZoomOut => "Zoom out";
+    public string ViewerZoomFit => "Fit to window (double-click)";
+    public string ViewerImageHint => "Zoom with the mouse wheel, trackpad scroll or pinch · drag to pan · double-click to fit";
     public string ViewerUnsupported => "This file type can't be previewed.";
     public string ViewerOpenWithDefaultApp => "Open with Default App";
     public string ViewerLoadError(string error) => $"Couldn't read the file: {error}";

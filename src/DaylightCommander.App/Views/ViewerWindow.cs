@@ -32,6 +32,10 @@ public sealed class ViewerWindow : Window
     readonly Border _body = new();
     readonly ToggleButton _hexToggle = new() { Classes = { "tool" } };
     bool _hex;
+    readonly StackPanel _zoomTools = new() { Orientation = Orientation.Horizontal, Spacing = 2, IsVisible = false };
+    readonly TextBlock _zoomLabel = new() { VerticalAlignment = VerticalAlignment.Center, MinWidth = 48, TextAlignment = TextAlignment.Center };
+    Action<double>? _zoomBy;
+    Action? _zoomFit;
     int _generation; // 모드를 빠르게 바꿀 때 늦게 끝난 읽기가 화면을 덮지 않게 한다
 
     ViewerWindow(string path)
@@ -66,7 +70,7 @@ public sealed class ViewerWindow : Window
             try { new OpenWithDefaultApp().Open(_path); }
             catch (FileOperationException e) { _body.Child = Note(Strings.Current.FileErrorText(e.Error)); }
         };
-        var tools = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 2, Children = { openButton, _hexToggle } };
+        var tools = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 2, Children = { _zoomTools, openButton, _hexToggle } };
         var barGrid = new Grid { ColumnDefinitions = new ColumnDefinitions("*,Auto") };
         Grid.SetColumn(tools, 1);
         barGrid.Children.Add(title);
@@ -79,12 +83,30 @@ public sealed class ViewerWindow : Window
         root.Children.Add(_body);
         Content = root;
 
+        BuildZoomTools();
         UpdateToggleText();
         KeyDown += (_, e) =>
         {
             if (e.Key == Key.Escape) { Close(); e.Handled = true; }
         };
         Opened += async (_, _) => await ShowAsync();
+    }
+
+    void BuildZoomTools()
+    {
+        var s = Strings.Current;
+        var minus = new Button { Classes = { "tool" }, Content = "−" };
+        var plus = new Button { Classes = { "tool" }, Content = "+" };
+        var fit = new Button { Classes = { "tool" }, Content = _zoomLabel };
+        ToolTip.SetTip(minus, s.ViewerZoomOut);
+        ToolTip.SetTip(plus, s.ViewerZoomIn);
+        ToolTip.SetTip(fit, s.ViewerZoomFit);
+        minus.Click += (_, _) => _zoomBy?.Invoke(1 / 1.25);
+        plus.Click += (_, _) => _zoomBy?.Invoke(1.25);
+        fit.Click += (_, _) => _zoomFit?.Invoke();
+        _zoomTools.Children.Add(minus);
+        _zoomTools.Children.Add(fit);
+        _zoomTools.Children.Add(plus);
     }
 
     void SetHex(bool hex)
@@ -113,6 +135,7 @@ public sealed class ViewerWindow : Window
     async Task ShowAsync()
     {
         var generation = ++_generation;
+        _zoomTools.IsVisible = false; // 이미지를 보여 줄 때만 BuildImage가 켠다
         _body.Child = Note(Strings.Current.PaneLoading);
         try
         {
@@ -256,10 +279,30 @@ public sealed class ViewerWindow : Window
             RenderTransformOrigin = RelativePoint.TopLeft,
         };
         var surface = new Border { ClipToBounds = true, Background = Brushes.Transparent, Child = image };
+        // 사용법 안내: 처음 확대·이동하면 사라진다. 도구줄의 확대/축소 단추는 항상 있다.
+        var hint = new TextBlock
+        {
+            Text = Strings.Current.ViewerImageHint,
+            HorizontalAlignment = HorizontalAlignment.Center,
+            VerticalAlignment = VerticalAlignment.Bottom,
+            Margin = new Thickness(16, 0, 16, 12),
+            TextWrapping = TextWrapping.Wrap,
+            TextAlignment = TextAlignment.Center,
+            IsHitTestVisible = false,
+        };
+        hint.Bind(TextBlock.ForegroundProperty, this.GetResourceObservable("AppTextMid"));
+        hint.Bind(TextBlock.FontSizeProperty, this.GetResourceObservable("FsSmall"));
+        var host = new Grid { Children = { surface, hint } };
 
         double scale = 1, offsetX = 0, offsetY = 0;
         const double MinScale = 0.1, MaxScale = 8;
-        void Apply() => image.RenderTransform = new MatrixTransform(new Matrix(scale, 0, 0, scale, offsetX, offsetY));
+        var fitMode = true;
+        var lastSize = new Size();
+        void Apply()
+        {
+            image.RenderTransform = new MatrixTransform(new Matrix(scale, 0, 0, scale, offsetX, offsetY));
+            _zoomLabel.Text = $"{Math.Round(scale * 100)}%";
+        }
         void Fit()
         {
             var viewport = surface.Bounds.Size;
@@ -268,13 +311,26 @@ public sealed class ViewerWindow : Window
             scale = Math.Clamp(Math.Min(1, Math.Min(viewport.Width / image.Width, viewport.Height / image.Height)), MinScale, MaxScale);
             offsetX = (viewport.Width - image.Width * scale) / 2;
             offsetY = (viewport.Height - image.Height * scale) / 2;
+            fitMode = true;
             Apply();
         }
+        // 마우스 아래(또는 지정한 점) 위치가 제자리에 있도록 이동량도 같이 바꾼다.
+        void ZoomAt(Point p, double factor)
+        {
+            fitMode = false;
+            hint.IsVisible = false;
+            var next = Math.Clamp(scale * factor, MinScale, MaxScale);
+            offsetX = p.X - (p.X - offsetX) * next / scale;
+            offsetY = p.Y - (p.Y - offsetY) * next / scale;
+            scale = next;
+            Apply();
+        }
+        _zoomBy = f => ZoomAt(new Point(surface.Bounds.Width / 2, surface.Bounds.Height / 2), f);
+        _zoomFit = Fit;
+        _zoomTools.IsVisible = true;
 
         // 맞춤 모드: 창 크기를 바꾸면 그림도 따라서 다시 맞춘다. 휠·끌기로 사용자가 배율·위치를 정하면 맞춤 모드가 풀리고,
         // 이후 창 크기가 바뀌어도 배율은 유지한 채 보던 가운데 지점이 가운데에 남도록 위치만 옮긴다. 더블클릭하면 다시 맞춤 모드.
-        var fitMode = true;
-        var lastSize = new Size();
         surface.SizeChanged += (_, e) =>
         {
             if (fitMode) Fit();
@@ -286,23 +342,23 @@ public sealed class ViewerWindow : Window
             }
             lastSize = e.NewSize;
         };
+        // 마우스 휠·트랙패드 두 손가락 스크롤 (둘 다 휠 이벤트로 온다)
         surface.PointerWheelChanged += (_, e) =>
         {
-            fitMode = false;
-            var p = e.GetPosition(surface);
-            var next = Math.Clamp(scale * Math.Pow(1.1, e.Delta.Y), MinScale, MaxScale);
-            // 마우스 아래 점이 제자리에 있도록 이동량도 같이 바꾼다.
-            offsetX = p.X - (p.X - offsetX) * next / scale;
-            offsetY = p.Y - (p.Y - offsetY) * next / scale;
-            scale = next;
-            Apply();
+            ZoomAt(e.GetPosition(surface), Math.Pow(1.1, e.Delta.Y));
             e.Handled = true;
         };
+        // 트랙패드 핀치(macOS). 이벤트마다 이번 변화분의 배율이 온다 (터치스크린 핀치용 인식기는 달지 않았다).
+        surface.AddHandler(InputElement.PinchEvent, (object? _, PinchEventArgs e) =>
+        {
+            ZoomAt(e.ScaleOrigin, e.Scale);
+            e.Handled = true;
+        });
         Point? drag = null;
         surface.PointerPressed += (_, e) =>
         {
             if (!e.GetCurrentPoint(surface).Properties.IsLeftButtonPressed) return;
-            if (e.ClickCount == 2) { fitMode = true; Fit(); return; }
+            if (e.ClickCount == 2) { Fit(); return; }
             drag = e.GetPosition(surface);
             e.Pointer.Capture(surface);
         };
@@ -310,6 +366,7 @@ public sealed class ViewerWindow : Window
         {
             if (drag is not { } start) return;
             fitMode = false;
+            hint.IsVisible = false;
             var now = e.GetPosition(surface);
             offsetX += now.X - start.X;
             offsetY += now.Y - start.Y;
@@ -321,6 +378,6 @@ public sealed class ViewerWindow : Window
             drag = null;
             e.Pointer.Capture(null);
         };
-        return surface;
+        return host;
     }
 }
