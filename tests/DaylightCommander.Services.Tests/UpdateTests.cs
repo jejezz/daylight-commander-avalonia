@@ -314,7 +314,7 @@ public sealed class UpdateInstallerTests
         var outcome = new MacosInstaller(runner).Install(Downloaded("/tmp/x", "a.dmg"));
         Assert.Equal(InstallOutcome.OpenedForUser, outcome);
         Assert.Equal("open", runner.Ran[0].Exe);
-        Assert.Equal(["/tmp/x/a.dmg"], runner.Ran[0].Args);
+        Assert.Equal([Path.Combine("/tmp/x", "a.dmg")], runner.Ran[0].Args); // 구분자는 OS마다 다르다 (Windows는 \)
     }
 
     [Fact]
