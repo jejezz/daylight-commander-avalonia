@@ -279,20 +279,21 @@ public sealed class ViewerWindow : Window
             RenderTransformOrigin = RelativePoint.TopLeft,
         };
         var surface = new Border { ClipToBounds = true, Background = Brushes.Transparent, Child = image };
-        // 사용법 안내: 처음 확대·이동하면 사라진다. 도구줄의 확대/축소 단추는 항상 있다.
+        // 사용법 안내: 그림 위에 겹치지 않도록 그림 아래 별도 줄에 항상 둔다 (도구줄의 확대/축소 단추와 함께).
         var hint = new TextBlock
         {
             Text = Strings.Current.ViewerImageHint,
-            HorizontalAlignment = HorizontalAlignment.Center,
-            VerticalAlignment = VerticalAlignment.Bottom,
-            Margin = new Thickness(16, 0, 16, 12),
+            VerticalAlignment = VerticalAlignment.Center,
             TextWrapping = TextWrapping.Wrap,
             TextAlignment = TextAlignment.Center,
-            IsHitTestVisible = false,
         };
         hint.Bind(TextBlock.ForegroundProperty, this.GetResourceObservable("AppTextMid"));
         hint.Bind(TextBlock.FontSizeProperty, this.GetResourceObservable("FsSmall"));
-        var host = new Grid { Children = { surface, hint } };
+        var hintBar = new Border { Padding = new Thickness(16, 6), BorderThickness = new Thickness(0, 1, 0, 0), Child = hint };
+        hintBar.Bind(Border.BackgroundProperty, this.GetResourceObservable("AppSurface"));
+        hintBar.Bind(Border.BorderBrushProperty, this.GetResourceObservable("AppStroke"));
+        Grid.SetRow(hintBar, 1);
+        var host = new Grid { RowDefinitions = new RowDefinitions("*,Auto"), Children = { surface, hintBar } };
 
         double scale = 1, offsetX = 0, offsetY = 0;
         const double MinScale = 0.1, MaxScale = 8;
@@ -318,7 +319,6 @@ public sealed class ViewerWindow : Window
         void ZoomAt(Point p, double factor)
         {
             fitMode = false;
-            hint.IsVisible = false;
             var next = Math.Clamp(scale * factor, MinScale, MaxScale);
             offsetX = p.X - (p.X - offsetX) * next / scale;
             offsetY = p.Y - (p.Y - offsetY) * next / scale;
@@ -366,7 +366,6 @@ public sealed class ViewerWindow : Window
         {
             if (drag is not { } start) return;
             fitMode = false;
-            hint.IsVisible = false;
             var now = e.GetPosition(surface);
             offsetX += now.X - start.X;
             offsetY += now.Y - start.Y;
