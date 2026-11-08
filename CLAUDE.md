@@ -18,6 +18,10 @@ Flutter 원본 `C:\Users\jejez\MyWork\Projects\FLUTTER\daylight-commander-flutte
 - 테스트: `dotnet test DaylightCommander.slnx` (앱이 실행 중이면 실행 파일이 잠겨 App 빌드가 실패하므로 `dotnet test tests\<프로젝트>`로 개별 실행). 실행: `dotnet run -c Release --project src\DaylightCommander.App`.
 - 설정은 `%APPDATA%\DaylightCommanderAvalonia\settings.json`. 화면 문구는 `IAppStrings`(ko/en, `Localization/`), XAML은 `{DynamicResource Str.*}`,
   코드는 `Strings.Current`로 읽는다 (새 문구는 인터페이스 → 한국어 → 영어 순으로 모두 추가, 빠뜨리면 컴파일 오류).
+- **업데이트**: Flutter 앱들과 같은 방식(`jejezz/application-release-templates`의 `app_updater` + `update_service`)을 옮겼다. 서버(`introduce-public-repos`의
+  `/api/update`)에 묻고 → 동의 → 내려받아 SHA-256 검증 → OS 설치기. 코드는 `Services/Updates/`(클라이언트·정책·설치기)와 `App/Updates/`(흐름·대화상자),
+  문구는 `Update*`. 서버 주소는 `Directory.Build.props`의 `AppUpdateServer`(빌드 때 `-p:AppUpdateServer=`로 바꿈, 빈 값이면 끔). 서버가 앱을 아는 이름은
+  저장소 이름(`AppIdentity.UpdateAppId`). 자동 확인은 시작 5초 뒤 하루 1회, 수동은 정보 창의 [업데이트 확인].
 - 임시 시험 코드는 5단계에서 모두 지웠다 (`Trace`, 모드·색 순환 버튼, 뷰어 창). 뷰어는 7단계.
 
 

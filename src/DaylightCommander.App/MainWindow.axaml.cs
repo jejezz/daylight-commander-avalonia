@@ -36,6 +36,9 @@ public partial class MainWindow : Window
         _ => false,
     };
 
+    /// <summary>끝나지 않은 파일 작업(복사·이동·삭제)이 있는가. 업데이트는 이 동안 알리지도 설치하지도 않는다.</summary>
+    public bool HasUnfinishedJobs => _home.State.Queue.Jobs.Any(j => !j.IsFinished);
+
     void SyncDialog(HomeDialog? dialog)
     {
         if (dialog is null)
