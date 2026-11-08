@@ -19,7 +19,20 @@ public sealed class DirectoryTreeTests : IDisposable
         Directory.CreateDirectory(P(".hidden"));
         File.WriteAllText(P("file.txt"), "x");
 
-        Assert.Equal([P("Alpha"), P("beta")], DirectoryTree.ListSubfolders(_root));
+        Assert.Equal([P("Alpha"), P("beta")], DirectoryTree.ListSubfolders(_root).Select(f => f.Path));
+    }
+
+    [Fact]
+    public void 숨김_속성_폴더는_흐림으로_표시된다()
+    {
+        if (!OperatingSystem.IsWindows()) return; // 숨김 속성은 Windows 개념이다
+        Directory.CreateDirectory(P("plain"));
+        Directory.CreateDirectory(P("secret"));
+        File.SetAttributes(P("secret"), FileAttributes.Hidden | FileAttributes.Directory);
+
+        var list = DirectoryTree.ListSubfolders(_root);
+        Assert.False(list.Single(f => f.Path == P("plain")).Dimmed);
+        Assert.True(list.Single(f => f.Path == P("secret")).Dimmed);
     }
 
     [Fact]

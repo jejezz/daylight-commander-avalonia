@@ -165,10 +165,10 @@ public sealed class JsonSettingsRepositoryTests : IDisposable
     }
 
     [Fact]
-    public void 모르는_글자_배율은_보통으로_읽는다()
+    public void 범위_밖_글자_배율은_범위_안으로_읽는다()
     {
         WriteRaw("""{ "text_scale": 3.5 }""");
-        Assert.Equal(1.0, Repo().Load().TextScale);
+        Assert.Equal(TextScales.Max, Repo().Load().TextScale);
     }
 
     [Fact]

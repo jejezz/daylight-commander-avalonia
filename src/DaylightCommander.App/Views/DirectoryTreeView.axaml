@@ -3,6 +3,7 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:vm="using:DaylightCommander.App.ViewModels"
              xmlns:views="using:DaylightCommander.App.Views"
+             xmlns:local="using:DaylightCommander.App"
              x:Class="DaylightCommander.App.Views.DirectoryTreeView"
              x:DataType="vm:DirectoryTreeViewModel">
     <!-- 탐색기 모양 트리: 행 26, 들여쓰기 14, 선택(현재 경로)은 커서 색. 오른쪽 위 새로고침, 행 우클릭 메뉴, 폴더 끌어다 놓기 -->
@@ -11,15 +12,17 @@
             <ItemsControl ItemsSource="{Binding Rows}" Margin="0,4">
                 <ItemsControl.ItemTemplate>
                     <DataTemplate x:DataType="vm:TreeRow">
-                        <Border Classes="treerow" Classes.sel="{Binding Selected}" Height="26"
+                        <Border Classes="treerow" Classes.sel="{Binding Selected}" Height="26" Opacity="{Binding RowOpacity}"
                                 Tag="{Binding}" Padding="{Binding Indent}">
-                            <Grid ColumnDefinitions="20,Auto,*">
-                                <Button Grid.Column="0" Classes="treetoggle" IsVisible="{Binding CanExpand}" Tag="{Binding}">
+                            <Grid ColumnDefinitions="Auto,Auto,*">
+                                <Border Grid.Column="0" Width="20" local:UiScale.Enabled="True">
+                                <Button Classes="treetoggle" IsVisible="{Binding CanExpand}" Tag="{Binding}">
                                     <Grid>
                                         <icons:DuoIcon Width="14" Height="14" Icon="caret-right" ColorKey="AppTextMid" IsVisible="{Binding ShowCollapsed}"/>
                                         <icons:DuoIcon Width="14" Height="14" Icon="caret-down" ColorKey="AppTextMid" IsVisible="{Binding ShowExpanded}"/>
                                     </Grid>
                                 </Button>
+                                </Border>
                                 <icons:DuoIcon Grid.Column="1" Width="18" Height="18" Margin="0,0,6,0" VerticalAlignment="Center"
                                                Icon="{Binding IconName}" ColorKey="{Binding IconColor}"/>
                                 <TextBlock Grid.Column="2" Text="{Binding Label}" VerticalAlignment="Center"

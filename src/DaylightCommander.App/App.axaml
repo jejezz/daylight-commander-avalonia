@@ -1,5 +1,6 @@
 <Application xmlns="https://github.com/avaloniaui"
              xmlns:icons="using:DaylightCommander.App.Icons"
+             xmlns:local="using:DaylightCommander.App"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              x:Class="DaylightCommander.App.App"
              RequestedThemeVariant="Default">
@@ -85,6 +86,7 @@
 
         <!-- 디렉터리 트리 -->
         <Style Selector="Border.treerow">
+            <Setter Property="local:UiScale.Enabled" Value="True" />
             <Setter Property="Background" Value="Transparent" />
         </Style>
         <Style Selector="Border.treerow:pointerover">
@@ -99,6 +101,7 @@
             <Setter Property="Background" Value="{DynamicResource AppCursor}" />
         </Style>
         <Style Selector="Button.treetoggle">
+            <Setter Property="local:UiScale.Enabled" Value="True" />
             <Setter Property="Background" Value="Transparent" />
             <Setter Property="BorderThickness" Value="0" />
             <Setter Property="Padding" Value="0" />
@@ -131,6 +134,7 @@
 
         <!-- 툴바 아이콘 버튼 30x30, 아이콘 18 -->
         <Style Selector="Button.tool, ToggleButton.tool">
+            <Setter Property="local:UiScale.Enabled" Value="True" />
             <Setter Property="Width" Value="30" />
             <Setter Property="Height" Value="30" />
             <Setter Property="Padding" Value="0" />
@@ -206,6 +210,7 @@
             <Setter Property="TextElement.FontSize" Value="{DynamicResource FsBody}" />
         </Style>
         <Style Selector="Button.menuitem">
+            <Setter Property="local:UiScale.Enabled" Value="True" />
             <Setter Property="MinHeight" Value="36" />
             <Setter Property="VerticalContentAlignment" Value="Center" />
             <Setter Property="FontFamily" Value="{DynamicResource AppFont}" />
@@ -228,6 +233,7 @@
 
         <!-- 설정 창 -->
         <Style Selector="ToggleButton.nav">
+            <Setter Property="local:UiScale.Enabled" Value="True" />
             <Setter Property="Height" Value="40" />
             <Setter Property="CornerRadius" Value="8" />
             <Setter Property="Padding" Value="12,0" />
@@ -301,6 +307,7 @@
 
         <!-- 하단 기능 키 버튼: 둥근 18, 높이 36, 글자 12 -->
         <Style Selector="Button.fkey">
+            <Setter Property="local:UiScale.Enabled" Value="True" />
             <Setter Property="Height" Value="36" />
             <Setter Property="CornerRadius" Value="18" />
             <Setter Property="Padding" Value="8,0" />

@@ -73,6 +73,29 @@ public sealed class ListDrives
     }
 
     /// <summary>
+    /// 드라이브의 볼륨 이름 (탐색기의 "Windows (C:)"의 앞부분). 디스크에 접근하므로 연결이 끊긴 네트워크 드라이브는 오래 걸릴 수 있다 —
+    /// 화면 스레드에서 부르지 말 것. 읽을 수 없거나 이름이 없으면 null.
+    /// </summary>
+    public static string? VolumeLabel(DriveEntry drive)
+    {
+        if (!OperatingSystem.IsWindows()) return null;
+        try
+        {
+            var info = new DriveInfo(drive.Path);
+            if (!info.IsReady) return null;
+            return string.IsNullOrWhiteSpace(info.VolumeLabel) ? null : info.VolumeLabel;
+        }
+        catch (Exception e) when (e is IOException or ArgumentException or UnauthorizedAccessException)
+        {
+            return null;
+        }
+    }
+
+    /// <summary>트리에 보일 이름: 볼륨 이름이 있으면 <c>Windows (C:)</c>, 없으면 드라이브 이름 그대로.</summary>
+    public static string DisplayName(DriveEntry drive, string? volumeLabel) =>
+        string.IsNullOrEmpty(volumeLabel) ? drive.Name : $"{volumeLabel} ({drive.Path.TrimEnd('\\', '/')})";
+
+    /// <summary>
     /// <paramref name="path"/>가 속한 드라이브. Windows는 경로의 루트(<c>C:\</c>), 그 밖에는 목록 중 가장 길게 일치하는 마운트 경로.
     /// 목록에 없으면 null.
     /// </summary>

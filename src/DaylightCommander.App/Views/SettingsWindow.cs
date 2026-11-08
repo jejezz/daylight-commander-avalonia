@@ -8,7 +8,6 @@ using Avalonia.Threading;
 using DaylightCommander.Domain;
 using DaylightCommander.Domain.Settings;
 using DaylightCommander.Domain.Theme;
-using SettingsFontSize = DaylightCommander.Domain.Settings.FontSize;
 
 namespace DaylightCommander.App.Views;
 
@@ -204,16 +203,47 @@ public sealed class SettingsWindow : Window
         page.Children.Add(FontPicker());
 
         page.Children.Add(Heading(s.SettingsFontSize));
-        page.Children.Add(Segmented(
-            [(s.FontSizeSmall, SettingsFontSize.Small), (s.FontSizeNormal, SettingsFontSize.Normal), (s.FontSizeLarge, SettingsFontSize.Large)],
-            () => App.Settings.Value.FontSize,
-            v => App.Settings.Update(x => x.WithFontSize(v))));
+        page.Children.Add(TextScaleSlider());
 
         page.Children.Add(Heading(s.SettingsLanguage));
         page.Children.Add(Segmented<AppLocale?>(
             [(s.LanguageSystemShort, null), ("한국어", AppLocale.Korean), ("English", AppLocale.English)],
             () => App.Settings.Value.Locale,
             v => App.Settings.Update(x => x with { Locale = v })));
+    }
+
+    /// <summary>화면 글자 크기 슬라이더 (80%~160%, 5% 단위). 끌 때마다 바로 적용되고 저장된다.</summary>
+    Control TextScaleSlider()
+    {
+        var slider = new Slider
+        {
+            Minimum = TextScales.Min,
+            Maximum = TextScales.Max,
+            TickFrequency = TextScales.Step,
+            IsSnapToTickEnabled = true,
+            Width = 360,
+            Value = App.Settings.Value.TextScale,
+        };
+        var percent = new TextBlock { VerticalAlignment = VerticalAlignment.Center, Width = 56, TextAlignment = TextAlignment.Right };
+        void ShowPercent() => percent.Text = $"{Math.Round(slider.Value * 100):0}%";
+        ShowPercent();
+        slider.ValueChanged += (_, _) =>
+        {
+            ShowPercent();
+            var scale = TextScales.Snap(slider.Value);
+            if (scale != App.Settings.Value.TextScale) App.Settings.Update(x => x.WithTextScale(scale));
+        };
+        var hint = new TextBlock { Text = Strings.Current.SettingsFontSizeHint, TextWrapping = TextWrapping.Wrap, Opacity = 0.8 };
+        hint.Bind(TextBlock.FontSizeProperty, this.GetResourceObservable("FsSmall"));
+        return new StackPanel
+        {
+            Spacing = 4,
+            Children =
+            {
+                new StackPanel { Orientation = Orientation.Horizontal, Spacing = 12, Children = { slider, percent } },
+                hint,
+            },
+        };
     }
 
     /// <summary>
@@ -245,6 +275,7 @@ public sealed class SettingsWindow : Window
                     Children = { check, new TextBlock { Text = label, VerticalAlignment = VerticalAlignment.Center } },
                 },
             };
+            UiScale.Enable(button);
             button.Click += (_, _) => pick(value);
             buttons.Add((button, check, value));
             row.Children.Add(button);
@@ -293,6 +324,7 @@ public sealed class SettingsWindow : Window
                     Children = { dot, new TextBlock { Text = names[palette], VerticalAlignment = VerticalAlignment.Center } },
                 },
             };
+            UiScale.Enable(chip);
             chip.Click += (_, _) => App.Settings.Update(x => x with { Palette = palette });
             chips.Add((chip, palette));
             wrap.Children.Add(chip);
@@ -311,7 +343,7 @@ public sealed class SettingsWindow : Window
     Control FontPicker()
     {
         var s = Strings.Current;
-        var button = new Button { Classes = { "picker" }, Height = ControlHeight, MinWidth = 260, HorizontalAlignment = HorizontalAlignment.Left };
+        var button = UiScale.Enable(new Button { Classes = { "picker" }, Height = ControlHeight, MinWidth = 260, HorizontalAlignment = HorizontalAlignment.Left });
         var label = new TextBlock { VerticalAlignment = VerticalAlignment.Center, TextTrimming = TextTrimming.CharacterEllipsis };
         var arrow = new Icons.DuoIcon { Icon = "caret-down", Width = 14, Height = 14 };
         button.Content = new DockPanel { LastChildFill = true, Children = { arrow, label } };
@@ -384,10 +416,10 @@ public sealed class SettingsWindow : Window
         page.Children.Add(note);
 
         var path = new TextBlock { VerticalAlignment = VerticalAlignment.Center, TextTrimming = TextTrimming.CharacterEllipsis };
-        var choose = new Button { Content = s.EditorChoose, Height = ControlHeight };
-        var clear = new Button { Content = s.EditorClear, Height = ControlHeight };
+        var choose = UiScale.Enable(new Button { Content = s.EditorChoose, Height = ControlHeight });
+        var clear = UiScale.Enable(new Button { Content = s.EditorClear, Height = ControlHeight });
         var row = new Grid { ColumnDefinitions = new ColumnDefinitions("*,Auto,Auto"), ColumnSpacing = 8, Margin = new Thickness(28, 8, 0, 0) };
-        var pathBox = new Border { Classes = { "pathbox" }, Child = path, Height = ControlHeight };
+        var pathBox = UiScale.Enable(new Border { Classes = { "pathbox" }, Child = path, Height = ControlHeight });
         Grid.SetColumn(pathBox, 0); Grid.SetColumn(choose, 1); Grid.SetColumn(clear, 2);
         row.Children.Add(pathBox); row.Children.Add(choose); row.Children.Add(clear);
         page.Children.Add(row);
