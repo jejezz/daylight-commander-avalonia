@@ -73,11 +73,27 @@ codesign "${SIGN_FLAGS[@]}" "$APP/Contents/MacOS/$FILE_NAME"
 codesign "${SIGN_FLAGS[@]}" "$APP"
 codesign --verify --deep --strict --verbose=2 "$APP"
 
-# .dmg: the app plus a link to /Applications to drag it onto.
+# .dmg: a window with the app and a link to /Applications to drag it onto. create-dmg lays the window out
+# (size, large icons, positions) the same way as the Flutter versions; plain hdiutil would leave Finder's
+# default small-icon grid. create-dmg sometimes exits non-zero over unrelated warnings even after producing a
+# working DMG, so only the file's existence counts. Without create-dmg, fall back to the plain container.
 mkdir -p "$ROOT/dist"
 rm -f "$DMG"
-ln -s /Applications "$STAGE/Applications"
-hdiutil create -volname "$DISPLAY_NAME" -srcfolder "$STAGE" -ov -format UDZO "$DMG"
-rm "$STAGE/Applications"
+if command -v create-dmg >/dev/null 2>&1; then
+  create-dmg \
+    --volname "$DISPLAY_NAME" \
+    --window-size 500 300 \
+    --icon-size 100 \
+    --icon "$DISPLAY_NAME.app" 120 120 \
+    --app-drop-link 380 120 \
+    "$DMG" \
+    "$APP" || true
+fi
+if [ ! -f "$DMG" ]; then
+  echo "create-dmg unavailable or failed; building a plain DMG with hdiutil" >&2
+  ln -s /Applications "$STAGE/Applications"
+  hdiutil create -volname "$DISPLAY_NAME" -srcfolder "$STAGE" -ov -format UDZO "$DMG"
+  rm "$STAGE/Applications"
+fi
 
 echo "DMG_PATH=$DMG"

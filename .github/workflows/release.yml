@@ -247,7 +247,9 @@ jobs:
 
       # With SIGN_IDENTITY set the script signs with the hardened runtime; without it, ad-hoc (runs, but unverified).
       - name: Package app and DMG
-        run: bash scripts/package-macos.sh
+        run: |
+          brew install create-dmg
+          bash scripts/package-macos.sh
 
       # APPLE_ID_PASSWORD must be an app-specific password generated at appleid.apple.com.
       - name: Notarize DMG
