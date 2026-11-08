@@ -2,10 +2,12 @@ using Avalonia;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Markup.Xaml;
 using Avalonia.Threading;
+using DaylightCommander.App.Updates;
 using DaylightCommander.Data;
 using DaylightCommander.Domain;
 using DaylightCommander.Domain.Settings;
 using DaylightCommander.Services;
+using DaylightCommander.Services.Updates;
 
 namespace DaylightCommander.App;
 
@@ -16,6 +18,9 @@ public partial class App : Application
 
     /// <summary>연결된 원격 서버들. 모든 창이 나눠 쓴다.</summary>
     public static RemoteSessions Remote { get; private set; } = null!;
+
+    /// <summary>업데이트 확인·설치. 서버 주소가 없는 빌드(<c>-p:AppUpdateServer=</c>)나 로컬 빌드는 null.</summary>
+    internal static UpdateService? Updates { get; private set; }
 
     /// <summary>화면에 이미 적용한 설정. 방문 기록 같은 다른 설정이 바뀔 때마다 외형을 다시 적용하지 않으려고 둔다.</summary>
     AppSettings? _applied;
@@ -38,6 +43,12 @@ public partial class App : Application
         if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
         {
             desktop.MainWindow = new MainWindow();
+            Updates = UpdateService.Create(
+                FileUpdateStateStore.BesideSettings(JsonSettingsRepository.DefaultFile(AppIdentity.FileName)),
+                owner: () => desktop.Windows.OfType<MainWindow>().FirstOrDefault(w => w.IsActive) ?? desktop.Windows.OfType<MainWindow>().FirstOrDefault(),
+                // 파일 작업이 진행 중이면 알리지도, 설치하지도 않는다 (설치는 앱을 종료시킨다).
+                isBusy: () => desktop.Windows.OfType<MainWindow>().Any(w => w.HasUnfinishedJobs));
+            Updates?.StartAutomaticCheck();
             desktop.Exit += (_, _) => { Remote.Dispose(); Settings.Dispose(); }; // 종료할 때 마지막 변경까지 저장
         }
 

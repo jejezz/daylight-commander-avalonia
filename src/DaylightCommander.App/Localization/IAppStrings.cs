@@ -211,6 +211,41 @@ public interface IAppStrings
     string AboutOpenSourceLicenses { get; }
     string AboutRepository { get; }
     string AboutClose { get; }
+
+    // 업데이트
+    string UpdateCheckButton { get; }
+    string UpdateChecking { get; }
+    string UpdateAvailableTitle { get; }
+    string UpdateAvailableBody(string appName, string current, string latest);
+    string UpdateReleaseNotes { get; }
+    string UpdateNow { get; }
+    string UpdateLater { get; }
+    string UpdateSkipVersion { get; }
+    string UpdateDownloading { get; }
+    string UpdateVerifying { get; }
+    string UpdateDownloadProgress(string received, string total);
+    string UpdateCancel { get; }
+    string UpdateFailedTitle { get; }
+    string UpdateCheckFailedTitle { get; }
+    string UpdateErrorNetwork { get; }
+    string UpdateErrorChecksum { get; }
+    string UpdateErrorInstall { get; }
+    string UpdateErrorGeneric { get; }
+    string UpdateUpToDateTitle { get; }
+    string UpdateUpToDateBody(string version);
+    string UpdateUnavailableTitle { get; }
+    string UpdateUnavailableBody(string latest);
+    string UpdateOpenReleasePage { get; }
+    string UpdateMacosOpenedTitle { get; }
+    string UpdateMacosOpenedBody(string appName);
+    string UpdateWindowsInstallTitle { get; }
+    string UpdateWindowsInstallBody(string appName);
+    string UpdateQuitApp(string appName);
+    string UpdateLinuxInstallTitle { get; }
+    string UpdateLinuxInstallBody(string appName);
+    string UpdateQuitAndInstall { get; }
+    string UpdateBusyTitle { get; }
+    string UpdateBusyBody { get; }
     string LicensesTitle { get; }
     string LicensesProject { get; }
     string LicensesNote { get; }
