@@ -264,7 +264,14 @@ jobs:
             --password "$APPLE_ID_PASSWORD" \
             --team-id "$APPLE_TEAM_ID" \
             --wait
-          xcrun stapler staple "$DMG_PATH"
+          # staple은 공증 티켓을 Apple CloudKit에서 받아 오는데, 러너의 네트워크가 잠깐 끊기면(-1005) 공증이 Accepted여도
+          # 실패한다. 일시적인 오류이므로 몇 번 다시 시도한다 (끝까지 실패하면 그대로 실패).
+          for attempt in 1 2 3 4 5; do
+            if xcrun stapler staple "$DMG_PATH"; then break; fi
+            if [ "$attempt" = 5 ]; then echo "::error::stapler staple failed after $attempt attempts"; exit 1; fi
+            echo "stapler staple failed (attempt $attempt/5); retrying in $((attempt * 15))s"
+            sleep $((attempt * 15))
+          done
 
       - name: Clean up keychain
         if: always() && env.HAS_CERT == 'true'
