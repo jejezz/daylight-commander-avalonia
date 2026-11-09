@@ -95,6 +95,7 @@ public sealed class EnglishStrings : IAppStrings
     public string DialogNewFileTitle => "New File";
     public string TransferCopyTitle => "Copy";
     public string TransferMoveTitle => "Move";
+    public string DropMovePrompt(string what, string destination) => $"Move {what} to this folder?\n{destination}";
     public string TransferPrompt(FileOperationKind kind, string what) =>
         kind == FileOperationKind.Copy ? $"Copy {what} to:" : $"Move {what} to:";
     public string DeleteTrashTitle => "Move to Trash";

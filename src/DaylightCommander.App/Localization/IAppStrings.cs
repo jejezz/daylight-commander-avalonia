@@ -111,6 +111,7 @@ public interface IAppStrings
     string DialogNewFileTitle { get; }
     string TransferCopyTitle { get; }
     string TransferMoveTitle { get; }
+    string DropMovePrompt(string what, string destination);
     string TransferPrompt(FileOperationKind kind, string what);
     string DeleteTrashTitle { get; }
     string DeletePermanentTitle { get; }
