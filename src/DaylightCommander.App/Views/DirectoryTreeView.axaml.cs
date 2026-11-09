@@ -113,8 +113,7 @@ public partial class DirectoryTreeView : UserControl
         try
         {
             DragSession.Paths = [row.Path];
-            var data = new DataTransfer();
-            data.Add(DataTransferItem.Create(DataFormat.Text, row.Path));
+            var data = await DragSession.BuildDataAsync(this, [row.Path]);
             await DragDrop.DoDragDropAsync(pressed, data, DragDropEffects.Copy | DragDropEffects.Move);
         }
         finally

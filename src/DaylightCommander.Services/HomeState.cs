@@ -21,6 +21,9 @@ public abstract record HomeDialog
     /// <summary>복사/이동 확인. 대상 폴더는 직접 고칠 수 있다.</summary>
     public sealed record Transfer(FileOperationKind Kind, IReadOnlyList<string> Sources, string Target, FileError? Error = null) : HomeDialog;
 
+    /// <summary>끌어다 놓기로 이동하기 전의 확인.</summary>
+    public sealed record ConfirmDropMove(IReadOnlyList<string> Sources, string Destination) : HomeDialog;
+
     public sealed record Delete(IReadOnlyList<string> Paths, bool ToTrash) : HomeDialog;
 
     /// <summary>서버에 연결하는 대화상자. <paramref name="Profile"/>은 미리 채울 값(저장해 둔 서버), <paramref name="Busy"/>는 연결하는 중.</summary>
@@ -510,7 +513,7 @@ public sealed class HomeState : IDisposable
     public void PasteTreeClipboard(string targetDir)
     {
         if (TreeClipboard is not { } clip) return;
-        Drop([clip.Path], targetDir, clip.Cut ? DropMode.ForceMove : DropMode.ForceCopy);
+        Drop([clip.Path], targetDir, clip.Cut ? DropMode.ForceMove : DropMode.ForceCopy, confirmMove: false); // 잘라내기·붙여넣기는 이미 의도가 분명하다
         if (clip.Cut) TreeClipboard = null;
     }
 
@@ -542,7 +545,7 @@ public sealed class HomeState : IDisposable
     /// Ctrl(복사)·Shift(이동)로 바꿀 수 있다 (<see cref="DropPlanner"/>). 확인 대화상자 없이 바로 작업 큐에 넣는다.
     /// 폴더를 자기 자신 안에 놓는 것 같은 오류는 <paramref name="errorSide"/> 패널의 상태줄에 띄운다.
     /// </summary>
-    public void Drop(IReadOnlyList<string> sources, string destinationDir, DropMode mode = DropMode.Auto, PaneSide? errorSide = null)
+    public void Drop(IReadOnlyList<string> sources, string destinationDir, DropMode mode = DropMode.Auto, PaneSide? errorSide = null, bool confirmMove = true)
     {
         var plan = DropPlanner.Plan(sources, destinationDir, new ListDrives().Invoke(), mode);
         switch (plan.Action)
@@ -554,6 +557,7 @@ public sealed class HomeState : IDisposable
                 Queue.EnqueueCopy(sources, destinationDir);
                 break;
             case DropAction.Move:
+                if (confirmMove) { SetDialog(new HomeDialog.ConfirmDropMove(sources, destinationDir)); return; } // 실수로 옮기지 않도록 먼저 묻는다
                 Queue.EnqueueMove(sources, destinationDir);
                 break;
             default:
@@ -682,6 +686,15 @@ public sealed class HomeState : IDisposable
         else Queue.EnqueueMove(d.Sources, target);
         SetDialog(null);
         ActiveController.ClearSelection();
+    }
+
+    public void ConfirmDropMove()
+    {
+        if (_dialog is not HomeDialog.ConfirmDropMove d) return;
+        Queue.EnqueueMove(d.Sources, d.Destination);
+        SetDialog(null);
+        foreach (var controller in new[] { Left, Right })
+            if (controller.State.Selected.Overlaps(d.Sources)) controller.ClearSelection();
     }
 
     public void ConfirmDelete()

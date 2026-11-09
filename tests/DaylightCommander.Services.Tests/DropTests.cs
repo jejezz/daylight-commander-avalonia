@@ -128,6 +128,9 @@ public sealed class DropTests : IAsyncLifetime
     public async Task 다른_패널로_끌어다_놓으면_이동한다()
     {
         _home.Drop([L("a.txt")], _right);
+        Assert.Empty(_home.Queue.Jobs); // 이동은 확인을 받기 전에는 시작하지 않는다
+        Assert.IsType<HomeDialog.ConfirmDropMove>(_home.Dialog);
+        _home.ConfirmDropMove();
         await WaitQueueIdle();
         Assert.False(File.Exists(L("a.txt")));
         Assert.Equal("A", File.ReadAllText(R("a.txt")));
@@ -146,6 +149,7 @@ public sealed class DropTests : IAsyncLifetime
     public async Task 폴더_위에_놓으면_그_폴더_안으로_들어간다()
     {
         _home.Drop([L("a.txt")], L("dir"));
+        _home.ConfirmDropMove();
         await WaitQueueIdle();
         Assert.Equal("A", File.ReadAllText(L("dir/a.txt")));
         Assert.False(File.Exists(L("a.txt")));
@@ -182,6 +186,7 @@ public sealed class DropTests : IAsyncLifetime
         _home.Left.ClickEntry(L("b.txt"), ctrl: true);
         Assert.Equal(2, _home.Left.State.Selected.Count);
         _home.Drop([L("a.txt"), L("b.txt")], _right);
+        _home.ConfirmDropMove();
         Assert.Empty(_home.Left.State.Selected);
         await WaitQueueIdle();
     }

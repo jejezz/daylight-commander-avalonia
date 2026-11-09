@@ -95,6 +95,7 @@ public sealed class KoreanStrings : IAppStrings
     public string DialogNewFileTitle => "새 파일";
     public string TransferCopyTitle => "복사";
     public string TransferMoveTitle => "이동";
+    public string DropMovePrompt(string what, string destination) => $"{what}을(를) 다음 폴더로 이동할까요?\n{destination}";
     public string TransferPrompt(FileOperationKind kind, string what) =>
         kind == FileOperationKind.Copy ? $"{what} 복사할 폴더" : $"{what} 이동할 폴더";
     public string DeleteTrashTitle => "휴지통으로 이동";

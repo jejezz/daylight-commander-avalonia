@@ -100,6 +100,15 @@ public partial class MainWindow : Window
                 window.Confirmed += text => state.ConfirmTransfer(text);
                 return window;
             }
+            case HomeDialog.ConfirmDropMove m:
+            {
+                var s = Strings.Current;
+                var what = s.ItemsWhat(m.Sources.Count, NameOf(m.Sources[0]));
+                var window = MessageDialog.Create(s.TransferMoveTitle, s.DropMovePrompt(what, m.Destination),
+                    [s.CommonCancel, s.TransferMoveTitle], defaultIndex: 0, cancelIndex: 0);
+                window.Chosen += index => { if (index == 1) state.ConfirmDropMove(); else state.CloseDialog(); };
+                return window;
+            }
             case HomeDialog.Delete d:
             {
                 var window = new DeleteDialog(d.Paths, d.ToTrash);
