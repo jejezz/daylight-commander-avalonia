@@ -41,6 +41,22 @@ public static class FileIcons
         return ByExtension.TryGetValue(FileKinds.ExtensionOf(name), out var found) ? found : ("file", Plain);
     }
 
+    /// <summary>
+    /// 격자 큰 아이콘의 배지 글자: 확장자(대문자, 4글자까지). 확장자가 없거나 길면 종류 이름, 모르는 형식은 배지 없음.
+    /// </summary>
+    public static string? BadgeFor(string name, bool isDirectory)
+    {
+        if (isDirectory) return null;
+        var ext = FileKinds.ExtensionOf(name);
+        if (!ByExtension.TryGetValue(ext, out var found)) return null;
+        if (ext.Length is > 0 and <= 4) return ext.ToUpperInvariant();
+        return found.Icon switch
+        {
+            "file-archive" => "ZIP", "file-image" => "IMG", "file-video" => "VID", "file-audio" => "AUD",
+            "file-code" => "CODE", "file-text" => "TXT", "file-app" => "APP", _ => null,
+        };
+    }
+
     /// <summary>드라이브 종류별 아이콘: 내장은 하드 드라이브, 이동식은 USB, 네트워크는 네트워크 모양.</summary>
     public static string ForDrive(DriveKind kind) => kind switch
     {
