@@ -62,9 +62,6 @@
         <Style Selector="Border.tile.cursor">
             <Setter Property="Background" Value="{DynamicResource AppCursor}" />
         </Style>
-        <Style Selector="Border.tile.picked TextBlock">
-            <Setter Property="Foreground" Value="{DynamicResource AppPrimary}" />
-        </Style>
         <Style Selector="Border.tile.drop">
             <Setter Property="Background" Value="{DynamicResource AppCursor}" />
             <Setter Property="BorderBrush" Value="{DynamicResource AppPrimary}" />
@@ -76,6 +73,11 @@
         </Style>
         <Style Selector="Border.diffrow.differs">
             <Setter Property="Background" Value="{DynamicResource AppDiffDiffers}" />
+        </Style>
+
+        <!-- 선택된(표시한) 행·타일: 한 개든 여러 개든 행 전체가 주색 30% (비교 색보다 우선) -->
+        <Style Selector="Border.diffrow.picked">
+            <Setter Property="Background" Value="{DynamicResource AppCursor}" />
         </Style>
 
         <!-- 에디터 메뉴 막대와 그 팝업 -->
@@ -126,10 +128,6 @@
         <!-- 행 내용: 가로 12 세로 4 여백 (ListBoxItem 안쪽이 아니라 내용에 두어야 선택 배경이 행 전체를 덮는다) -->
         <Style Selector="ListBox.entries ListBoxItem > Border > Grid">
             <Setter Property="Margin" Value="12,4" />
-        </Style>
-        <!-- 선택된 행(커서와 별개): 글자가 주색 -->
-        <Style Selector="ListBox.entries ListBoxItem > Border > Grid.picked TextBlock">
-            <Setter Property="Foreground" Value="{DynamicResource AppPrimary}" />
         </Style>
 
         <!-- 툴바 아이콘 버튼 30x30, 아이콘 18 -->
