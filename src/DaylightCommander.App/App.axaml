@@ -330,7 +330,12 @@
             <Setter Property="Foreground" Value="{DynamicResource AppTextMid}" />
             <Setter Property="Opacity" Value="0.5" />
         </Style>
+        <!-- 아이콘이 글자 줄보다 크면 글자가 칸 위쪽에 붙으므로 둘 다 세로 가운데로 맞춘다 -->
+        <Style Selector="Button.cmd TextBlock">
+            <Setter Property="VerticalAlignment" Value="Center" />
+        </Style>
         <Style Selector="Button.cmd icons|DuoIcon">
+            <Setter Property="VerticalAlignment" Value="Center" />
             <Setter Property="Width" Value="18" />
             <Setter Property="Height" Value="18" />
             <Setter Property="Foreground" Value="{DynamicResource AppPrimary}" />

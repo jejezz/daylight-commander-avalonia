@@ -74,7 +74,7 @@ ICONS = {
     "save": ("floppy-disk", "duotone"),
     "save-as": ("floppy-disk-back", "duotone"),
     # 명령 모음
-    "new": ("plus", "duotone"),
+    "new": ("plus", "regular"),  # duotone은 사각형 채움이 깔린다
     "rename": ("textbox", "duotone"),
     "copy": ("copy", "duotone"),
     "move": ("arrow-square-right", "duotone"),
