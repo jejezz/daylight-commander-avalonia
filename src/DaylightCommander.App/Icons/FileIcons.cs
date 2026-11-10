@@ -42,19 +42,25 @@ public static class FileIcons
     }
 
     /// <summary>
-    /// 격자 큰 아이콘의 배지 글자: 확장자(대문자, 4글자까지). 확장자가 없거나 길면 종류 이름, 모르는 형식은 배지 없음.
+    /// 격자 큰 아이콘의 배지 글자: 확장자 대문자 (모르는 형식도 표시). 5글자를 넘으면 종류 이름이 있으면 그것, 없으면 앞 4글자와 …
+    /// 확장자가 없는 파일과 폴더는 배지 없음.
     /// </summary>
     public static string? BadgeFor(string name, bool isDirectory)
     {
         if (isDirectory) return null;
         var ext = FileKinds.ExtensionOf(name);
-        if (!ByExtension.TryGetValue(ext, out var found)) return null;
-        if (ext.Length is > 0 and <= 4) return ext.ToUpperInvariant();
-        return found.Icon switch
+        if (ext.Length == 0) return null;
+        if (ext.Length <= 5) return ext.ToUpperInvariant();
+        if (ByExtension.TryGetValue(ext, out var found))
         {
-            "file-archive" => "ZIP", "file-image" => "IMG", "file-video" => "VID", "file-audio" => "AUD",
-            "file-code" => "CODE", "file-text" => "TXT", "file-app" => "APP", _ => null,
-        };
+            var kind = found.Icon switch
+            {
+                "file-archive" => "ZIP", "file-image" => "IMG", "file-video" => "VID", "file-audio" => "AUD",
+                "file-code" => "CODE", "file-text" => "TXT", "file-app" => "APP", _ => null,
+            };
+            if (kind is not null) return kind;
+        }
+        return ext[..4].ToUpperInvariant() + "…";
     }
 
     /// <summary>드라이브 종류별 아이콘: 내장은 하드 드라이브, 이동식은 USB, 네트워크는 네트워크 모양.</summary>
