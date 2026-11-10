@@ -164,8 +164,8 @@
                                             Opacity="{Binding RowOpacity}" ToolTip.Tip="{Binding Path}">
                                         <StackPanel Margin="4" Spacing="4">
                                             <Grid Width="{Binding IconSize}" Height="{Binding IconSize}" HorizontalAlignment="Center">
-                                                <icons:DuoIcon Icon="{Binding IconName}" ColorKey="{Binding IconColor}"
-                                                               IsVisible="{Binding NoThumbnail}"/>
+                                                <icons:TileIcon Icon="{Binding IconName}" ColorKey="{Binding IconColor}"
+                                                                Badge="{Binding BadgeText}" IsVisible="{Binding NoThumbnail}"/>
                                                 <Image Source="{Binding Thumbnail}" Stretch="Uniform"
                                                        IsVisible="{Binding HasThumbnail}"/>
                                             </Grid>
