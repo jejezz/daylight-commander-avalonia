@@ -91,19 +91,20 @@ public interface IAppStrings
     string RecentNone { get; }
     string RecentClear { get; }
 
-    // 기능 키 바
-    string FnRename { get; }
-    string FnView { get; }
-    string FnEdit { get; }
-    string FnCopy { get; }
-    string FnMove { get; }
-    string FnNewFolder { get; }
-    string FnDelete { get; }
-    string FnNewFile { get; }
-    string FnCompress { get; }
-    string FnExtract { get; }
-    string FnProperties { get; }
-    string FnPatternSelect { get; }
+    // 명령 모음 (앱 바 아래 도구 모음). 단축키는 툴팁에 붙는다
+    string CmdNew { get; }
+    string CmdRename { get; }
+    string CmdView { get; }
+    string CmdEdit { get; }
+    string CmdCopy { get; }
+    string CmdMove { get; }
+    string CmdDelete { get; }
+    string CmdNewFolder { get; }
+    string CmdNewFile { get; }
+    string CmdCompress { get; }
+    string CmdExtract { get; }
+    string CmdProperties { get; }
+    string CmdPatternSelect { get; }
 
     // 대화상자
     string DialogRenameTitle { get; }

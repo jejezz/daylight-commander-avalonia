@@ -121,7 +121,7 @@ public partial class MainWindow : Window
                 {
                     NameMode.Rename => Strings.Current.DialogRenameTitle,
                     NameMode.NewFolder => Strings.Current.DialogNewFolderTitle,
-                    NameMode.Compress => Strings.Current.FnCompress,
+                    NameMode.Compress => Strings.Current.CmdCompress,
                     _ => Strings.Current.DialogNewFileTitle,
                 };
                 // 이름 변경은 확장자를 뺀 이름만 먼저 선택해 둔다.
@@ -383,8 +383,6 @@ public partial class MainWindow : Window
         _home.State.RemoteEditRequested += (path, link) => Avalonia.Threading.Dispatcher.UIThread.Post(() => EditorWindow.Open(path, this, link));
         _home.State.ViewRequested += path => Avalonia.Threading.Dispatcher.UIThread.Post(() => ViewerWindow.Open(path, this));
         _home.State.Queue.ConflictChanged += () => Avalonia.Threading.Dispatcher.UIThread.Post(SyncConflict);
-        // 작업 목록은 기능 키 바 위에 겹쳐 뜨므로 바와 같은 높이를 넘지 않게 한다.
-        Bar.SizeChanged += (_, e) => Operations.MaxHeight = e.NewSize.Height;
         Closed += (_, _) => _home.Dispose();
         AddHandler(KeyDownEvent, OnKeyDown, RoutingStrategies.Tunnel);
         AddHandler(TextInputEvent, OnTextInput, RoutingStrategies.Bubble | RoutingStrategies.Tunnel);

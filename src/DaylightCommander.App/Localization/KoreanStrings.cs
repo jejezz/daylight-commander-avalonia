@@ -77,18 +77,19 @@ public sealed class KoreanStrings : IAppStrings
     public string RecentNone => "최근 방문한 폴더가 없어요";
     public string RecentClear => "최근 방문 지우기";
 
-    public string FnRename => "F2 이름변경";
-    public string FnView => "F3 보기";
-    public string FnEdit => "F4 편집";
-    public string FnCopy => "F5 복사";
-    public string FnMove => "F6 이동";
-    public string FnNewFolder => "F7 새 폴더";
-    public string FnDelete => "F8 삭제";
-    public string FnNewFile => "새 파일 (Ctrl+N)";
-    public string FnCompress => "압축";
-    public string FnExtract => "압축풀기";
-    public string FnProperties => "속성";
-    public string FnPatternSelect => "패턴선택";
+    public string CmdNew => "새로 만들기";
+    public string CmdRename => "이름 변경";
+    public string CmdView => "보기";
+    public string CmdEdit => "편집";
+    public string CmdCopy => "복사";
+    public string CmdMove => "이동";
+    public string CmdDelete => "삭제";
+    public string CmdNewFolder => "새 폴더";
+    public string CmdNewFile => "새 파일";
+    public string CmdCompress => "압축";
+    public string CmdExtract => "압축 풀기";
+    public string CmdProperties => "속성";
+    public string CmdPatternSelect => "패턴 선택";
 
     public string DialogRenameTitle => "이름 변경";
     public string DialogNewFolderTitle => "새 폴더";

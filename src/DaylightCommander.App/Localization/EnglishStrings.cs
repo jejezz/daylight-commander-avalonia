@@ -77,18 +77,19 @@ public sealed class EnglishStrings : IAppStrings
     public string RecentNone => "No recent folders";
     public string RecentClear => "Clear Recent";
 
-    public string FnRename => "F2 Rename";
-    public string FnView => "F3 View";
-    public string FnEdit => "F4 Edit";
-    public string FnCopy => "F5 Copy";
-    public string FnMove => "F6 Move";
-    public string FnNewFolder => "F7 New Folder";
-    public string FnDelete => "F8 Delete";
-    public string FnNewFile => "New File (Ctrl+N)";
-    public string FnCompress => "Compress";
-    public string FnExtract => "Extract";
-    public string FnProperties => "Properties";
-    public string FnPatternSelect => "Pattern Select";
+    public string CmdNew => "New";
+    public string CmdRename => "Rename";
+    public string CmdView => "View";
+    public string CmdEdit => "Edit";
+    public string CmdCopy => "Copy";
+    public string CmdMove => "Move";
+    public string CmdDelete => "Delete";
+    public string CmdNewFolder => "New Folder";
+    public string CmdNewFile => "New File";
+    public string CmdCompress => "Compress";
+    public string CmdExtract => "Extract";
+    public string CmdProperties => "Properties";
+    public string CmdPatternSelect => "Pattern Select";
 
     public string DialogRenameTitle => "Rename";
     public string DialogNewFolderTitle => "New Folder";

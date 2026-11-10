@@ -160,7 +160,7 @@ public partial class DirectoryTreeView : UserControl
         Add(s.TreeMenuPaste, () => vm.Paste(row), enabled: vm.HasClipboard);
         if (!row.IsDrive) Add(s.TreeMenuDelete, () => vm.Delete(row));
         ContextItems.Children.Add(PopupMenus.Separator());
-        Add(s.FnProperties, () => vm.Properties(row));
+        Add(s.CmdProperties, () => vm.Properties(row));
         Add(s.ContextBookmark, () => vm.ToggleBookmark(row));
         Add(s.ContextReveal, () => vm.Reveal(row));
         Add(s.PaneRefreshTooltip, () => _ = vm.ReloadAllAsync());
