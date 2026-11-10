@@ -84,18 +84,19 @@ static class Strings
         Set("BookmarkTooltip", s.BookmarkTooltip);
         Set("RecentTooltip", s.RecentTooltip);
 
-        Set("FnRename", s.FnRename);
-        Set("FnView", s.FnView);
-        Set("FnEdit", s.FnEdit);
-        Set("FnCopy", s.FnCopy);
-        Set("FnMove", s.FnMove);
-        Set("FnNewFolder", s.FnNewFolder);
-        Set("FnDelete", s.FnDelete);
-        Set("FnNewFile", s.FnNewFile);
-        Set("FnCompress", s.FnCompress);
-        Set("FnExtract", s.FnExtract);
-        Set("FnProperties", s.FnProperties);
-        Set("FnPatternSelect", s.FnPatternSelect);
+        Set("CmdNew", s.CmdNew);
+        Set("CmdRename", s.CmdRename);
+        Set("CmdView", s.CmdView);
+        Set("CmdEdit", s.CmdEdit);
+        Set("CmdCopy", s.CmdCopy);
+        Set("CmdMove", s.CmdMove);
+        Set("CmdDelete", s.CmdDelete);
+        Set("CmdNewFolder", s.CmdNewFolder);
+        Set("CmdNewFile", s.CmdNewFile);
+        Set("CmdCompress", s.CmdCompress);
+        Set("CmdExtract", s.CmdExtract);
+        Set("CmdProperties", s.CmdProperties);
+        Set("CmdPatternSelect", s.CmdPatternSelect);
 
         Set("JobsClearFinished", s.JobsClearFinished);
         Set("JobsCancel", s.JobsCancel);

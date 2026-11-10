@@ -238,8 +238,8 @@ public partial class PaneView : UserControl
         Add(s.ContextDelete, act.Delete);
         if (!remote)
         {
-            Add(s.FnCompress, act.Compress);
-            if (single is { IsFile: true } zip && ArchiveService.IsZip(zip.Name)) Add(s.FnExtract, act.Extract);
+            Add(s.CmdCompress, act.Compress);
+            if (single is { IsFile: true } zip && ArchiveService.IsZip(zip.Name)) Add(s.CmdExtract, act.Extract);
         }
         ContextItems.Children.Add(MenuSeparator());
 
