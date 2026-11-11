@@ -66,7 +66,7 @@ public interface IAppStrings
     string PaneOpenError(string error);
     string PaneItemCount(int count);
     string PaneSelectedCount(int count);
-    string DragGhostMore(string first, int others);
+    string DragGhostOthers(int others);
     string PaneFilter(string query);
     string PaneBackTooltip { get; }
     string PaneForwardTooltip { get; }

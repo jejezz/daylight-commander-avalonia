@@ -1,4 +1,4 @@
-using System.Runtime.InteropServices;
+﻿using System.Runtime.InteropServices;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Layout;
@@ -16,7 +16,7 @@ internal sealed partial class DragGhost : IDisposable
     readonly Window _window;
     readonly DispatcherTimer _timer;
 
-    DragGhost(string text, bool folder)
+    DragGhost(string text, string? others, bool folder)
     {
         var res = Application.Current!;
         IBrush Brush(string key, IBrush fallback) =>
@@ -43,18 +43,34 @@ internal sealed partial class DragGhost : IDisposable
                 Padding = new Thickness(10, 5),
                 Opacity = 0.92,
                 MaxWidth = 360,
-                Child = new TextBlock
+                // 이름만 줄여 쓰고 "외 N개"는 항상 보이게 한다.
+                Child = new Grid
                 {
-                    Text = (folder ? "\U0001F4C1 " : "\U0001F4C4 ") + text,
-                    Foreground = Brush("AppTextHi", Brushes.White),
-                    FontSize = 13,
-                    TextTrimming = TextTrimming.CharacterEllipsis,
-                    VerticalAlignment = VerticalAlignment.Center,
+                    ColumnDefinitions = new ColumnDefinitions("*,Auto"),
+                    Children =
+                    {
+                        Label((folder ? "📁 " : "📄 ") + text, 0, Brush("AppTextHi", Brushes.White), true),
+                        Label(others ?? "", 1, Brush("AppTextMid", Brushes.LightGray), false),
+                    },
                 },
             },
         };
         _timer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(16) };
         _timer.Tick += (_, _) => Follow();
+    }
+
+    static TextBlock Label(string text, int column, IBrush foreground, bool trim)
+    {
+        var block = new TextBlock
+        {
+            Text = text,
+            Foreground = foreground,
+            FontSize = 13,
+            VerticalAlignment = VerticalAlignment.Center,
+            TextTrimming = trim ? TextTrimming.CharacterEllipsis : TextTrimming.None,
+        };
+        Grid.SetColumn(block, column);
+        return block;
     }
 
     /// <summary>이름표를 띄운다. 만들 수 없는 환경이면 null (끌기는 그대로 된다).</summary>
@@ -65,8 +81,8 @@ internal sealed partial class DragGhost : IDisposable
         {
             var first = Path.GetFileName(paths[0].TrimEnd('\\', '/'));
             if (first.Length == 0) first = paths[0];
-            var text = paths.Count == 1 ? first : Strings.Current.DragGhostMore(first, paths.Count - 1);
-            var ghost = new DragGhost(text, Directory.Exists(paths[0]));
+            var others = paths.Count == 1 ? null : Strings.Current.DragGhostOthers(paths.Count - 1);
+            var ghost = new DragGhost(first, others, Directory.Exists(paths[0]));
             ghost._window.Show();
             ghost.MakeClickThrough();
             ghost.Follow();
