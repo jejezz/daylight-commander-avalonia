@@ -1,14 +1,12 @@
 # Daylight Commander (Avalonia)
 
-Flutter 원본 `C:\Users\jejez\MyWork\Projects\FLUTTER\daylight-commander-flutter`과 Kotlin/Compose 판
-`C:\Users\jejez\MyWork\Projects\KOTLIN\daylight-commander-compose`(보류 중, 커밋 6291ab4)를 C#/Avalonia로 옮기는 프로젝트.
-계획·결정·위험은 [ROADMAP.md](ROADMAP.md). **지금 위치: A·1~5단계 완료. 6단계(패널 분리)는 보류하고 7단계(뷰어·에디터)를 진행 중 — 7a 뷰어(F3) 완료, 7b 내장 에디터(F4) 구현됨·확인 대기. 제품 마무리 9a(정보·속성·릴리스 워크플로) 구현됨·확인 대기.**
+C#/Avalonia 파일 매니저. 계획·결정·위험은 [ROADMAP.md](ROADMAP.md). **지금 위치: A·1~5단계 완료. 6단계(패널 분리)는 보류하고 7단계(뷰어·에디터)를 진행 중 — 7a 뷰어(F3) 완료, 7b 내장 에디터(F4) 구현됨·확인 대기. 제품 마무리 9a(정보·속성·릴리스 워크플로) 구현됨·확인 대기.**
 
-- **Kotlin 판이 명세다.** 동작·키·문구·테스트를 그대로 옮긴다. 새로 설계하지 않는다.
-- **Look and feel은 최초 Flutter 앱과 동일**하게 (UI_UX.md, 규약 `conventions/ui-ux.md`, `theming.md`). 색은 `{DynamicResource AppBg...}`로만 읽는다.
+- **이 프로젝트가 기준이다.** 예전 Flutter·Kotlin 판은 더 이상 명세가 아니며 참고하지 않는다. 동작 판단은 현재 코드와 사용자 요청에 따른다.
+- **Look and feel**은 UI_UX.md, 규약 `conventions/ui-ux.md`, `theming.md`를 따른다. 색은 `{DynamicResource AppBg...}`로만 읽는다.
 - **창 정책**: 독립 `Window`가 이로우면 대화상자 대신 창으로 (설정·뷰어·편집기·터미널·작업 목록). 짧은 모달 질문은 대화상자.
-- 구조: `Presentation(App) → Services → Domain ← Data`. 프로젝트로 나눠 의존 방향을 컴파일러가 지킨다. `Services`는 Kotlin 판의
-  application 계층(Avalonia의 `Application` 클래스와 이름 충돌을 피함). Domain/Services/Data/App/Tests 프로젝트가 있다.
+- 구조: `Presentation(App) → Services → Domain ← Data`. 프로젝트로 나눠 의존 방향을 컴파일러가 지킨다. `Services`는 application 계층이다
+  (Avalonia의 `Application` 클래스와 이름 충돌을 피함). Domain/Services/Data/App/Tests 프로젝트가 있다.
 - **NativeAOT가 기본 배포 형태.** 의존성을 추가할 때마다 `scripts\publish-aot.ps1`로 AOT 게시가 되는지 확인한다.
   JSON은 `System.Text.Json` 소스 생성기, P/Invoke는 `LibraryImport`. 뷰모델은 `CommunityToolkit.Mvvm`.
 - 정체성·버전은 `Directory.Build.props` 하나 (`AppIdentity`/`AppVersion`이 어셈블리 메타데이터로 읽음).
