@@ -1,4 +1,4 @@
-using CommunityToolkit.Mvvm.ComponentModel;
+﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using DaylightCommander.Domain;
 using DaylightCommander.Domain.Settings;
@@ -213,6 +213,8 @@ public partial class PaneViewModel : ObservableObject, IDisposable
     {
         var text = Strings.Current.PaneItemCount(s.VisibleEntries.Count);
         var picked = s.VisibleEntries.Where(e => s.Selected.Contains(e.Path)).ToList();
+        // 표시한 항목이 없으면 커서가 놓인 항목 하나를 고른 것으로 본다 (한 개를 눌러 고른 경우).
+        if (picked.Count == 0 && s.CursorEntry is { } current) picked.Add(current);
         if (picked.Count == 0) return text;
         text += " · " + Strings.Current.PaneSelectedCount(picked.Count);
         var bytes = picked.Sum(e => e.SizeBytes ?? 0L);
