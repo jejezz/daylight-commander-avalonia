@@ -1,4 +1,4 @@
-using Avalonia.Controls;
+﻿using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
 using Avalonia.Input;
 using Avalonia.Input.Platform;
@@ -170,6 +170,7 @@ public partial class PaneView : UserControl
         _dragging = true;
         _pressArgs = null;
         _clickDeferred = false;
+        DragGhost? ghost = null;
         try
         {
             var picked = vm.Items.Where(x => x.IsSelected).Select(x => x.Path).ToList();
@@ -178,10 +179,12 @@ public partial class PaneView : UserControl
             DragSession.Drives = new ListDrives().Invoke();
 
             var data = await DragSession.BuildDataAsync(this, paths);
+            ghost = DragGhost.Show(paths);
             await DragDrop.DoDragDropAsync(pressed, data, DragDropEffects.Copy | DragDropEffects.Move);
         }
         finally
         {
+            ghost?.Dispose();
             DragSession.Paths = null;
             DragSession.Drives = null;
             _dragging = false;

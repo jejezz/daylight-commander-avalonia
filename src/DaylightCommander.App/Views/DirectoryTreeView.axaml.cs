@@ -1,4 +1,4 @@
-using Avalonia;
+﻿using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Data.Converters;
 using Avalonia.Input;
@@ -110,14 +110,17 @@ public partial class DirectoryTreeView : UserControl
         _pressRow = null;
         if (row.IsDrive) return; // 드라이브 루트는 끌 수 없다
         _dragging = true;
+        DragGhost? ghost = null;
         try
         {
             DragSession.Paths = [row.Path];
             var data = await DragSession.BuildDataAsync(this, [row.Path]);
+            ghost = DragGhost.Show([row.Path]);
             await DragDrop.DoDragDropAsync(pressed, data, DragDropEffects.Copy | DragDropEffects.Move);
         }
         finally
         {
+            ghost?.Dispose();
             DragSession.Paths = null;
             _dragging = false;
             SetDropRow(null);

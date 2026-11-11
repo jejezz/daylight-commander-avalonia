@@ -53,6 +53,7 @@ public sealed class KoreanStrings : IAppStrings
     public string PaneOpenError(string error) => $"열 수 없어요: {error} (눌러서 닫기)";
     public string PaneItemCount(int count) => $"{count}개 항목";
     public string PaneSelectedCount(int count) => $"선택 {count}개";
+    public string DragGhostMore(string first, int others) => $"{first} 외 {others}개";
     public string PaneFilter(string query) => $"필터: {query}";
     public string PaneBackTooltip => "뒤로";
     public string PaneForwardTooltip => "앞으로";

@@ -8,6 +8,7 @@
     <!-- 실행 파일(탐색기·작업 표시줄)의 아이콘 -->
     <ApplicationIcon>Assets/app_icon.ico</ApplicationIcon>
     <AvaloniaUseCompiledBindingsByDefault>true</AvaloniaUseCompiledBindingsByDefault>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <!-- Linux에서는 ICU 라이브러리가 없는 PC에서도 시작되게 한다 (NativeAOT 앱은 ICU를 실행할 때 찾는다). 이 앱은 문화권별 정렬·서식을
          쓰지 않는다(이름 정렬은 Ordinal). -->
     <InvariantGlobalization Condition="$(RuntimeIdentifier.StartsWith('linux'))">true</InvariantGlobalization>
