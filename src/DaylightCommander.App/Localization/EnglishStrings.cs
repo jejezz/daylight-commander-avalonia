@@ -53,7 +53,7 @@ public sealed class EnglishStrings : IAppStrings
     public string PaneOpenError(string error) => $"Can't open: {error} (click to dismiss)";
     public string PaneItemCount(int count) => count == 1 ? "1 item" : $"{count} items";
     public string PaneSelectedCount(int count) => $"{count} selected";
-    public string DragGhostMore(string first, int others) => $"{first} and {others} more";
+    public string DragGhostOthers(int others) => $" and {others} more";
     public string PaneFilter(string query) => $"Filter: {query}";
     public string PaneBackTooltip => "Back";
     public string PaneForwardTooltip => "Forward";
