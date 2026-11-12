@@ -298,9 +298,36 @@
             <Setter Property="Padding" Value="12,0" />
         </Style>
 
-        <!-- 짧은 질문 창: 패널보다 한 단계 띄운 색 (원본 결정) -->
+        <!-- 창 크롬 정책 A(인-윈도 모달): 타이틀바 없는 창에 앱이 둥근 테두리를 그린다. 원문은 CLAUDE.md의 "창 크롬·단추 정책" 참고 -->
         <Style Selector="Window.dialog">
-            <Setter Property="Background" Value="{DynamicResource AppSurfaceHi}" />
+            <Setter Property="Template">
+                <ControlTemplate>
+                    <Border Background="{DynamicResource AppSurfaceHi}" BorderBrush="{DynamicResource AppStrokeStrong}"
+                            BorderThickness="1" CornerRadius="12" ClipToBounds="True">
+                        <VisualLayerManager>
+                            <ContentPresenter Name="PART_ContentPresenter" Content="{TemplateBinding Content}"
+                                              ContentTemplate="{TemplateBinding ContentTemplate}" />
+                        </VisualLayerManager>
+                    </Border>
+                </ControlTemplate>
+            </Setter>
+        </Style>
+
+        <!-- 단추 정책 §5 (단추 스타일은 여기 한 곳에서만 정한다):
+             주 동작 = Button.accent(채운 알약, 맨 오른쪽), 보조 동작 = 대화상자 안의 그 밖의 단추(배경 없는 강조색 글자).
+             Button.text는 대화상자 밖(예: 창 본문)에서 같은 글자 단추가 필요할 때 붙인다. -->
+        <Style Selector="Window.dialog Button:not(.accent):not(.tool):not(.cmd), Button.text">
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="BorderThickness" Value="0" />
+            <Setter Property="Foreground" Value="{DynamicResource AppPrimary}" />
+            <Setter Property="Padding" Value="12,6" />
+        </Style>
+        <Style Selector="Window.dialog Button:not(.accent):not(.tool):not(.cmd):pointerover /template/ ContentPresenter#PART_ContentPresenter, Button.text:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+            <Setter Property="Background" Value="{DynamicResource AppHover}" />
+            <Setter Property="Foreground" Value="{DynamicResource AppPrimary}" />
+        </Style>
+        <Style Selector="Window.dialog Button:not(.accent):not(.tool):not(.cmd):disabled /template/ ContentPresenter#PART_ContentPresenter, Button.text:disabled /template/ ContentPresenter#PART_ContentPresenter">
+            <Setter Property="Background" Value="Transparent" />
         </Style>
 
         <!-- 명령 모음 버튼 (Windows 11 탐색기 방식): 납작한 투명 버튼, 높이 30, 아이콘은 주색. 마우스를 올리면 옅게 깔린다 -->

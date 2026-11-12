@@ -24,4 +24,12 @@ C#/Avalonia 파일 매니저. 계획·결정·위험은 [ROADMAP.md](ROADMAP.md)
   저장소 이름(`AppIdentity.UpdateAppId`). 자동 확인은 시작 5초 뒤 하루 1회, 수동은 정보 창의 [업데이트 확인].
 - 임시 시험 코드는 5단계에서 모두 지웠다 (`Trace`, 모드·색 순환 버튼, 뷰어 창). 뷰어는 7단계.
 
+## 창 크롬(타이틀바)·대화상자 단추 정책
 
+원문: `snapdock-flutter/docs/WINDOW_CHROME.md` (Daylight 앱 공통, 여기에 복사하지 않는다. 규약은 application-release-templates `conventions/`의 UI 문서 참고). 요약:
+
+- 사용자가 "다른 창"으로 따로 놓고 쓰면 OS 창(타이틀바 있음), 하던 일에 딸린 질문·정보면 타이틀바 없는 모달.
+- **A 인-윈도 모달**(정보, 확인·취소·삭제·이름 입력·충돌·연결·패턴 선택, 업데이트 확인/진행/안내, 오류) = `DialogBase`를 상속한다. 타이틀바 없음, 둥근 테두리(`App.axaml`의 `Window.dialog` 템플릿), 가로 최대 440 내외, Esc로 닫기(진행 창은 `OnEscape` 덮어쓰기), 제목은 본문 첫 줄에만 둔다. 새 대화상자를 일반 `Window`로 만들지 않는다.
+- **B 독립 창**(뷰어·편집기·설정·속성·라이선스 목록) = OS 타이틀바 그대로. **C** 메인 창. 경계가 애매하면 A로 시작.
+- 단추(`App.axaml` 한 곳에서만 정의): 주 동작 하나는 `Button.accent`(채운 알약, 맨 오른쪽), 보조 동작은 대화상자 안에서 자동으로 배경 없는 강조색 글자 단추(`Window.dialog` 안 일반 `Button`, 밖에서는 `Classes="text"`). 보조 동작을 회색 칩으로 그리지 않는다. 파괴 동작은 `accent danger`.
+- 별도 스크림(부모 어둡게)은 아직 없다 — 대화상자는 borderless `Window`(CenterOwner, 작업 표시줄 없음)이다.

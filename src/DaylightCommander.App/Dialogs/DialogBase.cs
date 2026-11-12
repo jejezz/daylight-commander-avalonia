@@ -15,9 +15,21 @@ public abstract class DialogBase : Window
         SizeToContent = SizeToContent.WidthAndHeight;
         CanResize = false;
         ShowInTaskbar = false;
+        // 창 크롬 정책 A(인-윈도 모달): OS 타이틀바 없이 앱이 둥근 테두리를 직접 그린다 (App.axaml의 Window.dialog 템플릿).
+        // 제목은 본문 첫 줄이 맡고, 닫기는 Esc 또는 단추로 한다.
+        WindowDecorations = Avalonia.Controls.WindowDecorations.None;
+        TransparencyLevelHint = [WindowTransparencyLevel.Transparent];
+        Background = Avalonia.Media.Brushes.Transparent;
         WindowStartupLocation = WindowStartupLocation.CenterOwner;
         Classes.Add("dialog");
+        KeyDown += (_, e) =>
+        {
+            if (e.Key == Avalonia.Input.Key.Escape) { OnEscape(); e.Handled = true; }
+        };
     }
+
+    /// <summary>Esc를 눌렀을 때. 기본은 사용자가 닫은 것으로 본다. 닫으면 안 되는 진행 창은 덮어쓴다.</summary>
+    protected virtual void OnEscape() => Close();
 
     /// <summary>사용자가 확정하지 않고 창을 닫았다.</summary>
     public event Action? Dismissed;
