@@ -55,11 +55,9 @@ sealed class UpdateDownloadDialog : DialogBase
         cancel.Click += (_, _) => _cts.Cancel();
         Content = new StackPanel { Margin = new Thickness(24), Spacing = 10, Children = { _title, _bar, _progress, cancel } };
         Dismissed += () => _cts.Cancel();
-        KeyDown += (_, e) =>
-        {
-            if (e.Key == Key.Escape) { _cts.Cancel(); e.Handled = true; }
-        };
     }
+
+    protected override void OnEscape() => _cts.Cancel();
 
     void Report(long received, long total) => Avalonia.Threading.Dispatcher.UIThread.Post(() =>
     {
@@ -89,8 +87,9 @@ sealed class UpdateCheckingDialog : DialogBase
                 new ProgressBar { IsIndeterminate = true },
             },
         };
-        KeyDown += (_, e) => e.Handled = true;
     }
+
+    protected override void OnEscape() { }
 }
 
 static class UpdateText
