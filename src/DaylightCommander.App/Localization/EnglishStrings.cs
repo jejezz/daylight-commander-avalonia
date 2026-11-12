@@ -222,6 +222,8 @@ public sealed class EnglishStrings : IAppStrings
     public string UpdateAvailableTitle => "A new version is available";
     public string UpdateAvailableBody(string appName, string current, string latest) => $"{appName} {latest} is available. You have {current}.";
     public string UpdateReleaseNotes => "What's new";
+    public string UpdateMoreChanges(int count) => count == 1 ? "and 1 more" : $"and {count} more";
+    public string UpdateViewReleaseNotes => "Release notes";
     public string UpdateNow => "Update now";
     public string UpdateLater => "Later";
     public string UpdateSkipVersion => "Skip this version";
