@@ -222,6 +222,8 @@ public sealed class KoreanStrings : IAppStrings
     public string UpdateAvailableTitle => "새 버전이 있습니다";
     public string UpdateAvailableBody(string appName, string current, string latest) => $"{appName} {latest} 버전이 나왔습니다. (현재 {current})";
     public string UpdateReleaseNotes => "변경 내용";
+    public string UpdateMoreChanges(int count) => $"외 {count}건";
+    public string UpdateViewReleaseNotes => "릴리스 노트 보기";
     public string UpdateNow => "지금 업데이트";
     public string UpdateLater => "나중에";
     public string UpdateSkipVersion => "이 버전 건너뛰기";

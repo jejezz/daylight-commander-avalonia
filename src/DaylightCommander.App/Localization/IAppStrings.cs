@@ -225,6 +225,8 @@ public interface IAppStrings
     string UpdateAvailableTitle { get; }
     string UpdateAvailableBody(string appName, string current, string latest);
     string UpdateReleaseNotes { get; }
+    string UpdateMoreChanges(int count);
+    string UpdateViewReleaseNotes { get; }
     string UpdateNow { get; }
     string UpdateLater { get; }
     string UpdateSkipVersion { get; }
