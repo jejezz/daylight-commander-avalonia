@@ -223,6 +223,9 @@ public partial class MainWindow : Window
                 case Key.R: _ = c.RefreshAsync(); break;
                 case Key.N: _home.State.RequestName(NameMode.NewFile); break;
                 case Key.D: _home.State.DuplicateInPlace(); break; // 여기에 복제
+                case Key.C when !shift: _ = FileClipboardBridge.CopySelectionAsync(this, _home.State, cut: false); break; // 클립보드 (탐색기와 주고받는다)
+                case Key.X when !shift: _ = FileClipboardBridge.CopySelectionAsync(this, _home.State, cut: true); break;
+                case Key.V when !shift: _ = FileClipboardBridge.PasteAsync(this, _home.State, _home.ActivePane.CurrentPath); break;
                 case Key.D1 when shift: _home.ActivePane.SetViewMode(Domain.Settings.PaneViewMode.List); break; // 보기 방식
                 case Key.D2 when shift: _home.ActivePane.SetViewMode(Domain.Settings.PaneViewMode.SmallThumbs); break;
                 case Key.D3 when shift: _home.ActivePane.SetViewMode(Domain.Settings.PaneViewMode.LargeThumbs); break;

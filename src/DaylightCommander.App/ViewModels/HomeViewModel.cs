@@ -162,6 +162,14 @@ public sealed partial class HomeViewModel : ObservableObject, IDisposable
             Extract: On(() => _ = State.ExtractAsync()),
             Reveal: path => State.RevealInFileManager(path, side),
             ToggleBookmark: OnPath(_settings.ToggleBookmark),
+            ClipboardCopy: (visual, cut) => { State.Activate(side); return FileClipboardBridge.CopySelectionAsync(visual, State, cut); },
+            ClipboardPaste: visual =>
+            {
+                State.Activate(side);
+                return FileClipboardBridge.PasteAsync(visual, State, (side == PaneSide.Left ? Left : Right).CurrentPath);
+            },
+            CanPaste: visual => FileClipboardBridge.CanPasteAsync(visual, State),
+            NewFolder: On(() => State.RequestName(NameMode.NewFolder)),
             Drop: (paths, destination, mode) => State.Drop(paths, destination, mode, side),
             Connect: (profile, scheme) => { State.Activate(side); State.RequestConnect(profile, scheme); },
             Disconnect: server => _ = State.DisconnectAsync(server),

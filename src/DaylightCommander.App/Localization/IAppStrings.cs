@@ -288,6 +288,10 @@ public interface IAppStrings
     string ContextRename { get; }
     string ContextCopy { get; }
     string ContextDuplicate { get; }
+    /// <summary>패널 우클릭 메뉴의 클립보드 동작 (단축키를 함께 보인다).</summary>
+    string ContextClipboardCut { get; }
+    string ContextClipboardCopy { get; }
+    string ContextClipboardPaste { get; }
     string ContextMove { get; }
     string ContextDelete { get; }
     string ContextProperties { get; }

@@ -191,6 +191,64 @@ public sealed class DropTests : IAsyncLifetime
         await WaitQueueIdle();
     }
 
+    // --- 클립보드 (Ctrl+C·X·V) ---
+
+    [Fact]
+    public async Task 복사한_선택을_반대_패널에_붙이면_복사되고_클립보드는_남는다()
+    {
+        _home.Left.ClickEntry(L("a.txt"), ctrl: true);
+        _home.Left.ClickEntry(L("b.txt"), ctrl: true);
+        var copied = _home.CopySelectionToClipboard(cut: false);
+        Assert.Equal([L("a.txt"), L("b.txt")], copied);
+
+        _home.PasteClipboard(_right);
+        await WaitQueueIdle();
+        Assert.Equal("A", File.ReadAllText(R("a.txt")));
+        Assert.Equal("B", File.ReadAllText(R("b.txt")));
+        Assert.True(File.Exists(L("a.txt")));
+        Assert.NotNull(_home.Clipboard);
+    }
+
+    [Fact]
+    public async Task 잘라낸_항목을_붙이면_묻지_않고_옮기고_클립보드가_비워진다()
+    {
+        _home.Left.ClickEntry(L("a.txt"));
+        _home.CopySelectionToClipboard(cut: true);
+        _home.PasteClipboard(_right);
+        Assert.Null(_home.Dialog); // 이동 확인 대화상자 없이
+        await WaitQueueIdle();
+        Assert.True(File.Exists(R("a.txt")));
+        Assert.False(File.Exists(L("a.txt")));
+        Assert.Null(_home.Clipboard);
+    }
+
+    [Fact]
+    public async Task 복사한_항목을_같은_폴더에_붙이면_이름_1로_복제한다()
+    {
+        _home.Left.ClickEntry(L("a.txt"));
+        _home.CopySelectionToClipboard(cut: false);
+        _home.PasteClipboard(_left);
+        await WaitQueueIdle();
+        Assert.Equal("A", File.ReadAllText(L("a (1).txt")));
+    }
+
+    [Fact]
+    public void 담을_항목이_없으면_클립보드는_그대로다()
+    {
+        using var empty = new HomeState(_root, _right, (p, ct) => _lister.InvokeAsync(p, ct));
+        Assert.Empty(empty.CopySelectionToClipboard(cut: true)); // 아직 목록을 읽지 않아 커서가 없다
+        Assert.Null(empty.Clipboard);
+    }
+
+    [Fact]
+    public async Task 바깥_앱에서_복사한_파일은_복사로_붙인다()
+    {
+        _home.PasteExternal([L("a.txt")], _right);
+        await WaitQueueIdle();
+        Assert.True(File.Exists(R("a.txt")));
+        Assert.True(File.Exists(L("a.txt")));
+    }
+
     // --- 복제·파일 관리자에서 보기 ---
 
     [Fact]
