@@ -169,14 +169,11 @@ public sealed partial class DirectoryTreeViewModel : ObservableObject
 
     // --- 폴더에 하는 동작 (우클릭 메뉴·끌어다 놓기). 모두 활성 패널을 기준으로 한다. ---
 
-    public bool HasClipboard => _state.TreeClipboard is not null;
+    public HomeState State => _state;
 
     public void Open(TreeRow row) => Select(row);
     public void NewFolder(TreeRow row) => _state.RequestNewFolderIn(row.Path);
     public void Rename(TreeRow row) => _state.RequestRenamePath(row.Path);
-    public void Copy(TreeRow row) => _state.CopyToTreeClipboard(row.Path, cut: false);
-    public void Cut(TreeRow row) => _state.CopyToTreeClipboard(row.Path, cut: true);
-    public void Paste(TreeRow row) => _state.PasteTreeClipboard(row.Path);
     public void Delete(TreeRow row) => _state.RequestDeletePaths([row.Path]);
     public void Properties(TreeRow row) => _state.RequestPropertiesOf([row.Path]);
     public void ToggleBookmark(TreeRow row) => _toggleBookmark(row.Path);

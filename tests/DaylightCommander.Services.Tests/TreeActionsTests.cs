@@ -51,37 +51,37 @@ public sealed class TreeActionsTests : IAsyncLifetime
     [Fact]
     public async Task 복사한_폴더를_다른_폴더에_붙이면_복사되고_클립보드는_남는다()
     {
-        _home.CopyToTreeClipboard(L("dir"), cut: false);
-        _home.PasteTreeClipboard(_right);
+        _home.CopyToClipboard([L("dir")], cut: false);
+        _home.PasteClipboard(_right);
         await WaitQueueIdle();
         Assert.True(File.Exists(Path.Combine(_right, "dir", "inner.txt")));
         Assert.True(Directory.Exists(L("dir")));
-        Assert.NotNull(_home.TreeClipboard);
+        Assert.NotNull(_home.Clipboard);
     }
 
     [Fact]
     public async Task 잘라낸_폴더를_붙이면_옮겨지고_클립보드가_비워진다()
     {
-        _home.CopyToTreeClipboard(L("dir"), cut: true);
-        _home.PasteTreeClipboard(_right);
+        _home.CopyToClipboard([L("dir")], cut: true);
+        _home.PasteClipboard(_right);
         await WaitQueueIdle();
         Assert.True(File.Exists(Path.Combine(_right, "dir", "inner.txt")));
         Assert.False(Directory.Exists(L("dir")));
-        Assert.Null(_home.TreeClipboard);
+        Assert.Null(_home.Clipboard);
     }
 
     [Fact]
     public void 클립보드가_비어_있으면_붙여넣기는_아무것도_하지_않는다()
     {
-        _home.PasteTreeClipboard(_right);
+        _home.PasteClipboard(_right);
         Assert.Empty(_home.Queue.Jobs);
     }
 
     [Fact]
     public void 폴더를_자기_안에_붙이면_작업_대신_오류다()
     {
-        _home.CopyToTreeClipboard(L("dir"), cut: true);
-        _home.PasteTreeClipboard(L("dir/sub"));
+        _home.CopyToClipboard([L("dir")], cut: true);
+        _home.PasteClipboard(L("dir/sub"));
         Assert.Empty(_home.Queue.Jobs);
         Assert.Equal(new FileError.IntoItself("dir"), _home.Left.State.Error);
     }

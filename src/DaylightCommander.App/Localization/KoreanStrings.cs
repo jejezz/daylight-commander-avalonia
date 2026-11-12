@@ -284,6 +284,9 @@ public sealed class KoreanStrings : IAppStrings
     public string ContextRename => "이름 변경 (F2)";
     public string ContextCopy => "복사 → 반대 패널 (F5)";
     public string ContextDuplicate => "여기에 복제 (Ctrl+D)";
+    public string ContextClipboardCut => "잘라내기 (Ctrl+X)";
+    public string ContextClipboardCopy => "복사 (Ctrl+C)";
+    public string ContextClipboardPaste => "붙여넣기 (Ctrl+V)";
     public string ContextMove => "이동 → 반대 패널 (F6)";
     public string ContextDelete => "삭제 (F8)";
     public string ContextProperties => "속성 (Alt+Enter)";

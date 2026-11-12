@@ -284,6 +284,9 @@ public sealed class EnglishStrings : IAppStrings
     public string ContextRename => "Rename (F2)";
     public string ContextCopy => "Copy to Other Pane (F5)";
     public string ContextDuplicate => "Duplicate Here (Ctrl+D)";
+    public string ContextClipboardCut => "Cut (Ctrl+X)";
+    public string ContextClipboardCopy => "Copy (Ctrl+C)";
+    public string ContextClipboardPaste => "Paste (Ctrl+V)";
     public string ContextMove => "Move to Other Pane (F6)";
     public string ContextDelete => "Delete (F8)";
     public string ContextProperties => "Properties (Alt+Enter)";

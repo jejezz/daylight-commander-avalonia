@@ -147,9 +147,10 @@ public partial class DirectoryTreeView : UserControl
 
     // --- 우클릭 메뉴 ---
 
-    void ShowContextMenu(DirectoryTreeViewModel vm, TreeRow row)
+    async void ShowContextMenu(DirectoryTreeViewModel vm, TreeRow row)
     {
         var s = Strings.Current;
+        var canPaste = await FileClipboardBridge.CanPasteAsync(this, vm.State);
         ContextItems.Children.Clear();
         void Add(string text, Action action, bool enabled = true) =>
             ContextItems.Children.Add(PopupMenus.Row(text, action, ContextPopup, enabled));
@@ -158,9 +159,9 @@ public partial class DirectoryTreeView : UserControl
         Add(s.DialogNewFolderTitle, () => vm.NewFolder(row));
         if (!row.IsDrive) Add(s.DialogRenameTitle, () => vm.Rename(row));
         ContextItems.Children.Add(PopupMenus.Separator());
-        if (!row.IsDrive) Add(s.TreeMenuCut, () => vm.Cut(row));
-        Add(s.TreeMenuCopy, () => vm.Copy(row));
-        Add(s.TreeMenuPaste, () => vm.Paste(row), enabled: vm.HasClipboard);
+        if (!row.IsDrive) Add(s.TreeMenuCut, () => _ = FileClipboardBridge.CopyAsync(this, vm.State, [row.Path], cut: true));
+        Add(s.TreeMenuCopy, () => _ = FileClipboardBridge.CopyAsync(this, vm.State, [row.Path], cut: false));
+        Add(s.TreeMenuPaste, () => _ = FileClipboardBridge.PasteAsync(this, vm.State, row.Path), enabled: canPaste);
         if (!row.IsDrive) Add(s.TreeMenuDelete, () => vm.Delete(row));
         ContextItems.Children.Add(PopupMenus.Separator());
         Add(s.CmdProperties, () => vm.Properties(row));
