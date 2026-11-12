@@ -1,0 +1,98 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:icons="using:DaylightCommander.App.Icons"
+             xmlns:vm="using:DaylightCommander.App.ViewModels"
+             x:Class="DaylightCommander.App.Views.CommandBar"
+             x:DataType="vm:HomeViewModel">
+    <!-- 앱 바 아래 명령 모음 (Windows 11 탐색기 방식). 예전 하단 F-키 두 줄을 대신한다. 단축키는 그대로이고 툴팁에 적는다.
+         자주 쓰는 파일 조작(이름 변경·복사·이동·삭제)은 아이콘만, 나머지는 아이콘+글자. 새 폴더·새 파일은 [새로 만들기] 아래에 묶는다. -->
+    <Border Background="{DynamicResource AppSurface}" BorderBrush="{DynamicResource AppStroke}"
+            BorderThickness="0,0,0,1" Padding="8,4">
+        <Grid ColumnDefinitions="*,Auto">
+            <StackPanel Orientation="Horizontal" Spacing="2" ClipToBounds="True">
+                <Button Classes="cmd">
+                    <Button.Flyout>
+                        <MenuFlyout Placement="BottomEdgeAlignedLeft">
+                            <MenuItem Header="{DynamicResource Str.CmdNewFolder}" InputGesture="F7" Command="{Binding NewFolderCommand}">
+                                <MenuItem.Icon><icons:DuoIcon Icon="folder-plus" ColorKey="AppPrimary"/></MenuItem.Icon>
+                            </MenuItem>
+                            <MenuItem Header="{DynamicResource Str.CmdNewFile}" InputGesture="Ctrl+N" Command="{Binding NewFileCommand}">
+                                <MenuItem.Icon><icons:DuoIcon Icon="file-plus" ColorKey="AppPrimary"/></MenuItem.Icon>
+                            </MenuItem>
+                        </MenuFlyout>
+                    </Button.Flyout>
+                    <StackPanel Orientation="Horizontal" Spacing="6">
+                        <icons:DuoIcon Icon="new"/>
+                        <TextBlock Text="{DynamicResource Str.CmdNew}"/>
+                        <icons:DuoIcon Icon="caret-down" Classes="caret"/>
+                    </StackPanel>
+                </Button>
+
+                <Border Classes="cmdsep"/>
+
+                <Button Classes="cmd icon" Command="{Binding RenameCommand}" IsEnabled="{Binding HasTarget}">
+                    <ToolTip.Tip><TextBlock><Run Text="{DynamicResource Str.CmdRename}"/><Run Text=" (F2)"/></TextBlock></ToolTip.Tip>
+                    <icons:DuoIcon Icon="rename"/>
+                </Button>
+                <Button Classes="cmd icon" Command="{Binding CopyCommand}" IsEnabled="{Binding HasTarget}">
+                    <ToolTip.Tip><TextBlock><Run Text="{DynamicResource Str.CmdCopy}"/><Run Text=" (F5)"/></TextBlock></ToolTip.Tip>
+                    <icons:DuoIcon Icon="copy"/>
+                </Button>
+                <Button Classes="cmd icon" Command="{Binding MoveCommand}" IsEnabled="{Binding HasTarget}">
+                    <ToolTip.Tip><TextBlock><Run Text="{DynamicResource Str.CmdMove}"/><Run Text=" (F6)"/></TextBlock></ToolTip.Tip>
+                    <icons:DuoIcon Icon="move"/>
+                </Button>
+                <Button Classes="cmd icon" Command="{Binding DeleteCommand}" IsEnabled="{Binding HasTarget}">
+                    <ToolTip.Tip><TextBlock><Run Text="{DynamicResource Str.CmdDelete}"/><Run Text=" (F8)"/></TextBlock></ToolTip.Tip>
+                    <icons:DuoIcon Icon="delete" ColorKey="AppDanger"/>
+                </Button>
+
+                <Border Classes="cmdsep"/>
+
+                <Button Classes="cmd" Command="{Binding ViewCommand}" IsEnabled="{Binding CanView}" ToolTip.Tip="F3">
+                    <StackPanel Orientation="Horizontal" Spacing="6">
+                        <icons:DuoIcon Icon="visible"/>
+                        <TextBlock Text="{DynamicResource Str.CmdView}"/>
+                    </StackPanel>
+                </Button>
+                <Button Classes="cmd" Command="{Binding EditCommand}" IsEnabled="{Binding CanEdit}" ToolTip.Tip="F4">
+                    <StackPanel Orientation="Horizontal" Spacing="6">
+                        <icons:DuoIcon Icon="edit"/>
+                        <TextBlock Text="{DynamicResource Str.CmdEdit}"/>
+                    </StackPanel>
+                </Button>
+
+                <Border Classes="cmdsep"/>
+
+                <Button Classes="cmd" Command="{Binding CompressCommand}" IsEnabled="{Binding HasTarget}">
+                    <StackPanel Orientation="Horizontal" Spacing="6">
+                        <icons:DuoIcon Icon="compress"/>
+                        <TextBlock Text="{DynamicResource Str.CmdCompress}"/>
+                    </StackPanel>
+                </Button>
+                <Button Classes="cmd" Command="{Binding ExtractCommand}">
+                    <StackPanel Orientation="Horizontal" Spacing="6">
+                        <icons:DuoIcon Icon="extract"/>
+                        <TextBlock Text="{DynamicResource Str.CmdExtract}"/>
+                    </StackPanel>
+                </Button>
+
+                <Border Classes="cmdsep"/>
+
+                <Button Classes="cmd" Command="{Binding PropertiesCommand}" IsEnabled="{Binding HasTarget}" ToolTip.Tip="Alt+Enter">
+                    <StackPanel Orientation="Horizontal" Spacing="6">
+                        <icons:DuoIcon Icon="properties"/>
+                        <TextBlock Text="{DynamicResource Str.CmdProperties}"/>
+                    </StackPanel>
+                </Button>
+            </StackPanel>
+
+            <Button Grid.Column="1" Classes="cmd" Command="{Binding PatternSelectCommand}">
+                <StackPanel Orientation="Horizontal" Spacing="6">
+                    <icons:DuoIcon Icon="pattern-select"/>
+                    <TextBlock Text="{DynamicResource Str.CmdPatternSelect}"/>
+                </StackPanel>
+            </Button>
+        </Grid>
+    </Border>
+</UserControl>

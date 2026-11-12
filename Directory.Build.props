@@ -3,13 +3,16 @@
        Kotlin 판의 gradle.properties(app.*)에 해당. AppId는 릴리스 후 바꾸지 않는다.
        MAJOR는 1 이상 (macOS 패키징이 0.y.z를 거부). -->
   <PropertyGroup>
-    <AppVersion>1.0.0</AppVersion>
+    <AppVersion>1.4.2</AppVersion>
     <AppBuild>1</AppBuild>
     <AppId>art.zoomon.daylightcommander.avalonia</AppId>
     <AppDisplayName>Daylight Commander</AppDisplayName>
     <AppFileName>DaylightCommander</AppFileName>
     <AppCopyrightHolder>Jongyun Ahn</AppCopyrightHolder>
     <AppFirstReleaseYear>2026</AppFirstReleaseYear>
+    <!-- 업데이트 서버 (introduce-public-repos의 /api/update). 단지(장비)마다 호스트가 다르면 빌드 때
+         -p:AppUpdateServer=https://…/repos 로 바꾼다. 빈 값이면 업데이트 확인을 끈다. https만 받는다. -->
+    <AppUpdateServer Condition="'$(AppUpdateServer)' == ''">https://c-a3f19c04.rtc.zoomon.art/repos</AppUpdateServer>
   </PropertyGroup>
 
   <PropertyGroup>
@@ -33,5 +36,6 @@
     <AssemblyMetadata Include="AppFirstReleaseYear" Value="$(AppFirstReleaseYear)" />
     <AssemblyMetadata Include="AppVersion" Value="$(AppVersion)" />
     <AssemblyMetadata Include="AppBuild" Value="$(AppBuild)" />
+    <AssemblyMetadata Include="AppUpdateServer" Value="$(AppUpdateServer)" />
   </ItemGroup>
 </Project>

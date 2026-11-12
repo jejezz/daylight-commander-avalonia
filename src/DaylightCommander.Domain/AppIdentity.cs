@@ -37,4 +37,10 @@ public static class AppIdentity
     public const string RepositoryUrl = "https://github.com/jejezz/daylight-commander-avalonia";
 
     public const string LicenseName = "MIT License";
+
+    /// <summary>업데이트 서버 주소. 빈 값이면 업데이트 확인을 끈다. 원본은 Directory.Build.props의 AppUpdateServer.</summary>
+    public static string UpdateServerUrl { get; } = Get("AppUpdateServer")?.Trim() ?? "";
+
+    /// <summary>서버가 앱을 아는 이름 = 저장소 이름 (<see cref="RepositoryUrl"/>의 마지막 경로).</summary>
+    public static string UpdateAppId { get; } = RepositoryUrl.TrimEnd('/').Split('/')[^1];
 }

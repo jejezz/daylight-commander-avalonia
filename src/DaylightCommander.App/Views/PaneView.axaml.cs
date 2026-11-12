@@ -1,4 +1,4 @@
-using Avalonia.Controls;
+﻿using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
 using Avalonia.Input;
 using Avalonia.Input.Platform;
@@ -129,11 +129,21 @@ public partial class PaneView : UserControl
     bool _clickDeferred; // 여러 개 선택한 행을 눌렀다: 끌기인지 클릭인지 알 때까지 선택을 건드리지 않는다
     bool _dragging;
     bool _menuPending;
+    bool _menuOnBackground; // 항목이 아닌 빈 곳을 우클릭했다
 
     void OnEntryPressed(object? sender, PointerPressedEventArgs e)
     {
         var point = e.GetCurrentPoint(ActiveList);
         var row = EntryCell(e.Source as Avalonia.Visual);
+        if (row is null && point.Properties.IsRightButtonPressed && Vm is not null)
+        {
+            // 빈 곳 우클릭: 이 폴더에 하는 메뉴 (붙여넣기·새 폴더).
+            _menuPending = true;
+            _menuOnBackground = true;
+            ActiveList.Focus();
+            e.Handled = true;
+            return;
+        }
         if (row?.DataContext is not EntryItem item || Vm is not { } vm) return;
 
         if (point.Properties.IsRightButtonPressed)
@@ -170,6 +180,7 @@ public partial class PaneView : UserControl
         _dragging = true;
         _pressArgs = null;
         _clickDeferred = false;
+        DragGhost? ghost = null;
         try
         {
             var picked = vm.Items.Where(x => x.IsSelected).Select(x => x.Path).ToList();
@@ -177,11 +188,13 @@ public partial class PaneView : UserControl
             DragSession.Paths = paths;
             DragSession.Drives = new ListDrives().Invoke();
 
-            var data = await DragOut.BuildAsync(this, paths);
+            var data = await DragSession.BuildDataAsync(this, paths);
+            ghost = DragGhost.Show(paths);
             await DragDrop.DoDragDropAsync(pressed, data, DragDropEffects.Copy | DragDropEffects.Move);
         }
         finally
         {
+            ghost?.Dispose();
             DragSession.Paths = null;
             DragSession.Drives = null;
             _dragging = false;
@@ -200,27 +213,40 @@ public partial class PaneView : UserControl
 
         if (e.InitialPressMouseButton == MouseButton.Right)
         {
-            if (_menuPending) ShowContextMenu();
+            if (_menuPending) ShowContextMenu(_menuOnBackground);
             _menuPending = false;
+            _menuOnBackground = false;
             e.Handled = true;
         }
     }
 
     // --- 우클릭 메뉴 ---
 
-    void ShowContextMenu()
+    async void ShowContextMenu(bool background)
     {
         if (Vm is not { Actions: { } act } vm) return;
         var s = Strings.Current;
+        var canPaste = await act.CanPaste(this);
+        var popup = ContextPopup;
+        ContextItems.Children.Clear();
+        void Add(string text, Action action, bool enabled = true) => ContextItems.Children.Add(MenuRow(text, action, popup, enabled));
+        void AddPaste() => Add(s.ContextClipboardPaste, () => _ = act.ClipboardPaste(this), enabled: canPaste);
+
+        if (background)
+        {
+            AddPaste();
+            ContextItems.Children.Add(MenuSeparator());
+            Add(s.CmdNewFolder + " (F7)", act.NewFolder);
+            popup.IsOpen = true;
+            return;
+        }
+
         var picked = vm.Items.Where(x => x.IsSelected).ToList();
         if (picked.Count == 0 && vm.Cursor is { } cursor) picked = [cursor];
         if (picked.Count == 0) return;
 
         var single = picked.Count == 1 ? picked[0] : null;
         var remote = picked.Any(x => Locations.IsRemote(x.Path)); // 네트워크 항목: 편집·압축·속성·파일 관리자는 아직 없다
-        var popup = ContextPopup;
-        ContextItems.Children.Clear();
-        void Add(string text, Action action) => ContextItems.Children.Add(MenuRow(text, action, popup));
 
         if (single is { IsDirectory: true }) Add(s.ContextOpen, () => vm.OpenCursorCommand.Execute(null));
         if (single is { IsFile: true })
@@ -232,14 +258,19 @@ public partial class PaneView : UserControl
         if (ContextItems.Children.Count > 0) ContextItems.Children.Add(MenuSeparator());
 
         if (single is not null) Add(s.ContextRename, act.Rename);
+        Add(s.ContextClipboardCut, () => _ = act.ClipboardCopy(this, true));
+        Add(s.ContextClipboardCopy, () => _ = act.ClipboardCopy(this, false));
+        AddPaste();
+        ContextItems.Children.Add(MenuSeparator());
+
         Add(s.ContextCopy, act.Copy);
         Add(s.ContextDuplicate, act.Duplicate);
         Add(s.ContextMove, act.Move);
         Add(s.ContextDelete, act.Delete);
         if (!remote)
         {
-            Add(s.FnCompress, act.Compress);
-            if (single is { IsFile: true } zip && ArchiveService.IsZip(zip.Name)) Add(s.FnExtract, act.Extract);
+            Add(s.CmdCompress, act.Compress);
+            if (single is { IsFile: true } zip && ArchiveService.IsZip(zip.Name)) Add(s.CmdExtract, act.Extract);
         }
         ContextItems.Children.Add(MenuSeparator());
 

@@ -53,6 +53,7 @@ public sealed class KoreanStrings : IAppStrings
     public string PaneOpenError(string error) => $"열 수 없어요: {error} (눌러서 닫기)";
     public string PaneItemCount(int count) => $"{count}개 항목";
     public string PaneSelectedCount(int count) => $"선택 {count}개";
+    public string DragGhostOthers(int others) => $" 외 {others}개";
     public string PaneFilter(string query) => $"필터: {query}";
     public string PaneBackTooltip => "뒤로";
     public string PaneForwardTooltip => "앞으로";
@@ -77,24 +78,26 @@ public sealed class KoreanStrings : IAppStrings
     public string RecentNone => "최근 방문한 폴더가 없어요";
     public string RecentClear => "최근 방문 지우기";
 
-    public string FnRename => "F2 이름변경";
-    public string FnView => "F3 보기";
-    public string FnEdit => "F4 편집";
-    public string FnCopy => "F5 복사";
-    public string FnMove => "F6 이동";
-    public string FnNewFolder => "F7 새 폴더";
-    public string FnDelete => "F8 삭제";
-    public string FnNewFile => "새 파일 (Ctrl+N)";
-    public string FnCompress => "압축";
-    public string FnExtract => "압축풀기";
-    public string FnProperties => "속성";
-    public string FnPatternSelect => "패턴선택";
+    public string CmdNew => "새로 만들기";
+    public string CmdRename => "이름 변경";
+    public string CmdView => "보기";
+    public string CmdEdit => "편집";
+    public string CmdCopy => "복사";
+    public string CmdMove => "이동";
+    public string CmdDelete => "삭제";
+    public string CmdNewFolder => "새 폴더";
+    public string CmdNewFile => "새 파일";
+    public string CmdCompress => "압축";
+    public string CmdExtract => "압축 풀기";
+    public string CmdProperties => "속성";
+    public string CmdPatternSelect => "패턴 선택";
 
     public string DialogRenameTitle => "이름 변경";
     public string DialogNewFolderTitle => "새 폴더";
     public string DialogNewFileTitle => "새 파일";
     public string TransferCopyTitle => "복사";
     public string TransferMoveTitle => "이동";
+    public string DropMovePrompt(string what, string destination) => $"{what}을(를) 다음 폴더로 이동할까요?\n{destination}";
     public string TransferPrompt(FileOperationKind kind, string what) =>
         kind == FileOperationKind.Copy ? $"{what} 복사할 폴더" : $"{what} 이동할 폴더";
     public string DeleteTrashTitle => "휴지통으로 이동";
@@ -147,6 +150,10 @@ public sealed class KoreanStrings : IAppStrings
 
     public string ViewerNormalView => "일반 보기";
     public string ViewerHexView => "Hex로 보기";
+    public string ViewerZoomIn => "확대";
+    public string ViewerZoomOut => "축소";
+    public string ViewerZoomFit => "창에 맞춤 (더블클릭)";
+    public string ViewerImageHint => "마우스 휠·트랙패드 스크롤 또는 두 손가락 벌리기/오므리기로 확대·축소 · 끌어서 이동 · 더블클릭으로 창에 맞춤";
     public string ViewerUnsupported => "미리보기를 지원하지 않는 파일 형식이에요.";
     public string ViewerOpenWithDefaultApp => "기본 앱으로 열기";
     public string ViewerLoadError(string error) => $"파일을 읽을 수 없어요: {error}";
@@ -208,6 +215,41 @@ public sealed class KoreanStrings : IAppStrings
     public string AboutOpenSourceLicenses => "오픈소스 라이선스";
     public string AboutRepository => "GitHub";
     public string AboutClose => "닫기";
+
+    // 업데이트
+    public string UpdateCheckButton => "업데이트 확인";
+    public string UpdateChecking => "업데이트를 확인하는 중…";
+    public string UpdateAvailableTitle => "새 버전이 있습니다";
+    public string UpdateAvailableBody(string appName, string current, string latest) => $"{appName} {latest} 버전이 나왔습니다. (현재 {current})";
+    public string UpdateReleaseNotes => "변경 내용";
+    public string UpdateNow => "지금 업데이트";
+    public string UpdateLater => "나중에";
+    public string UpdateSkipVersion => "이 버전 건너뛰기";
+    public string UpdateDownloading => "내려받는 중…";
+    public string UpdateVerifying => "파일을 확인하는 중…";
+    public string UpdateDownloadProgress(string received, string total) => $"{received} / {total}";
+    public string UpdateCancel => "취소";
+    public string UpdateFailedTitle => "업데이트하지 못했습니다";
+    public string UpdateCheckFailedTitle => "업데이트를 확인하지 못했습니다";
+    public string UpdateErrorNetwork => "업데이트 서버에 연결하지 못했습니다. 인터넷 연결을 확인한 뒤 다시 시도해 주세요.";
+    public string UpdateErrorChecksum => "내려받은 파일이 올바르지 않아 설치하지 않았습니다. 잠시 뒤에 다시 시도해 주세요.";
+    public string UpdateErrorInstall => "설치를 시작하지 못했습니다.";
+    public string UpdateErrorGeneric => "업데이트 서버에서 예상하지 못한 응답을 받았습니다. 잠시 뒤에 다시 시도해 주세요.";
+    public string UpdateUpToDateTitle => "최신 버전입니다";
+    public string UpdateUpToDateBody(string version) => $"{version} 버전을 사용 중입니다.";
+    public string UpdateUnavailableTitle => "직접 설치해 주세요";
+    public string UpdateUnavailableBody(string latest) => $"{latest} 버전이 있지만 앱에서 자동으로 설치할 수 없습니다. 릴리스 페이지에서 받아 주세요.";
+    public string UpdateOpenReleasePage => "릴리스 페이지 열기";
+    public string UpdateMacosOpenedTitle => "설치 창이 열렸습니다";
+    public string UpdateMacosOpenedBody(string appName) => $"열린 창에서 {appName} 을(를) Applications 폴더로 끌어다 놓아 주세요. 실행 중이면 종료한 뒤 덮어쓰세요.";
+    public string UpdateWindowsInstallTitle => "설치 프로그램을 열었습니다";
+    public string UpdateWindowsInstallBody(string appName) => $"설치하려면 {appName} 을(를) 종료해야 합니다. 설치 프로그램의 안내를 따라 주세요.";
+    public string UpdateQuitApp(string appName) => $"{appName} 종료";
+    public string UpdateLinuxInstallTitle => "설치를 준비했습니다";
+    public string UpdateLinuxInstallBody(string appName) => $"{appName} 을(를) 종료하고 설치합니다. 설치가 끝나면 자동으로 다시 시작됩니다.";
+    public string UpdateQuitAndInstall => "종료하고 설치";
+    public string UpdateBusyTitle => "지금은 업데이트할 수 없습니다";
+    public string UpdateBusyBody => "작업이 진행 중입니다. 끝난 뒤에 다시 시도해 주세요.";
     public string LicensesTitle => "오픈소스 라이선스";
     public string LicensesProject => "이 프로젝트";
     public string LicensesNote => "각 항목의 전문과 저작권 고지는 해당 프로젝트 저장소에서 볼 수 있어요.";
@@ -242,6 +284,9 @@ public sealed class KoreanStrings : IAppStrings
     public string ContextRename => "이름 변경 (F2)";
     public string ContextCopy => "복사 → 반대 패널 (F5)";
     public string ContextDuplicate => "여기에 복제 (Ctrl+D)";
+    public string ContextClipboardCut => "잘라내기 (Ctrl+X)";
+    public string ContextClipboardCopy => "복사 (Ctrl+C)";
+    public string ContextClipboardPaste => "붙여넣기 (Ctrl+V)";
     public string ContextMove => "이동 → 반대 패널 (F6)";
     public string ContextDelete => "삭제 (F8)";
     public string ContextProperties => "속성 (Alt+Enter)";

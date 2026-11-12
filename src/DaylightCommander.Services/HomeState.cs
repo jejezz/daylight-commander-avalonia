@@ -10,8 +10,8 @@ public enum NameMode { Rename, NewFolder, NewFile, Compress }
 /// <summary>동기화 충돌 대화상자의 선택.</summary>
 public enum SyncChoice { Cancel, Skip, UseLeft, UseRight }
 
-/// <summary>디렉터리 트리 안에서 복사·잘라내기한 폴더.</summary>
-public sealed record TreeClipboard(string Path, bool Cut);
+/// <summary>앱 안의 클립보드: 복사(Ctrl+C)·잘라내기(Ctrl+X)한 항목. 파일 패널과 디렉터리 트리가 함께 쓴다.</summary>
+public sealed record FileClipboard(IReadOnlyList<string> Paths, bool Cut);
 
 /// <summary>홈 화면 위에 뜨는 대화상자. 이름 충돌 대화상자는 <see cref="OperationQueue.Conflict"/>가 따로 가진다.</summary>
 public abstract record HomeDialog
@@ -20,6 +20,9 @@ public abstract record HomeDialog
 
     /// <summary>복사/이동 확인. 대상 폴더는 직접 고칠 수 있다.</summary>
     public sealed record Transfer(FileOperationKind Kind, IReadOnlyList<string> Sources, string Target, FileError? Error = null) : HomeDialog;
+
+    /// <summary>끌어다 놓기로 이동하기 전의 확인.</summary>
+    public sealed record ConfirmDropMove(IReadOnlyList<string> Sources, string Destination) : HomeDialog;
 
     public sealed record Delete(IReadOnlyList<string> Paths, bool ToTrash) : HomeDialog;
 
@@ -501,17 +504,37 @@ public sealed class HomeState : IDisposable
 
     // --- 디렉터리 트리 (폴더 경로를 대상으로 하는 동작) ---
 
-    /// <summary>트리에서 복사/잘라내기한 폴더. 붙여넣기 메뉴가 쓴다 (패널의 선택과는 별개).</summary>
-    public TreeClipboard? TreeClipboard { get; private set; }
+    /// <summary>복사/잘라내기한 항목 (패널·트리 공용). 붙여넣기가 쓴다. 시스템 클립보드와 맞추는 일은 화면 쪽이 한다.</summary>
+    public FileClipboard? Clipboard { get; private set; }
 
-    public void CopyToTreeClipboard(string path, bool cut) => TreeClipboard = new TreeClipboard(path, cut);
-
-    /// <summary>트리 클립보드의 폴더를 <paramref name="targetDir"/> 안에 붙인다 (잘라내기는 이동, 복사는 복사). 잘라낸 것은 한 번만 붙는다.</summary>
-    public void PasteTreeClipboard(string targetDir)
+    public void CopyToClipboard(IReadOnlyList<string> paths, bool cut)
     {
-        if (TreeClipboard is not { } clip) return;
-        Drop([clip.Path], targetDir, clip.Cut ? DropMode.ForceMove : DropMode.ForceCopy);
-        if (clip.Cut) TreeClipboard = null;
+        if (paths.Count > 0) Clipboard = new FileClipboard(paths.ToList(), cut);
+    }
+
+    /// <summary>활성 패널의 선택(없으면 커서) 항목을 클립보드에 담고 그 경로를 돌려준다. 담을 것이 없으면 빈 목록이고 클립보드는 그대로다.</summary>
+    public IReadOnlyList<string> CopySelectionToClipboard(bool cut)
+    {
+        var paths = ActiveController.TargetEntries().Select(e => e.Path).ToList();
+        CopyToClipboard(paths, cut);
+        return paths;
+    }
+
+    /// <summary>
+    /// 클립보드의 항목을 <paramref name="targetDir"/> 안에 붙인다 (잘라내기는 이동, 복사는 복사 — 같은 폴더면 "이름 (1)"로 복제).
+    /// 잘라낸 것은 한 번만 붙는다.
+    /// </summary>
+    public void PasteClipboard(string targetDir)
+    {
+        if (Clipboard is not { } clip) return;
+        Drop(clip.Paths, targetDir, clip.Cut ? DropMode.ForceMove : DropMode.ForceCopy, confirmMove: false); // 잘라내기·붙여넣기는 이미 의도가 분명하다
+        if (clip.Cut) Clipboard = null;
+    }
+
+    /// <summary>다른 프로그램(탐색기 등)이 시스템 클립보드에 담은 파일을 <paramref name="targetDir"/>에 복사한다.</summary>
+    public void PasteExternal(IReadOnlyList<string> paths, string targetDir)
+    {
+        if (paths.Count > 0) Drop(paths, targetDir, DropMode.ForceCopy, confirmMove: false);
     }
 
     /// <summary>트리의 "새 폴더": <paramref name="parent"/> 안에 만든다.</summary>
@@ -542,7 +565,7 @@ public sealed class HomeState : IDisposable
     /// Ctrl(복사)·Shift(이동)로 바꿀 수 있다 (<see cref="DropPlanner"/>). 확인 대화상자 없이 바로 작업 큐에 넣는다.
     /// 폴더를 자기 자신 안에 놓는 것 같은 오류는 <paramref name="errorSide"/> 패널의 상태줄에 띄운다.
     /// </summary>
-    public void Drop(IReadOnlyList<string> sources, string destinationDir, DropMode mode = DropMode.Auto, PaneSide? errorSide = null)
+    public void Drop(IReadOnlyList<string> sources, string destinationDir, DropMode mode = DropMode.Auto, PaneSide? errorSide = null, bool confirmMove = true)
     {
         var plan = DropPlanner.Plan(sources, destinationDir, new ListDrives().Invoke(), mode);
         switch (plan.Action)
@@ -554,6 +577,7 @@ public sealed class HomeState : IDisposable
                 Queue.EnqueueCopy(sources, destinationDir);
                 break;
             case DropAction.Move:
+                if (confirmMove) { SetDialog(new HomeDialog.ConfirmDropMove(sources, destinationDir)); return; } // 실수로 옮기지 않도록 먼저 묻는다
                 Queue.EnqueueMove(sources, destinationDir);
                 break;
             default:
@@ -682,6 +706,15 @@ public sealed class HomeState : IDisposable
         else Queue.EnqueueMove(d.Sources, target);
         SetDialog(null);
         ActiveController.ClearSelection();
+    }
+
+    public void ConfirmDropMove()
+    {
+        if (_dialog is not HomeDialog.ConfirmDropMove d) return;
+        Queue.EnqueueMove(d.Sources, d.Destination);
+        SetDialog(null);
+        foreach (var controller in new[] { Left, Right })
+            if (controller.State.Selected.Overlaps(d.Sources)) controller.ClearSelection();
     }
 
     public void ConfirmDelete()

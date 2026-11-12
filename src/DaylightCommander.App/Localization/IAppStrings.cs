@@ -66,6 +66,7 @@ public interface IAppStrings
     string PaneOpenError(string error);
     string PaneItemCount(int count);
     string PaneSelectedCount(int count);
+    string DragGhostOthers(int others);
     string PaneFilter(string query);
     string PaneBackTooltip { get; }
     string PaneForwardTooltip { get; }
@@ -91,19 +92,20 @@ public interface IAppStrings
     string RecentNone { get; }
     string RecentClear { get; }
 
-    // 기능 키 바
-    string FnRename { get; }
-    string FnView { get; }
-    string FnEdit { get; }
-    string FnCopy { get; }
-    string FnMove { get; }
-    string FnNewFolder { get; }
-    string FnDelete { get; }
-    string FnNewFile { get; }
-    string FnCompress { get; }
-    string FnExtract { get; }
-    string FnProperties { get; }
-    string FnPatternSelect { get; }
+    // 명령 모음 (앱 바 아래 도구 모음). 단축키는 툴팁에 붙는다
+    string CmdNew { get; }
+    string CmdRename { get; }
+    string CmdView { get; }
+    string CmdEdit { get; }
+    string CmdCopy { get; }
+    string CmdMove { get; }
+    string CmdDelete { get; }
+    string CmdNewFolder { get; }
+    string CmdNewFile { get; }
+    string CmdCompress { get; }
+    string CmdExtract { get; }
+    string CmdProperties { get; }
+    string CmdPatternSelect { get; }
 
     // 대화상자
     string DialogRenameTitle { get; }
@@ -111,6 +113,7 @@ public interface IAppStrings
     string DialogNewFileTitle { get; }
     string TransferCopyTitle { get; }
     string TransferMoveTitle { get; }
+    string DropMovePrompt(string what, string destination);
     string TransferPrompt(FileOperationKind kind, string what);
     string DeleteTrashTitle { get; }
     string DeletePermanentTitle { get; }
@@ -148,6 +151,10 @@ public interface IAppStrings
     // 뷰어 (F3)
     string ViewerNormalView { get; }
     string ViewerHexView { get; }
+    string ViewerZoomIn { get; }
+    string ViewerZoomOut { get; }
+    string ViewerZoomFit { get; }
+    string ViewerImageHint { get; }
     string ViewerUnsupported { get; }
     string ViewerOpenWithDefaultApp { get; }
     string ViewerLoadError(string error);
@@ -211,6 +218,41 @@ public interface IAppStrings
     string AboutOpenSourceLicenses { get; }
     string AboutRepository { get; }
     string AboutClose { get; }
+
+    // 업데이트
+    string UpdateCheckButton { get; }
+    string UpdateChecking { get; }
+    string UpdateAvailableTitle { get; }
+    string UpdateAvailableBody(string appName, string current, string latest);
+    string UpdateReleaseNotes { get; }
+    string UpdateNow { get; }
+    string UpdateLater { get; }
+    string UpdateSkipVersion { get; }
+    string UpdateDownloading { get; }
+    string UpdateVerifying { get; }
+    string UpdateDownloadProgress(string received, string total);
+    string UpdateCancel { get; }
+    string UpdateFailedTitle { get; }
+    string UpdateCheckFailedTitle { get; }
+    string UpdateErrorNetwork { get; }
+    string UpdateErrorChecksum { get; }
+    string UpdateErrorInstall { get; }
+    string UpdateErrorGeneric { get; }
+    string UpdateUpToDateTitle { get; }
+    string UpdateUpToDateBody(string version);
+    string UpdateUnavailableTitle { get; }
+    string UpdateUnavailableBody(string latest);
+    string UpdateOpenReleasePage { get; }
+    string UpdateMacosOpenedTitle { get; }
+    string UpdateMacosOpenedBody(string appName);
+    string UpdateWindowsInstallTitle { get; }
+    string UpdateWindowsInstallBody(string appName);
+    string UpdateQuitApp(string appName);
+    string UpdateLinuxInstallTitle { get; }
+    string UpdateLinuxInstallBody(string appName);
+    string UpdateQuitAndInstall { get; }
+    string UpdateBusyTitle { get; }
+    string UpdateBusyBody { get; }
     string LicensesTitle { get; }
     string LicensesProject { get; }
     string LicensesNote { get; }
@@ -246,6 +288,10 @@ public interface IAppStrings
     string ContextRename { get; }
     string ContextCopy { get; }
     string ContextDuplicate { get; }
+    /// <summary>패널 우클릭 메뉴의 클립보드 동작 (단축키를 함께 보인다).</summary>
+    string ContextClipboardCut { get; }
+    string ContextClipboardCopy { get; }
+    string ContextClipboardPaste { get; }
     string ContextMove { get; }
     string ContextDelete { get; }
     string ContextProperties { get; }

@@ -127,9 +127,9 @@
                      Background="Transparent" BorderThickness="0" Padding="0" Classes="entries">
                 <ListBox.ItemTemplate>
                     <DataTemplate x:DataType="vm:EntryItem">
-                        <Border Classes="diffrow" Classes.onlyhere="{Binding IsOnlyHere}" Classes.differs="{Binding IsDiffers}">
-                        <Grid ColumnDefinitions="*,80,130" ColumnSpacing="12" Opacity="{Binding RowOpacity}"
-                              Classes.picked="{Binding IsSelected}">
+                        <Border Classes="diffrow" Classes.onlyhere="{Binding IsOnlyHere}" Classes.differs="{Binding IsDiffers}"
+                                Classes.picked="{Binding IsSelected}">
+                        <Grid ColumnDefinitions="*,80,130" ColumnSpacing="12" Opacity="{Binding RowOpacity}">
                             <!-- 이름 칸: 아이콘(고정) + 이름(남는 폭). StackPanel로 두면 이름이 폭 제한을 못 받아 긴 이름이 크기 칸을 덮는다 -->
                             <Grid Grid.Column="0" ColumnDefinitions="Auto,*" ColumnSpacing="8" ClipToBounds="True">
                                 <icons:DuoIcon Grid.Column="0" Width="22" Height="22" VerticalAlignment="Center"
@@ -164,8 +164,8 @@
                                             Opacity="{Binding RowOpacity}" ToolTip.Tip="{Binding Path}">
                                         <StackPanel Margin="4" Spacing="4">
                                             <Grid Width="{Binding IconSize}" Height="{Binding IconSize}" HorizontalAlignment="Center">
-                                                <icons:DuoIcon Icon="{Binding IconName}" ColorKey="{Binding IconColor}"
-                                                               IsVisible="{Binding NoThumbnail}"/>
+                                                <icons:TileIcon Icon="{Binding IconName}" ColorKey="{Binding IconColor}"
+                                                                Badge="{Binding BadgeText}" IsVisible="{Binding NoThumbnail}"/>
                                                 <Image Source="{Binding Thumbnail}" Stretch="Uniform"
                                                        IsVisible="{Binding HasThumbnail}"/>
                                             </Grid>

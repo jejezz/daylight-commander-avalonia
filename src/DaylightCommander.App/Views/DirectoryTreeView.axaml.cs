@@ -1,4 +1,4 @@
-using Avalonia;
+﻿using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Data.Converters;
 using Avalonia.Input;
@@ -110,14 +110,17 @@ public partial class DirectoryTreeView : UserControl
         _pressRow = null;
         if (row.IsDrive) return; // 드라이브 루트는 끌 수 없다
         _dragging = true;
+        DragGhost? ghost = null;
         try
         {
             DragSession.Paths = [row.Path];
-            var data = await DragOut.BuildAsync(this, [row.Path]);
+            var data = await DragSession.BuildDataAsync(this, [row.Path]);
+            ghost = DragGhost.Show([row.Path]);
             await DragDrop.DoDragDropAsync(pressed, data, DragDropEffects.Copy | DragDropEffects.Move);
         }
         finally
         {
+            ghost?.Dispose();
             DragSession.Paths = null;
             _dragging = false;
             SetDropRow(null);
@@ -144,9 +147,10 @@ public partial class DirectoryTreeView : UserControl
 
     // --- 우클릭 메뉴 ---
 
-    void ShowContextMenu(DirectoryTreeViewModel vm, TreeRow row)
+    async void ShowContextMenu(DirectoryTreeViewModel vm, TreeRow row)
     {
         var s = Strings.Current;
+        var canPaste = await FileClipboardBridge.CanPasteAsync(this, vm.State);
         ContextItems.Children.Clear();
         void Add(string text, Action action, bool enabled = true) =>
             ContextItems.Children.Add(PopupMenus.Row(text, action, ContextPopup, enabled));
@@ -155,12 +159,12 @@ public partial class DirectoryTreeView : UserControl
         Add(s.DialogNewFolderTitle, () => vm.NewFolder(row));
         if (!row.IsDrive) Add(s.DialogRenameTitle, () => vm.Rename(row));
         ContextItems.Children.Add(PopupMenus.Separator());
-        if (!row.IsDrive) Add(s.TreeMenuCut, () => vm.Cut(row));
-        Add(s.TreeMenuCopy, () => vm.Copy(row));
-        Add(s.TreeMenuPaste, () => vm.Paste(row), enabled: vm.HasClipboard);
+        if (!row.IsDrive) Add(s.TreeMenuCut, () => _ = FileClipboardBridge.CopyAsync(this, vm.State, [row.Path], cut: true));
+        Add(s.TreeMenuCopy, () => _ = FileClipboardBridge.CopyAsync(this, vm.State, [row.Path], cut: false));
+        Add(s.TreeMenuPaste, () => _ = FileClipboardBridge.PasteAsync(this, vm.State, row.Path), enabled: canPaste);
         if (!row.IsDrive) Add(s.TreeMenuDelete, () => vm.Delete(row));
         ContextItems.Children.Add(PopupMenus.Separator());
-        Add(s.FnProperties, () => vm.Properties(row));
+        Add(s.CmdProperties, () => vm.Properties(row));
         Add(s.ContextBookmark, () => vm.ToggleBookmark(row));
         Add(s.ContextReveal, () => vm.Reveal(row));
         Add(s.PaneRefreshTooltip, () => _ = vm.ReloadAllAsync());

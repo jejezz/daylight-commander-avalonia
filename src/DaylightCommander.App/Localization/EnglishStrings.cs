@@ -53,6 +53,7 @@ public sealed class EnglishStrings : IAppStrings
     public string PaneOpenError(string error) => $"Can't open: {error} (click to dismiss)";
     public string PaneItemCount(int count) => count == 1 ? "1 item" : $"{count} items";
     public string PaneSelectedCount(int count) => $"{count} selected";
+    public string DragGhostOthers(int others) => $" and {others} more";
     public string PaneFilter(string query) => $"Filter: {query}";
     public string PaneBackTooltip => "Back";
     public string PaneForwardTooltip => "Forward";
@@ -77,24 +78,26 @@ public sealed class EnglishStrings : IAppStrings
     public string RecentNone => "No recent folders";
     public string RecentClear => "Clear Recent";
 
-    public string FnRename => "F2 Rename";
-    public string FnView => "F3 View";
-    public string FnEdit => "F4 Edit";
-    public string FnCopy => "F5 Copy";
-    public string FnMove => "F6 Move";
-    public string FnNewFolder => "F7 New Folder";
-    public string FnDelete => "F8 Delete";
-    public string FnNewFile => "New File (Ctrl+N)";
-    public string FnCompress => "Compress";
-    public string FnExtract => "Extract";
-    public string FnProperties => "Properties";
-    public string FnPatternSelect => "Pattern Select";
+    public string CmdNew => "New";
+    public string CmdRename => "Rename";
+    public string CmdView => "View";
+    public string CmdEdit => "Edit";
+    public string CmdCopy => "Copy";
+    public string CmdMove => "Move";
+    public string CmdDelete => "Delete";
+    public string CmdNewFolder => "New Folder";
+    public string CmdNewFile => "New File";
+    public string CmdCompress => "Compress";
+    public string CmdExtract => "Extract";
+    public string CmdProperties => "Properties";
+    public string CmdPatternSelect => "Pattern Select";
 
     public string DialogRenameTitle => "Rename";
     public string DialogNewFolderTitle => "New Folder";
     public string DialogNewFileTitle => "New File";
     public string TransferCopyTitle => "Copy";
     public string TransferMoveTitle => "Move";
+    public string DropMovePrompt(string what, string destination) => $"Move {what} to this folder?\n{destination}";
     public string TransferPrompt(FileOperationKind kind, string what) =>
         kind == FileOperationKind.Copy ? $"Copy {what} to:" : $"Move {what} to:";
     public string DeleteTrashTitle => "Move to Trash";
@@ -147,6 +150,10 @@ public sealed class EnglishStrings : IAppStrings
 
     public string ViewerNormalView => "Normal View";
     public string ViewerHexView => "View as Hex";
+    public string ViewerZoomIn => "Zoom in";
+    public string ViewerZoomOut => "Zoom out";
+    public string ViewerZoomFit => "Fit to window (double-click)";
+    public string ViewerImageHint => "Zoom with the mouse wheel, trackpad scroll or pinch · drag to pan · double-click to fit";
     public string ViewerUnsupported => "This file type can't be previewed.";
     public string ViewerOpenWithDefaultApp => "Open with Default App";
     public string ViewerLoadError(string error) => $"Couldn't read the file: {error}";
@@ -208,6 +215,41 @@ public sealed class EnglishStrings : IAppStrings
     public string AboutOpenSourceLicenses => "Open Source Licenses";
     public string AboutRepository => "GitHub";
     public string AboutClose => "Close";
+
+    // Updates
+    public string UpdateCheckButton => "Check for Updates";
+    public string UpdateChecking => "Checking for updates…";
+    public string UpdateAvailableTitle => "A new version is available";
+    public string UpdateAvailableBody(string appName, string current, string latest) => $"{appName} {latest} is available. You have {current}.";
+    public string UpdateReleaseNotes => "What's new";
+    public string UpdateNow => "Update now";
+    public string UpdateLater => "Later";
+    public string UpdateSkipVersion => "Skip this version";
+    public string UpdateDownloading => "Downloading…";
+    public string UpdateVerifying => "Verifying the file…";
+    public string UpdateDownloadProgress(string received, string total) => $"{received} / {total}";
+    public string UpdateCancel => "Cancel";
+    public string UpdateFailedTitle => "Couldn't update";
+    public string UpdateCheckFailedTitle => "Couldn't check for updates";
+    public string UpdateErrorNetwork => "Couldn't reach the update server. Check your internet connection and try again.";
+    public string UpdateErrorChecksum => "The downloaded file didn't pass verification, so it was not installed. Please try again later.";
+    public string UpdateErrorInstall => "Couldn't start the installation.";
+    public string UpdateErrorGeneric => "The update server sent an unexpected response. Please try again later.";
+    public string UpdateUpToDateTitle => "You're up to date";
+    public string UpdateUpToDateBody(string version) => $"You're using version {version}.";
+    public string UpdateUnavailableTitle => "Install it manually";
+    public string UpdateUnavailableBody(string latest) => $"Version {latest} is available, but the app can't install it automatically. Please download it from the release page.";
+    public string UpdateOpenReleasePage => "Open release page";
+    public string UpdateMacosOpenedTitle => "The installer window is open";
+    public string UpdateMacosOpenedBody(string appName) => $"In the window that opened, drag {appName} to the Applications folder. If it's running, quit it first and replace the old copy.";
+    public string UpdateWindowsInstallTitle => "The installer is open";
+    public string UpdateWindowsInstallBody(string appName) => $"{appName} must quit before it can be updated. Follow the installer's instructions.";
+    public string UpdateQuitApp(string appName) => $"Quit {appName}";
+    public string UpdateLinuxInstallTitle => "Ready to install";
+    public string UpdateLinuxInstallBody(string appName) => $"{appName} will quit and install the update, then start again automatically.";
+    public string UpdateQuitAndInstall => "Quit and install";
+    public string UpdateBusyTitle => "Can't update right now";
+    public string UpdateBusyBody => "A task is in progress. Please try again when it has finished.";
     public string LicensesTitle => "Open Source Licenses";
     public string LicensesProject => "This project";
     public string LicensesNote => "Full license texts and copyright notices are available in each project's repository.";
@@ -242,6 +284,9 @@ public sealed class EnglishStrings : IAppStrings
     public string ContextRename => "Rename (F2)";
     public string ContextCopy => "Copy to Other Pane (F5)";
     public string ContextDuplicate => "Duplicate Here (Ctrl+D)";
+    public string ContextClipboardCut => "Cut (Ctrl+X)";
+    public string ContextClipboardCopy => "Copy (Ctrl+C)";
+    public string ContextClipboardPaste => "Paste (Ctrl+V)";
     public string ContextMove => "Move to Other Pane (F6)";
     public string ContextDelete => "Delete (F8)";
     public string ContextProperties => "Properties (Alt+Enter)";

@@ -31,4 +31,31 @@ internal static class DragSession
 {
     public static IReadOnlyList<string>? Paths { get; set; }
     public static IReadOnlyList<DaylightCommander.Domain.DriveEntry>? Drives { get; set; }
+
+    /// <summary>끌기 데이터: 탐색기 같은 바깥 앱이 받을 수 있게 파일 형식으로 담는다. 파일로 풀지 못하면 경로 글자로 대신한다.</summary>
+    public static async Task<Avalonia.Input.DataTransfer> BuildDataAsync(Visual source, IReadOnlyList<string> paths)
+    {
+        var data = new Avalonia.Input.DataTransfer();
+        var storage = TopLevel.GetTopLevel(source)?.StorageProvider;
+        var added = 0;
+        if (storage is not null)
+        {
+            foreach (var path in paths)
+            {
+                try
+                {
+                    Avalonia.Platform.Storage.IStorageItem? item = Directory.Exists(path)
+                        ? await storage.TryGetFolderFromPathAsync(new Uri(path))
+                        : await storage.TryGetFileFromPathAsync(new Uri(path));
+                    if (item is null) continue;
+                    data.Add(Avalonia.Input.DataTransferItem.CreateFile(item));
+                    added++;
+                }
+                catch (Exception) { /* 이 항목만 건너뛴다 */ }
+            }
+        }
+        if (added == 0)
+            data.Add(Avalonia.Input.DataTransferItem.Create(Avalonia.Input.DataFormat.Text, string.Join("\n", paths)));
+        return data;
+    }
 }
