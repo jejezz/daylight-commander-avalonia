@@ -209,6 +209,12 @@ public sealed class KoreanStrings : IAppStrings
     public string EditorScDeleteLine => "줄 지우기";
 
     public string AboutTooltip => "정보";
+    public string MacMenuAbout(string app) => $"{app}에 관하여";
+    public string MacMenuSettings => "설정…";
+    public string MacMenuHide(string app) => $"{app} 가리기";
+    public string MacMenuHideOthers => "기타 가리기";
+    public string MacMenuShowAll => "모두 보기";
+    public string MacMenuQuit(string app) => $"{app} 종료";
     public string AboutTagline => "Total Commander · Midnight Commander 스타일의 무료 2단 패널 데스크톱 파일 매니저";
     public string AboutDescription => "키보드 중심의 빠른 조작과 내장 뷰어·에디터, 여러 창을 나란히 쓸 수 있는 클래식 파일 매니저를 목표로 만들고 있어요.";
     public string AboutVersion(string version, int build) => $"버전 {version} (빌드 {build})";

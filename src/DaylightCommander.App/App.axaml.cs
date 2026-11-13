@@ -28,6 +28,9 @@ public partial class App : Application
     public override void Initialize()
     {
         AvaloniaXamlLoader.Load(this);
+        // macOS 메뉴 막대의 앱 메뉴 제목(굵은 글씨)과 "… 숨기기"·"… 종료" 항목은 Application.Name을 쓴다.
+        // 정하지 않으면 Avalonia 기본값 "Avalonia Application"이 보인다.
+        Name = AppIdentity.DisplayName;
     }
 
     public override void OnFrameworkInitializationCompleted()
@@ -43,6 +46,7 @@ public partial class App : Application
         if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
         {
             desktop.MainWindow = new MainWindow();
+            MacAppMenu.Install(this, desktop);
             Updates = UpdateService.Create(
                 FileUpdateStateStore.BesideSettings(JsonSettingsRepository.DefaultFile(AppIdentity.FileName)),
                 owner: () => desktop.Windows.OfType<MainWindow>().FirstOrDefault(w => w.IsActive) ?? desktop.Windows.OfType<MainWindow>().FirstOrDefault(),
