@@ -46,6 +46,7 @@ public partial class App : Application
         if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
         {
             desktop.MainWindow = new MainWindow();
+            MacAppMenu.Install(this, desktop);
             Updates = UpdateService.Create(
                 FileUpdateStateStore.BesideSettings(JsonSettingsRepository.DefaultFile(AppIdentity.FileName)),
                 owner: () => desktop.Windows.OfType<MainWindow>().FirstOrDefault(w => w.IsActive) ?? desktop.Windows.OfType<MainWindow>().FirstOrDefault(),

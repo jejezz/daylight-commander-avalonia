@@ -209,6 +209,12 @@ public sealed class EnglishStrings : IAppStrings
     public string EditorScDeleteLine => "Delete line";
 
     public string AboutTooltip => "About";
+    public string MacMenuAbout(string app) => $"About {app}";
+    public string MacMenuSettings => "Settings…";
+    public string MacMenuHide(string app) => $"Hide {app}";
+    public string MacMenuHideOthers => "Hide Others";
+    public string MacMenuShowAll => "Show All";
+    public string MacMenuQuit(string app) => $"Quit {app}";
     public string AboutTagline => "A free dual-pane desktop file manager in the style of Total Commander and Midnight Commander";
     public string AboutDescription => "A classic file manager built for fast keyboard-driven work, with a built-in viewer and editor and room for several windows side by side.";
     public string AboutVersion(string version, int build) => $"Version {version} (build {build})";
