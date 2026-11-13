@@ -212,6 +212,14 @@ public interface IAppStrings
 
     // 정보 창·속성
     string AboutTooltip { get; }
+
+    // macOS 앱 메뉴 (메뉴 막대의 앱 이름 메뉴) — macOS 표준 이름
+    string MacMenuAbout(string app);
+    string MacMenuSettings { get; }
+    string MacMenuHide(string app);
+    string MacMenuHideOthers { get; }
+    string MacMenuShowAll { get; }
+    string MacMenuQuit(string app);
     string AboutTagline { get; }
     string AboutDescription { get; }
     string AboutVersion(string version, int build);
