@@ -24,7 +24,12 @@ public partial class PaneView : UserControl
         InitializeComponent();
 
         // 패널 어디를 눌러도 이 패널이 활성 패널이 된다 (버튼이 이벤트를 먹어도 받도록 tunnel + handledEventsToo).
-        AddHandler(PointerPressedEvent, (_, _) => Vm?.RequestActivate(), RoutingStrategies.Tunnel, handledEventsToo: true);
+        // 글 입력 칸에 있던 초점도 이때 목록으로 옮긴다.
+        AddHandler(PointerPressedEvent, (_, e) =>
+        {
+            Vm?.RequestActivate();
+            LeaveTextBox(e.Source as Avalonia.Visual);
+        }, RoutingStrategies.Tunnel, handledEventsToo: true);
 
         // 행 클릭: 목록 컨트롤의 기본 선택 동작 대신 컨트롤러가 커서·선택을 정한다 (Ctrl 토글, Shift 범위).
         // 더블클릭은 Tapped 이벤트에 기대지 않고 ClickCount로 직접 판단한다.
@@ -92,6 +97,19 @@ public partial class PaneView : UserControl
 
     /// <summary>지금 보이는 목록 컨트롤 (목록 보기는 <c>Entries</c>, 격자 보기는 <c>Tiles</c>).</summary>
     ListBox ActiveList => Vm?.IsGrid == true ? Tiles : Entries;
+
+    /// <summary>
+    /// 글 입력 칸(경로 표시줄 등)에 키보드 초점이 있는데 그 칸 밖을 눌렀으면 초점을 이 패널의 목록으로 옮긴다.
+    /// 빈 곳·헤더·상태 표시줄처럼 스스로 초점을 받지 않는 곳을 눌러도 입력 칸에서 빠져나와 단축키가 듣게 한다.
+    /// 경로 표시줄이었다면 확정하지 않은 글은 그 패널의 현재 경로로 되돌린다 (Esc와 같음).
+    /// </summary>
+    void LeaveTextBox(Avalonia.Visual? source)
+    {
+        if (TopLevel.GetTopLevel(this)?.FocusManager?.GetFocusedElement() is not TextBox box) return;
+        if (source is not null && (ReferenceEquals(source, box) || box.IsVisualAncestorOf(source))) return;
+        if (box.Name == nameof(PathBox) && box.DataContext is PaneViewModel owner) owner.ResetPathTextCommand.Execute(null);
+        ActiveList.Focus();
+    }
 
     /// <summary>
     /// 눌린 곳의 항목 칸: 목록 보기는 <see cref="ListBoxItem"/>, 격자 보기는 타일(<c>Border.tile</c>).
