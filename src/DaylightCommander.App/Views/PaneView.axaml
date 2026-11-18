@@ -123,7 +123,8 @@
 
         <Grid Grid.Row="2">
             <!-- 선택(커서)은 컨트롤러가 정한다: 클릭은 코드 비하인드가 컨트롤러로 보내고, 목록은 따라 그리기만 한다 -->
-            <ListBox x:Name="Entries" ItemsSource="{Binding Items}" IsVisible="{Binding IsList}" SelectedItem="{Binding Cursor, Mode=OneWay}"
+            <!-- Focusable: Avalonia 12의 ListBox는 스스로 초점을 받지 않아 Focus()가 실패한다. 빈 곳을 누르거나 경로 표시줄에서 빠져나올 때 초점을 받게 한다 -->
+            <ListBox x:Name="Entries" Focusable="True" ItemsSource="{Binding Items}" IsVisible="{Binding IsList}" SelectedItem="{Binding Cursor, Mode=OneWay}"
                      Background="Transparent" BorderThickness="0" Padding="0" Classes="entries">
                 <ListBox.ItemTemplate>
                     <DataTemplate x:DataType="vm:EntryItem">
@@ -148,7 +149,7 @@
                 </ListBox.ItemTemplate>
             </ListBox>
             <!-- 격자 보기: 행 단위로 가상화한다. 한 행은 가로로 놓인 타일들. 타일 클릭·끌기는 코드 비하인드가 목록 보기와 같게 처리한다 -->
-            <ListBox x:Name="Tiles" ItemsSource="{Binding Rows}" IsVisible="{Binding IsGrid}"
+            <ListBox x:Name="Tiles" Focusable="True" ItemsSource="{Binding Rows}" IsVisible="{Binding IsGrid}"
                      Background="Transparent" BorderThickness="0" Padding="0" Classes="tiles">
                 <ListBox.ItemTemplate>
                     <DataTemplate x:DataType="vm:TileRow">
