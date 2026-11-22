@@ -108,7 +108,7 @@ Get it from the [Releases page](https://github.com/jejezz/daylight-commander-ava
 
 | OS | File |
 | --- | --- |
-| Windows 10/11 (x64) | `*-windows-x64-setup.exe` (installer) or `*-windows-x64.zip` (portable) |
+| Windows 10/11 (x64) | `*-windows-x64-setup.exe` (installer) |
 | macOS 11+ (Apple Silicon) | `*-macos-arm64.dmg` |
 | Linux (x64) | `*-linux-x64.tar.gz` |
 
